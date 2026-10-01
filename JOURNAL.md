@@ -15,7 +15,7 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
 - Résultat : rien de mesuré encore. Chiffres actuels toujours fuités (EEG 0,83 ; ECG AUC 0,97 en découpage aléatoire, 0,70 par enregistrement).
 - Bloquée sur : —
 - Appris : Sleep-EDF local = 16 personnes pour 28 enregistrements ; Apnea-ECG local = 31 enregistrements sur 35, sans correspondance personne publiée, sauf c05 = c06 (même enregistrement).
-- Écrit sans aide : non (séance de cadrage). La zone rouge commence à la prochaine séance : tâche 0.1.
+- Écrit sans aide : non. Tâche 0.1 (`somnia/subjects.py` + tests) écrite par l'assistant à ma demande, donc hors règle rouge : à refaire de mémoire demain (test de la page blanche) avant de passer à 0.2.
 
 ## 2026-10-__
 - Fait :
