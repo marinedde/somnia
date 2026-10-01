@@ -1,13 +1,10 @@
-# API
+# Somnia — dépendances de l'API déployée (Docker / HuggingFace / CI). Recherche locale : requirements-research.txt
 fastapi==0.115.0
 uvicorn[standard]==0.30.0
 pydantic==2.9.0
-
-# ML — versions avec wheels précompilés Python 3.13
-scikit-learn==1.5.2
-numpy==2.0.0
-scipy==1.14.0
+scikit-learn==1.7.1
+numpy==1.26.4
+scipy==1.13.1
 joblib==1.4.2
-
-# Monitoring
 python-dotenv==1.0.1
+requests==2.33.1

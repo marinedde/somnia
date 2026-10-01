@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements-api.txt
+          pip install -r requirements.txt
           pip install pytest pytest-cov httpx
 
       - name: Create dummy models for tests
@@ -121,7 +121,6 @@ jobs:
 
       - name: Build Docker image
         run: |
-          cp requirements-api.txt requirements.txt
           docker build -t sleepai-api:latest .
           echo "Docker build OK"
 
@@ -169,7 +168,6 @@ jobs:
           token = os.environ['HF_TOKEN']
           space = os.environ['HF_SPACE_API']
 
-          shutil.copy('requirements-api.txt', 'requirements.txt')
 
           api.upload_folder(
               folder_path  = '.',
@@ -182,7 +180,6 @@ jobs:
                   'streamlit_app.py', 'mlruns/',
                   'venv/', '.github/',
                   'README.md',
-                  'requirements-api.txt',
                   'requirements-dashboard.txt',
                   'requirements-dev.txt',
                   'python_scripts/',
@@ -242,7 +239,6 @@ jobs:
                   'Dockerfile',
                   'app/', 'models/',
                   'README.md',
-                  'requirements-api.txt',
                   'requirements-dashboard.txt',
                   'requirements-dev.txt',
                   'python_scripts/',

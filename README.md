@@ -29,7 +29,7 @@ sleepai/
 ├── data/demo/                  # Signaux démo (.npy)
 ├── python_scripts/             # Scripts utilitaires
 ├── Dockerfile                  # Containerisation API
-├── requirements-api.txt        # Dépendances API
+├── requirements.txt            # Dépendances API
 ├── requirements-dashboard.txt  # Dépendances dashboard
 └── .github/workflows/ci.yml    # CI/CD GitHub Actions
 ```
@@ -160,7 +160,7 @@ git clone https://github.com/marinedde/sleepai
 cd sleepai
 
 # API
-pip install -r requirements-api.txt
+pip install -r requirements.txt
 uvicorn app.main:app --reload
 
 # Dashboard
