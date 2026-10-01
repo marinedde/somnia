@@ -35,3 +35,4 @@ shhs/
 # Les fichiers de découpage contiennent des identifiants de participants :
 # à publier seulement si l'accord le permet (voir docs/PLAN_REPRISE.md).
 data/splits/
+notebooks/mlruns/

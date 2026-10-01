@@ -170,37 +170,8 @@ jobs:
       - name: Deploy API to HuggingFace
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          python - << 'PYEOF'
-          from huggingface_hub import HfApi
-          import os, shutil
-
-          api   = HfApi()
-          token = os.environ['HF_TOKEN']
-          space = os.environ['HF_SPACE_API']
-
-
-          api.upload_folder(
-              folder_path  = '.',
-              repo_id      = space,
-              repo_type    = 'space',
-              token        = token,
-              ignore_patterns = [
-                  '.git*', '__pycache__', '*.pyc',
-                  'tests/', 'notebooks/', 'data/',
-                  'streamlit_app.py', 'mlruns/',
-                  'venv/', '.github/',
-                  'README.md',
-                  'requirements-dashboard.txt',
-                  'requirements-dev.txt',
-                  'python_scripts/',
-                  '.hf_readme_api.md',
-                  '.hf_readme_dashboard.md',
-                  '.DS_Store',
-              ],
-          )
-          print(f'API deployee : https://huggingface.co/spaces/{space}')
-          PYEOF
+        # Liste blanche + suppression du reste : voir python_scripts/deploy_hf.py
+        run: python python_scripts/deploy_hf.py api
 
   # ── Job 4 : Deploy Dashboard → HuggingFace ──────────────────────────────
   deploy-dashboard:
@@ -224,42 +195,8 @@ jobs:
       - name: Deploy Dashboard to HuggingFace
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          python - << 'PYEOF'
-          from huggingface_hub import HfApi
-          import os, shutil
-
-          api   = HfApi()
-          token = os.environ['HF_TOKEN']
-          space = os.environ['HF_SPACE_DASH']
-
-          shutil.copy('requirements-dashboard.txt', 'requirements.txt')
-
-          api.upload_folder(
-              folder_path  = '.',
-              repo_id      = space,
-              repo_type    = 'space',
-              token        = token,
-              ignore_patterns = [
-                  '.git*', '__pycache__', '*.pyc',
-                  'tests/', 'notebooks/',
-                  'data/raw/', 'data/raw_apnea/',
-                  'data/processed/',
-                  'data/figures/',
-                  'mlruns/', 'venv/', '.github/',
-                  'Dockerfile',
-                  'app/', 'models/',
-                  'README.md',
-                  'requirements-dashboard.txt',
-                  'requirements-dev.txt',
-                  'python_scripts/',
-                  '.hf_readme_api.md',
-                  '.hf_readme_dashboard.md',
-                  '.DS_Store',
-              ],
-          )
-          print(f'Dashboard deploye : https://huggingface.co/spaces/{space}')
-          PYEOF
+        # Liste blanche + suppression du reste : voir python_scripts/deploy_hf.py
+        run: python python_scripts/deploy_hf.py dashboard
 
   # ── Notification ─────────────────────────────────────────────────────────
   notify:
