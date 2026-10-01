@@ -1,5 +1,5 @@
 """
-API FastAPI — SleepAI
+API FastAPI — Somnia
 
 Deux tâches :
 - /predict/sleep-stage : Classification EEG → 5 stades de sommeil
@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 
 # ─── Chemins modèles ────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).parent.parent
-EEG_MODEL_PATH = PROJECT_ROOT / "models" / "sleepai_eeg_pipeline.joblib"
-ECG_MODEL_PATH = PROJECT_ROOT / "models" / "sleepai_ecg_pipeline.joblib"
+EEG_MODEL_PATH = PROJECT_ROOT / "models" / "somnia_eeg_pipeline.joblib"
+ECG_MODEL_PATH = PROJECT_ROOT / "models" / "somnia_ecg_pipeline.joblib"
 
 # ─── Instances globales ─────────────────────────────────────────────────────
 eeg_model : SleepStageClassifier = None
@@ -50,7 +50,7 @@ validations: ValidationStore     = ValidationStore()
 async def lifespan(app: FastAPI):
     global eeg_model, ecg_model
 
-    logger.info("🚀 Démarrage SleepAI...")
+    logger.info("🚀 Démarrage Somnia...")
 
     # Chargement modèle EEG
     try:
@@ -68,14 +68,14 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    logger.info("Arrêt SleepAI v2")
+    logger.info("Arrêt Somnia v2")
 
 
 # ─── Application ─────────────────────────────────────────────────────────────
 app = FastAPI(
-    title       = "SleepAI API",
+    title       = "Somnia API",
     description = """
-## SleepAI — API de classification du sommeil
+## Somnia — API de classification du sommeil
 
 Deux modèles de détection automatique basés sur des signaux physiologiques :
 
@@ -113,7 +113,7 @@ app.add_middleware(
 @app.get("/", tags=["Root"])
 async def root():
     return {
-        "message" : "Bienvenue sur SleepAI API",
+        "message" : "Bienvenue sur Somnia API",
         "version" : "2.0.0",
         "endpoints": {
             "sleep_stage" : "POST /predict/sleep-stage",

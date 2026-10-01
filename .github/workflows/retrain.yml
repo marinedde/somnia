@@ -1,6 +1,6 @@
-# Réentraînement manuel SleepAI (nécessite data/processed/ sur le runner ou self-hosted)
+# Réentraînement manuel Somnia (nécessite data/processed/ sur le runner ou self-hosted)
 
-name: SleepAI Retrain
+name: Somnia Retrain
 
 on:
   workflow_dispatch:
@@ -39,7 +39,7 @@ jobs:
       - name: Upload artefacts (modèles + baseline)
         uses: actions/upload-artifact@v4
         with:
-          name: sleepai-models
+          name: somnia-models
           path: |
             models/*.joblib
             models/baseline_stats.json

@@ -1,5 +1,5 @@
 """
-SleepAI — Dashboard Streamlit
+Somnia — Dashboard Streamlit
 Fil rouge : 4h d'analyse manuelle → quelques secondes
 """
 
@@ -17,13 +17,13 @@ from scipy.signal import welch
 
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="SleepAI — Analyse du Sommeil et détection de l'apnéé du sommeil",
+    page_title="Somnia — Analyse du Sommeil et détection de l'apnéé du sommeil",
     page_icon="🌙",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-API_URL  = "https://marinedde-sleepai-api.hf.space"
+API_URL  = "https://marinedde-somnia-api.hf.space"
 DEMO_DIR = Path("data/demo")
 
 STAGE_COLORS = {
@@ -336,7 +336,7 @@ Maximum 350 mots."""
     sexe = patient_info.get('sexe','N/A')
     imc  = patient_info.get('imc','N/A')
     lines = [
-        "**RAPPORT D'ANALYSE SOMMEIL — SleepAI**",
+        "**RAPPORT D'ANALYSE SOMMEIL — Somnia**",
         f"*Patient : {age} ans, {sexe}, IMC {imc}*", "",
         "**1. Résumé exécutif**",
     ]
@@ -374,7 +374,7 @@ with st.sidebar:
     <div style='text-align:center; padding:0.5rem 0 1.2rem 0;'>
         <div style='font-size:2.2rem; margin-bottom:4px;'>🌙</div>
         <div style='font-family:"DM Serif Display",serif; font-size:1.6rem;
-                    color:#1B2A4A; font-weight:400; line-height:1;'>SleepAI</div>
+                    color:#1B2A4A; font-weight:400; line-height:1;'>Somnia</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -418,9 +418,9 @@ if page == "🏠 Accueil":
     st.markdown("""
     <div class="hero">
         <div style='font-size:2.8rem;'>🌙</div>
-        <h1>SleepAI</h1>
+        <h1>Somnia</h1>
         <div class="description">
-            SleepAI analyse automatiquement les signaux physiologiques nocturnes — EEG et ECG —
+            Somnia analyse automatiquement les signaux physiologiques nocturnes — EEG et ECG —
             pour classifier les stades de sommeil et détecter l'apnée du sommeil.
             L'objectif : rendre l'analyse polysomnographique accessible et instantanée,
             que vous soyez clinicien, chercheur ou en formation.
@@ -477,7 +477,7 @@ if page == "🏠 Accueil":
 sous-diagnostiquée. Une polysomnographie standard nécessite une nuit d'enregistrement
 et **4 à 6 heures d'analyse manuelle** par un technicien qualifié.
 
-SleepAI combine deux analyses complémentaires :
+Somnia combine deux analyses complémentaires :
 
 - **EEG (Electroencéphalogramme)** : caractérise l'architecture du sommeil via les
   ondes cérébrales. Le modèle Random Forest atteint 83% de précision sur 5 stades
@@ -487,11 +487,11 @@ SleepAI combine deux analyses complémentaires :
   cardiaque (HRV), les intervalles RR et la morphologie QRS. AUC-ROC 0.967
   (Apnea-ECG, 35 sujets, PhysioNet).
 
-⚠️ SleepAI est un outil d'aide à la décision. Le diagnostic reste de la responsabilité du médecin.
+⚠️ Somnia est un outil d'aide à la décision. Le diagnostic reste de la responsabilité du médecin.
         """)
     with cr:
         fig_t, ax_t = plt.subplots(figsize=(5,3.5), facecolor='white')
-        ax_t.barh(['Analyse\nmanuelle','SleepAI'], [240, 0.033],
+        ax_t.barh(['Analyse\nmanuelle','Somnia'], [240, 0.033],
                    color=['#DEE2E6','#048A81'], height=0.45, edgecolor='none')
         ax_t.bar_label(ax_t.containers[0], labels=['4 heures','< 2 secondes'],
                        padding=6, fontsize=10, fontweight='bold', color='#495057')
@@ -516,7 +516,7 @@ SleepAI combine deux analyses complémentaires :
 
     st.markdown("""
     <div class="med-alert">
-        ⚠️ <b>Avertissement médical :</b> SleepAI est un dispositif d'aide à la décision clinique.
+        ⚠️ <b>Avertissement médical :</b> Somnia est un dispositif d'aide à la décision clinique.
         Il ne se substitue pas au diagnostic médical. Toute décision thérapeutique doit être
         validée par un médecin qualifié. Les performances sont issues de datasets de recherche
         et peuvent varier en conditions cliniques réelles.
@@ -920,7 +920,7 @@ elif page == "📊 Rapport complet":
             with d1:
                 st.download_button("📄 Télécharger (.txt)",
                     data=st.session_state['rapport'],
-                    file_name=f"rapport_sleepai_{p_age}ans.txt",
+                    file_name=f"rapport_somnia_{p_age}ans.txt",
                     mime="text/plain", use_container_width=True)
             with d2:
                 export = {"patient":patient_info,
@@ -929,7 +929,7 @@ elif page == "📊 Rapport complet":
                           "rapport":st.session_state.get('rapport','')}
                 st.download_button("📊 Exporter (.json)",
                     data=json.dumps(export, indent=2, ensure_ascii=False),
-                    file_name=f"sleepai_data_{p_age}ans.json",
+                    file_name=f"somnia_data_{p_age}ans.json",
                     mime="application/json", use_container_width=True)
 
         st.markdown("""<div class="med-alert">

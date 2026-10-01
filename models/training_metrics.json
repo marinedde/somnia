@@ -3,7 +3,7 @@
   "eeg": null,
   "ecg": {
     "task": "ecg",
-    "model_path": "models/sleepai_ecg_pipeline.joblib",
+    "model_path": "models/somnia_ecg_pipeline.joblib",
     "val": {
       "accuracy": 0.8994265549183944,
       "f1_apnea": 0.8714768883878241,

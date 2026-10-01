@@ -1,5 +1,5 @@
 """
-Monitoring simple pour SleepAI.
+Monitoring simple pour Somnia.
 
 Enregistre les prédictions en mémoire et fournit des statistiques.
 Pas de base de données — adapté pour un déploiement HuggingFace Spaces.

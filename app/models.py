@@ -1,5 +1,5 @@
 """
-Schemas Pydantic pour l'API SleepAI.
+Schemas Pydantic pour l'API Somnia.
 
 Définit les modèles de requête et réponse pour :
 - /predict/sleep-stage (EEG → 5 stades)
@@ -138,7 +138,7 @@ class MonitoringStatsResponse(BaseModel):
 
 
 class ClinicalValidationRequest(BaseModel):
-    """Validation médecin sur une prédiction SleepAI."""
+    """Validation médecin sur une prédiction Somnia."""
     task: str = Field(..., description="sleep_stage ou apnea")
     model_prediction: str
     model_confidence: float = Field(..., ge=0.0, le=1.0)

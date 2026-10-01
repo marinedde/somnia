@@ -1,5 +1,5 @@
 """
-Tests de l'API SleepAI.
+Tests de l'API Somnia.
 Vérifie les endpoints principaux et la validation des inputs.
 """
 

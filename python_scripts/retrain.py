@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Réentraînement automatisé des modèles SleepAI (EEG + ECG).
+Réentraînement automatisé des modèles Somnia (EEG + ECG).
 
 Prérequis : données prétraitées dans data/processed/ (notebook 02).
 
@@ -195,7 +195,7 @@ def save_artifacts(eeg_result: dict | None, ecg_result: dict | None) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Réentraînement SleepAI")
+    parser = argparse.ArgumentParser(description="Réentraînement Somnia")
     parser.add_argument(
         "--task",
         choices=["all", "eeg", "ecg"],
@@ -243,7 +243,7 @@ def main() -> int:
             eeg_result = train_multiclass(
                 "eeg",
                 DATA_EEG,
-                MODELS_DIR / "sleepai_eeg_pipeline.joblib",
+                MODELS_DIR / "somnia_eeg_pipeline.joblib",
                 args.min_accuracy,
             )
             print(f"Val  : {eeg_result['val']}")
@@ -254,7 +254,7 @@ def main() -> int:
             ecg_result = train_binary(
                 "ecg",
                 DATA_ECG,
-                MODELS_DIR / "sleepai_ecg_pipeline.joblib",
+                MODELS_DIR / "somnia_ecg_pipeline.joblib",
                 args.min_auc,
             )
             print(f"Val  : {ecg_result['val']}")

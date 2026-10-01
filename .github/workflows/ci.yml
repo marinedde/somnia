@@ -1,7 +1,7 @@
-# SleepAI — CI/CD Pipeline
+# Somnia — CI/CD Pipeline
 # Tests → Deploy API → Deploy Dashboard
 
-name: SleepAI CI/CD
+name: Somnia CI/CD
 
 on:
   push:
@@ -11,8 +11,8 @@ on:
 
 env:
   PYTHON_VERSION: "3.10"
-  HF_SPACE_API:   "marinedde/sleepai-api"
-  HF_SPACE_DASH:  "marinedde/sleepai-dashboard"
+  HF_SPACE_API:   "marinedde/somnia-api"
+  HF_SPACE_DASH:  "marinedde/somnia-dashboard"
 
 jobs:
 
@@ -54,14 +54,14 @@ jobs:
           ])
           X = np.random.randn(50, 16)
           pipe_eeg.fit(X, np.random.randint(0, 5, 50))
-          joblib.dump(pipe_eeg, 'models/sleepai_eeg_pipeline.joblib')
+          joblib.dump(pipe_eeg, 'models/somnia_eeg_pipeline.joblib')
 
           pipe_ecg = Pipeline([
               ('scaler', StandardScaler()),
               ('clf', RandomForestClassifier(n_estimators=2, random_state=42))
           ])
           pipe_ecg.fit(X, np.random.randint(0, 2, 50))
-          joblib.dump(pipe_ecg, 'models/sleepai_ecg_pipeline.joblib')
+          joblib.dump(pipe_ecg, 'models/somnia_ecg_pipeline.joblib')
 
           print('Dummy models crees')
           PYEOF
@@ -113,23 +113,23 @@ jobs:
                            ('clf', RandomForestClassifier(n_estimators=2))])
           X = np.random.randn(20, 16)
           pipe.fit(X, np.random.randint(0, 5, 20))
-          joblib.dump(pipe, 'models/sleepai_eeg_pipeline.joblib')
+          joblib.dump(pipe, 'models/somnia_eeg_pipeline.joblib')
           pipe.fit(X, np.random.randint(0, 2, 20))
-          joblib.dump(pipe, 'models/sleepai_ecg_pipeline.joblib')
+          joblib.dump(pipe, 'models/somnia_ecg_pipeline.joblib')
           print('Dummy models crees')
           PYEOF
 
       - name: Build Docker image
         run: |
-          docker build -t sleepai-api:latest .
+          docker build -t somnia-api:latest .
           echo "Docker build OK"
 
       - name: Test Docker container
         run: |
-          docker run -d --name sleepai-test -p 7860:7860 sleepai-api:latest
+          docker run -d --name somnia-test -p 7860:7860 somnia-api:latest
           sleep 15
-          curl -f http://localhost:7860/health || (docker logs sleepai-test && exit 1)
-          docker stop sleepai-test
+          curl -f http://localhost:7860/health || (docker logs somnia-test && exit 1)
+          docker stop somnia-test
           echo "Container health check OK"
 
   # ── Job 3 : Deploy API → HuggingFace ────────────────────────────────────
@@ -147,6 +147,17 @@ jobs:
 
       - name: Pull LFS objects (real model binaries)
         run: git lfs pull
+
+      - name: Vérifier les modèles (.joblib LFS)
+        run: |
+          for f in models/somnia_eeg_pipeline.joblib models/somnia_ecg_pipeline.joblib; do
+            size=$(wc -c < "$f" | tr -d ' ')
+            echo "$f : ${size} octets"
+            if [ "$size" -lt 1000000 ]; then
+              echo "ERREUR: $f trop petit — Git LFS non récupéré (fichier pointer)."
+              exit 1
+            fi
+          done
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -260,6 +271,6 @@ jobs:
     steps:
       - name: Resume
         run: |
-          echo "SleepAI - Deploiement termine"
+          echo "Somnia - Deploiement termine"
           echo "API       : https://huggingface.co/spaces/${{ env.HF_SPACE_API }}"
           echo "Dashboard : https://huggingface.co/spaces/${{ env.HF_SPACE_DASH }}"

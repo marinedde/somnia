@@ -1,4 +1,4 @@
-# 🧠 SleepAI — Pipeline MLOps pour l'Analyse Polysomnographique
+# 🧠 Somnia — Pipeline MLOps pour l'Analyse Polysomnographique
 
 > Pipeline MLOps complet pour la classification automatique des stades de sommeil (EEG) et la détection d'apnées du sommeil (ECG).
 
@@ -10,15 +10,15 @@
 
 | Composant | URL |
 |-----------|-----|
-| 🔬 API FastAPI | [marinedde-sleepai-api.hf.space](https://marinedde-sleepai-api.hf.space/docs) |
-| 🧠 Dashboard Streamlit | [marinedde-sleepai-dashboard.hf.space](https://marinedde-sleepai-dashboard.hf.space) |
+| 🔬 API FastAPI | [marinedde-somnia-api.hf.space](https://marinedde-somnia-api.hf.space/docs) |
+| 🧠 Dashboard Streamlit | [marinedde-somnia-dashboard.hf.space](https://marinedde-somnia-dashboard.hf.space) |
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-sleepai/
+somnia/
 ├── app/                        # API FastAPI
 │   └── main.py                 # Endpoints REST + monitoring drift
 ├── streamlit_app.py            # Dashboard (EEG + ECG + rapport IA + validation clinique)
@@ -93,7 +93,7 @@ python python_scripts/retrain.py --dry-run    # Vérifier les données
 ```
 
 Produit :
-- `models/sleepai_eeg_pipeline.joblib` / `models/sleepai_ecg_pipeline.joblib`
+- `models/somnia_eeg_pipeline.joblib` / `models/somnia_ecg_pipeline.joblib`
 - `models/baseline_stats.json` — référence pour le drift des features
 - `models/training_metrics.json` — métriques val/test
 
@@ -156,8 +156,8 @@ Placer les fichiers `.edf` dans `data/raw/` avant de lancer les notebooks.
 ## ▶️ Installation locale
 
 ```bash
-git clone https://github.com/marinedde/sleepai
-cd sleepai
+git clone https://github.com/marinedde/somnia
+cd somnia
 
 # API
 pip install -r requirements.txt

@@ -8,7 +8,7 @@ from datetime import datetime
 
 # Configuration de la page
 st.set_page_config(
-    page_title="SleepAI - Analyse Polysomnographique",
+    page_title="Somnia - Analyse Polysomnographique",
     page_icon="🏥",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -57,10 +57,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # URL de l'API
-API_URL = "https://sleepai-api.onrender.com"
+API_URL = "https://somnia-api.onrender.com"
 
 # Titre principal avec design médical
-st.markdown('<h1 class="main-header">🏥 SleepAI - Système d\'Analyse Polysomnographique</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">🏥 Somnia - Système d\'Analyse Polysomnographique</h1>', unsafe_allow_html=True)
 st.markdown("### *Classification Automatique des Stades de Sommeil par Intelligence Artificielle*")
 st.markdown("---")
 
@@ -482,7 +482,7 @@ with tab3:
     st.markdown("""
     ### 🎯 Objectif Clinique
     
-    SleepAI est un système d'aide au diagnostic pour l'analyse automatisée des polysomnographies.
+    Somnia est un système d'aide au diagnostic pour l'analyse automatisée des polysomnographies.
     Le système classifie les signaux EEG en 5 stades de sommeil selon la classification AASM.
     
     ### 🏥 Stades de Sommeil (AASM)
@@ -597,8 +597,8 @@ with tab4:
     
     ### 🔗 Liens Utiles
     
-    - [GitHub Repository](https://github.com/marinedde/sleepai)
-    - [API Documentation](https://sleepai-api.onrender.com/docs)
+    - [GitHub Repository](https://github.com/marinedde/somnia)
+    - [API Documentation](https://somnia-api.onrender.com/docs)
     - [Dataset Sleep-EDF](https://physionet.org/content/sleep-edfx/1.0.0/)
     """)
 
@@ -607,7 +607,7 @@ st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #6b7280; padding: 2rem; background-color: #f9fafb; border-radius: 8px;">
     <p style="font-size: 0.9em; margin: 0;">
-        🏥 <b>SleepAI</b> - Système d'Analyse Polysomnographique par Intelligence Artificielle
+        🏥 <b>Somnia</b> - Système d'Analyse Polysomnographique par Intelligence Artificielle
     </p>
     <p style="font-size: 0.8em; margin: 0.5rem 0 0 0;">
         Développé par <b>Marine Deldicque</b> | Jedha Bootcamp 2025 | Version 1.0.0
