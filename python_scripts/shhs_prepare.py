@@ -36,6 +36,23 @@ RAW = Path(os.environ.get("SHHS_DIR", Path.home() / "data" / "shhs" / "raw"))
 PROCESSED = Path(os.environ.get("SHHS_PROCESSED", Path.home() / "data" / "shhs" / "processed"))
 
 
+CATEGORIES = [
+    ("XML illisible", "fichier d'annotations illisible"),
+    ("EDF illisible", "fichier de signal illisible"),
+    ("canal manquant", "canal EEG ou ECG absent"),
+    ("sommeil scoré", "moins de 4 h de sommeil scoré"),
+    ("ECG plat", "ECG plat sur plus de 50 % des époques"),
+]
+
+
+def _categorie(motif: str) -> str:
+    """'sommeil scoré 3.3 h < 4.0 h' -> 'moins de 4 h de sommeil scoré' (une ligne par règle)."""
+    for debut, nom in CATEGORIES:
+        if motif.startswith(debut):
+            return nom
+    return motif or "autre"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--raw", default=str(RAW))
@@ -83,7 +100,7 @@ def main() -> int:
             w.writerow({c: l.get(c, "") for c in colonnes})
 
     retenues = [l for l in lignes if str(l.get("exclue")) != "True"]
-    motifs = Counter(str(l.get("motif_exclusion", "")).split(" (")[0].split(" sur ")[0]
+    motifs = Counter(_categorie(str(l.get("motif_exclusion", "")))
                      for l in lignes if str(l.get("exclue")) == "True")
     cohorte = {
         "nuits_telechargees": len(edfs),

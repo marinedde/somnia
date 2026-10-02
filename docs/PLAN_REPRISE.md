@@ -229,8 +229,14 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 > heure de sommeil). Chaîne validée sur le pilote : 8 nuits retenues sur 9, une exclue pour
 > 3 h de sommeil. Téléchargement des 300 nuits lancé le 2 octobre (~10 h).
 >
-> Enchaînement une fois le téléchargement fini :
-> `shhs_prepare.py` → `shhs_make_split.py` → diagramme de cohorte dans le README.
+> **Étape 2 terminée le 3 octobre.** 297 nuits téléchargées (11 Go ; la connexion du soir est
+> tombée à 25-100 ko/s et le téléchargeur a été réécrit pour survivre aux coupures),
+> 272 retenues, 25 exclues pour moins de 4 h de sommeil scoré. 272 598 époques, 27 % avec
+> apnée ou hypopnée. Fichiers préparés : 2,7 Go. Découpage `data/splits/shhs_v1.json`
+> (hors git) : 192 / 40 / 40 personnes, stratifié sur la charge d'événements annotés.
+> Attention : cette charge (médiane 40/h) dépasse l'index clinique SHHS, qui exige une
+> désaturation pour compter une hypopnée ; c'est une stratification, pas un diagnostic.
+> Diagramme de cohorte dans le README.
 
 - Un seul fichier de découpage pour les deux tâches. Stratifie au moins sur la sévérité (index d'apnées de SHHS, disponible dans les tables de covariables) : sinon ton test peut n'avoir aucun cas sévère.
 - Le fichier contient des identifiants de participants : garde-le dans `data/splits/` (ignoré par git) tant que tu n'as pas relu l'accord. Publie les effectifs et la graine.

@@ -32,6 +32,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from somnia.shhs import lire_annotations, resume  # noqa: E402
 from somnia.splits import decouper_par_personne, sauvegarder_decoupage, verifier_decoupage  # noqa: E402
 
 PROCESSED = Path(os.environ.get("SHHS_PROCESSED", Path.home() / "data" / "shhs" / "processed"))
@@ -68,6 +69,7 @@ def decouper_stratifie(personne_vers_strate: dict[str, str], graine: int,
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--processed", default=str(PROCESSED))
+    parser.add_argument("--raw", default=str(Path(os.environ.get("SHHS_DIR", Path.home() / "data" / "shhs" / "raw"))))
     parser.add_argument("--version", type=int, default=1)
     parser.add_argument("--graine", type=int, default=42)
     parser.add_argument("--part-val", type=float, default=0.15)
@@ -81,15 +83,24 @@ def main() -> int:
     if not lignes:
         sys.exit("aucune nuit retenue dans cohorte.csv")
 
-    # Une personne peut avoir plusieurs nuits : sévérité = moyenne de ses nuits
+    # Index d'apnées-hypopnées estimé : ÉVÉNEMENTS (apnées + hypopnées) par heure de sommeil,
+    # lus dans les XML. (Pas des époques : une époque peut contenir plusieurs événements, et
+    # compter des époques surestime fortement la sévérité.)
+    xmls = {x.name.replace("-nsrr.xml", ""): x for x in Path(args.raw).expanduser().rglob("*-nsrr.xml")}
     iah_par_personne = defaultdict(list)
     for r in lignes:
-        h = float(r["temps_sommeil_h"])
-        iah_par_personne[r["personne"]].append(int(r["n_apnee_epoques"]) / h if h > 0 else 0.0)
-    strates = {p: severite(sum(v) / len(v)) for p, v in iah_par_personne.items()}
+        if r["enregistrement"] not in xmls:
+            sys.exit(f"XML introuvable pour {r['enregistrement']} sous {args.raw}")
+        iah_par_personne[r["personne"]].append(resume(lire_annotations(xmls[r["enregistrement"]]))["iah_estime"] or 0.0)
+    # Une personne peut avoir plusieurs nuits : sévérité = moyenne de ses nuits
+    iah = {p: sum(v) / len(v) for p, v in iah_par_personne.items()}
+    strates = {p: severite(x) for p, x in iah.items()}
+    valeurs = sorted(iah.values())
 
     print(f"{len(lignes)} nuits retenues, {len(strates)} personnes")
-    print("  sévérité (époques d'apnée / h de sommeil) :", dict(Counter(strates.values())))
+    print(f"  IAH estimé (événements / h de sommeil) : médiane {valeurs[len(valeurs)//2]:.1f}, "
+          f"quartiles {valeurs[len(valeurs)//4]:.1f} – {valeurs[3*len(valeurs)//4]:.1f}, max {valeurs[-1]:.1f}")
+    print("  sévérité :", dict(Counter(strates.values())))
     dec = decouper_stratifie(strates, args.graine, args.part_val, args.part_test)
     for k, v in dec.items():
         print(f"  {k:5s} : {len(v):4d} personnes  {dict(Counter(strates[p] for p in v))}")
@@ -100,7 +111,7 @@ def main() -> int:
     contenu = {
         "nom": f"shhs_v{args.version}", "cree_le": date.today().isoformat(), "graine": args.graine,
         "parts": {"val": args.part_val, "test": args.part_test},
-        "stratification": "sévérité estimée depuis les annotations : <5, 5-15, 15-30, ≥30 époques d'apnée / h",
+        "stratification": "IAH estimé depuis les annotations (apnées + hypopnées par heure de sommeil) : <5, 5-15, 15-30, ≥30",
         "regle": "découpage sur l'identifiant de la PERSONNE (nsrrid), visites confondues",
         "effectifs": {k: len(v) for k, v in dec.items()},
         "taches": {"shhs": dec},

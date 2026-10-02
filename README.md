@@ -93,9 +93,47 @@ Les données ne sont pas dans le dépôt.
 |---|---|---|
 | Sleep-EDF Expanded | [PhysioNet](https://physionet.org/content/sleep-edfx/1.0.0/) | 28 nuits `SC*`, canal EEG Fpz-Cz à 100 Hz, époques de 30 s, 5 stades (3 et 4 fusionnés en N3). L'éveil avant l'endormissement et après le réveil est retiré |
 | Apnea-ECG | [PhysioNet](https://physionet.org/content/apnea-ecg/1.0.0/) | 31 enregistrements avec annotations, ECG à 100 Hz, minutes étiquetées apnée / normal |
-| SHHS | [NSRR](https://sleepdata.org/datasets/shhs) | Accès obtenu. Aucune donnée SHHS n'est, ni ne sera, dans ce dépôt ou dans la démo |
+| SHHS | [NSRR](https://sleepdata.org/datasets/shhs) | Visite 1, nuits 200001 à 200300 : EEG C4-A1 et ECG ramenés à 100 Hz, époques de 30 s, stades et événements des XML NSRR. Aucune donnée SHHS n'est, ni ne sera, dans ce dépôt ou dans la démo |
 
-Placer les fichiers Sleep-EDF dans `data/raw/` et Apnea-ECG dans `data/raw_apnea/`.
+Placer les fichiers Sleep-EDF dans `data/raw/` et Apnea-ECG dans `data/raw_apnea/`. Les
+fichiers SHHS vivent hors du dépôt (`~/data/shhs`, voir `python_scripts/shhs_download.py`).
+
+### Cohorte SHHS (octobre 2026)
+
+Règles d'exclusion écrites avant de regarder les résultats : fichier illisible, canal EEG ou
+ECG absent, moins de 4 h de sommeil scoré, ECG plat sur plus de 50 % des époques.
+
+```
+ Nuits téléchargées (shhs1-200001 à 200300, 3 identifiants inexistants)   n = 297
+     │
+     ├─ retirées : fichier illisible                                       n = 0
+     ├─ retirées : canal EEG ou ECG absent                                 n = 0
+     ├─ retirées : moins de 4 h de sommeil scoré                           n = 25
+     ├─ retirées : ECG plat sur plus de 50 % des époques                   n = 0
+     │
+ Nuits retenues = personnes (une nuit par personne en visite 1)            n = 272
+ Époques de 30 s : 272 598, dont 73 324 avec apnée ou hypopnée (27 %)
+     │
+     ├─ entraînement                                                       n = 192
+     ├─ validation                                                         n = 40
+     └─ test (ouvert une fois, à la fin)                                   n = 40
+```
+
+Le découpage est fait par personne, une fois, avec une graine fixe, stratifié sur la charge
+d'événements respiratoires (apnées et hypopnées annotées par heure de sommeil : < 5, 5-15,
+15-30, ≥ 30). Le fichier de découpage contient des identifiants de participants et reste hors
+du dépôt ; seuls les effectifs sont publiés.
+
+Deux précisions honnêtes :
+
+- L'étiquette « apnée » d'une époque compte les apnées obstructives, centrales et mixtes
+  **et les hypopnées**, dès que ces événements couvrent au moins 10 s des 30 s. Les hypopnées
+  sont dix fois plus nombreuses que les apnées obstructives : ce choix pèse lourd.
+- La charge d'événements calculée depuis les annotations NSRR (médiane 40 par heure dans
+  cette cohorte) est **plus élevée que l'index clinique** publié par SHHS, qui ne compte les
+  hypopnées qu'avec une désaturation associée. Elle sert ici à stratifier, pas à poser un
+  diagnostic. L'index clinique et les covariables (âge, sexe, IMC) seront pris dans les
+  tables SHHS pour les analyses par sous-groupe.
 
 ---
 

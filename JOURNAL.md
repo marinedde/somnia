@@ -50,6 +50,17 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
   4 h de sommeil scoré.
 - Écrit sans aide : non (assistant). Page blanche à faire : `somnia/shhs_prepare.py`.
 
+## 2026-10-03 — étape 2 terminée
+- Fait : 297 nuits téléchargées (téléchargeur réécrit après un blocage : flux, délai, reprise, MD5) ; préparation
+  des 297 nuits en 10 min ; découpage par personne stratifié, figé en v1 (hors git) ; diagramme de cohorte dans le README.
+- Résultat : 272 nuits retenues, 25 exclues (< 4 h de sommeil scoré) ; 272 598 époques, 27 % avec apnée/hypopnée ;
+  192 / 40 / 40 personnes.
+- Bloquée sur : —
+- Appris : compter des époques d'apnée par heure surestime la sévérité (183 « sévères » sur 272) ; même par
+  événements, l'index annoté NSRR (médiane 40/h) dépasse l'index clinique SHHS, qui exige une désaturation.
+  La connexion du soir divise le débit par 10 : lancer les gros téléchargements l'après-midi.
+- Écrit sans aide : non (assistant). Page blanche à faire : `shhs_make_split.py` (stratification) après `shhs_prepare.py`.
+
 ## 2026-10-__
 - Fait :
 - Résultat :
