@@ -61,6 +61,18 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
   La connexion du soir divise le débit par 10 : lancer les gros téléchargements l'après-midi.
 - Écrit sans aide : non (assistant). Page blanche à faire : `shhs_make_split.py` (stratification) après `shhs_prepare.py`.
 
+## 2026-10-03 (suite) — EDA SHHS avant l'étape 3
+- Fait : EDA des 272 nuits préparées (`shhs_eda.py` → `docs/EDA_SHHS.md`, deux figures agrégées) : amplitudes par
+  époque, stades par nuit, équilibre par ensemble, valeurs aberrantes avec seuils écrits avant de regarder.
+- Résultat : stades Wake 28 % / N1 3 % / N2 42 % / N3 13 % / REM 13 %, même répartition dans train, val et test ;
+  30 % d'époques « apnée » pendant le sommeil ; EEG saturé (butée ±125 µV) sur 6,7 % des époques, ECG saturé sur
+  2,6 % ; 19 nuits avec plus de 20 % d'époques aberrantes.
+- Bloquée sur : —
+- Appris : mon premier seuil « EEG extrême > 200 µV » ne pouvait rien voir, la plage physique est ±125 µV : il faut
+  lire l'en-tête EDF avant de fixer un seuil. La saturation EEG est à 17 % en éveil contre 2-3 % en sommeil :
+  mouvements et yeux, pas ondes lentes. Les époques aberrantes restent dans les données, marquées.
+- Écrit sans aide : non (assistant).
+
 ## 2026-10-__
 - Fait :
 - Résultat :
