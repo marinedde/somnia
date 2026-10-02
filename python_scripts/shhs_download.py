@@ -76,10 +76,23 @@ def main() -> int:
         print("[dry-run] rien téléchargé." + ("" if token else " (NSRR_TOKEN non défini)"))
         return 0
 
+    # sleepdata.org n'envoie pas son certificat intermédiaire : la vérification TLS de Python
+    # (certifi) échoue alors que macOS sait le récupérer. truststore fait utiliser à Python le
+    # magasin de certificats du système. On ne désactive JAMAIS la vérification.
+    try:
+        import truststore
+        truststore.inject_into_ssl()
+    except ImportError:
+        print("Conseil : pip install truststore (vérification TLS via les certificats macOS)")
+
     from sleepecg import download_nsrr, set_nsrr_token  # import tardif : dry-run sans sleepecg
 
     dest.mkdir(parents=True, exist_ok=True)
-    set_nsrr_token(token)
+    try:
+        set_nsrr_token(token)
+    except Exception as e:  # ne pas laisser le jeton apparaître dans la trace
+        sys.exit(f"Échec de connexion à sleepdata.org : {type(e).__name__}. "
+                 "Jeton invalide ou problème réseau/TLS (voir --dry-run, truststore).")
     for kind, sub in plan:
         print(f"\nTéléchargement {kind} …")
         download_nsrr(db_slug="shhs", subfolder=sub, pattern=args.pattern, data_dir=str(dest))
