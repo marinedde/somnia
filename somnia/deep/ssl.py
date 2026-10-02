@@ -174,7 +174,7 @@ def petit_lot_contrastif(tache: str, train: Tableau, n: int = 32, pas: int = 200
     hasard = float(np.log(2 * n - 1))
     journal(f"petit lot contrastif ({n} ex.) : perte {pertes[0]:.3f} -> {np.mean(pertes[-10:]):.3f} (hasard = {hasard:.2f})")
     return {"n": n, "pas": pas, "perte_debut": pertes[0], "perte_fin": float(np.mean(pertes[-10:])), "hasard": hasard,
-            "ok": np.mean(pertes[-10:]) < 0.5 * pertes[0]}
+            "ok": bool(np.mean(pertes[-10:]) < 0.5 * pertes[0])}
 
 
 # ── Sonde linéaire ────────────────────────────────────────────────────────
