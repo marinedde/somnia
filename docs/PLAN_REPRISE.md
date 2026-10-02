@@ -171,6 +171,26 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 
 ### Étape 1 : pilote
 
+> **Vérifié le 2 octobre sur sleepdata.org** (pages publiques « Polysomnography introduction »
+> et « Montage and sampling rate, SHHS1 ») :
+>
+> | Élément | Valeur |
+> |---|---|
+> | Enregistrements | **5 793** en visite 1, **2 651** en visite 2 |
+> | EEG | deux dérivations, `EEG` = C4-A1 et `EEG (sec)` = C3-A2, **125 Hz**, passe-haut 0,15 Hz |
+> | ECG | `ECG`, **125 Hz** |
+> | EOG | `EOG(L)`, `EOG(R)`, 50 Hz |
+> | EMG | `EMG`, 125 Hz |
+> | Respiration | `Thor RES`, `Abdo RES`, 10 Hz ; flux par **thermistance** (`New Air` ou `Airflow`), 10 Hz |
+> | Saturation | `SaO2`, 1 Hz ; `H.R.` 1 Hz ; `Position`, `Light`, `OX STAT` 1 Hz |
+> | Annotations | deux XML par nuit : **NSRR** (`-nsrr.xml`, le nôtre) et Profusion. NSRR prévient que les désaturations peuvent manquer ou être décalées |
+>
+> Ce que ça change : les fréquences diffèrent d'un canal à l'autre dans le même EDF.
+> `python_scripts/shhs_inspect.py` lit l'en-tête EDF directement pour les voir ; MNE les
+> aurait toutes ramenées à une fréquence commune. Les modules d'étape 1 sont écrits
+> (`somnia/shhs.py`, tests sur un XML fabriqué) et attendent la validation sur un vrai
+> fichier : tâche 1.7, à la main, avant de s'y fier.
+
 - Le script est prêt : `python python_scripts/shhs_download.py --dry-run`, puis sans `--dry-run` une fois `NSRR_TOKEN` exporté. Dix nuits SHHS pèsent de l'ordre de 500 Mo à 1 Go.
 - Lis **les deux** canaux dès le pilote : l'EEG (C4-A1 ou C3-A2) et l'ECG. Le lecteur d'annotations extrait stades et événements d'un seul coup. C'est ce qui fait que les trois fils partagent le même code.
 - La roadmap de juillet le disait et c'est vrai : **les noms de canaux sont le vrai problème.** Note dans ton journal le nom exact et la fréquence de chaque canal dans les dix fichiers. S'ils diffèrent d'un fichier à l'autre, tu écris une petite table de correspondance ; c'est le début du `MontageMapper` dont parlait juillet.

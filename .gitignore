@@ -40,3 +40,6 @@ notebooks/mlruns/
 # Livrables de formation (présentations, scripts d'oral) : hors dépôt, archivés dans JEDHA
 *.pptx
 *.docx
+
+# Figures du pilote SHHS : signaux SHHS, jamais publiés
+docs/figures_pilote/
