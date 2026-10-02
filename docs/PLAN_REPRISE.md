@@ -220,6 +220,18 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 
 ### Étape 2 : cohorte
 
+> **Décisions prises le 2 octobre :** 300 nuits (shhs1-200001 à 200300), **100 Hz** pour les
+> deux canaux (rapport 4/5, anti-repliement, pas d'autre filtre : comme PhysioNet), époques de
+> 30 s pour l'EEG et l'ECG, stockage float16 en µV et mV (~10 Mo par nuit). Règles d'exclusion
+> écrites avant les résultats : fichier illisible, canal EEG ou ECG absent, moins de 4 h de
+> sommeil scoré, ECG plat sur plus de 50 % des époques. Découpage par personne stratifié sur
+> la sévérité estimée depuis les annotations (< 5, 5-15, 15-30, ≥ 30 époques d'apnée par
+> heure de sommeil). Chaîne validée sur le pilote : 8 nuits retenues sur 9, une exclue pour
+> 3 h de sommeil. Téléchargement des 300 nuits lancé le 2 octobre (~10 h).
+>
+> Enchaînement une fois le téléchargement fini :
+> `shhs_prepare.py` → `shhs_make_split.py` → diagramme de cohorte dans le README.
+
 - Un seul fichier de découpage pour les deux tâches. Stratifie au moins sur la sévérité (index d'apnées de SHHS, disponible dans les tables de covariables) : sinon ton test peut n'avoir aucun cas sévère.
 - Le fichier contient des identifiants de participants : garde-le dans `data/splits/` (ignoré par git) tant que tu n'as pas relu l'accord. Publie les effectifs et la graine.
 

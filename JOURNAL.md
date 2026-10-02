@@ -40,6 +40,16 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
 - Décisions prises : apnée = apnées obstructives, centrales, mixtes + hypopnées ; époque positive si ≥ 10 s
   couvertes ; éveil exclu de la tâche apnée. À revoir : garder 125 Hz ou revenir à 100 Hz (conseil : 100 Hz).
 
+## 2026-10-02 (suite) — étape 2, lancement
+- Fait : décisions 300 nuits / 100 Hz ; téléchargement des nuits 200001-200300 lancé (~10 h) ; chaîne EDF + XML →
+  npz par nuit écrite et validée sur le pilote (8 retenues / 9) ; découpage stratifié par sévérité prêt.
+- Résultat : ~10 Mo par nuit préparée ; EEG ~20 µV d'écart-type par époque, ECG ~0,05 mV ; 1 178 époques
+  d'apnée sur 8 140 (14 %).
+- Bloquée sur : le téléchargement (il tourne).
+- Appris : 3 identifiants manquent entre 200001 et 200299 (296 fichiers, pas 299) ; une nuit sur 9 a moins de
+  4 h de sommeil scoré.
+- Écrit sans aide : non (assistant). Page blanche à faire : `somnia/shhs_prepare.py`.
+
 ## 2026-10-__
 - Fait :
 - Résultat :
