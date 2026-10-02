@@ -80,11 +80,17 @@ def construire_loader(tableau: Tableau, tache: str, entrainement: bool, batch: i
 
 
 def entrainer(tache: str, train: Tableau, val: Tableau, *, graine: int = 42, max_epoques: int = 15,
-              patience: int = 3, batch: int = 256, lr: float = 1e-3, journal=print) -> tuple[CNN1D, Historique]:
-    """Entraîne avec arrêt anticipé sur la validation ; renvoie le meilleur modèle et l'historique."""
+              patience: int = 3, batch: int = 256, lr: float = 1e-3, journal=print,
+              etat_encodeur: dict | None = None) -> tuple[CNN1D, Historique]:
+    """Entraîne avec arrêt anticipé sur la validation ; renvoie le meilleur modèle et l'historique.
+
+    `etat_encodeur` : poids d'un encodeur pré-entraîné (étape 5) pour l'affinage ; sinon de zéro.
+    """
     fixer_graines(graine)
     dev = appareil()
     modele = CNN1D(N_CLASSES[tache]).to(dev)
+    if etat_encodeur is not None:
+        modele.encodeur.load_state_dict(etat_encodeur)
     journal(f"appareil {dev.type} | {n_parametres(modele):,} paramètres | train {len(train):,} | val {len(val):,}")
     poids = poids_de_classes(train.y, N_CLASSES[tache]).to(dev)
     perte = nn.CrossEntropyLoss(weight=poids)

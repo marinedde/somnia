@@ -113,7 +113,7 @@ def main() -> int:
     torch.save(modele.state_dict(), OUT / f"{nom}.pt")
     np.savez_compressed(OUT / f"{nom}_val_logits.npz", logits=res["logits"], y=res["y"], personnes=res["personnes"])
     rapport = {
-        "nom": nom, "tache": args.task, "fraction": args.fraction, "graine": args.seed, "date": datetime.now().isoformat(timespec="minutes"),
+        "nom": nom, "tache": args.task, "fraction": args.fraction, "graine": args.seed, "variante": "de zéro", "date": datetime.now().isoformat(timespec="minutes"),
         "n_personnes_train": len(pers_train), "n_exemples_train": len(train),
         "n_personnes_val": int(len(set(val.personne))), "n_exemples_val": len(val),
         "appareil": "mps" if torch.backends.mps.is_available() else "cpu",
