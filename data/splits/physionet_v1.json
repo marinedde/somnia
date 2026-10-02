@@ -1,0 +1,74 @@
+{
+  "nom": "physionet_v1",
+  "cree_le": "2026-10-02",
+  "graine": 42,
+  "parts": {
+    "val": 0.15,
+    "test": 0.15
+  },
+  "regle": "découpage sur l'identifiant de la PERSONNE (somnia.subjects.identifiant_personne)",
+  "taches": {
+    "eeg": {
+      "test": [
+        "SC07",
+        "SC09"
+      ],
+      "val": [
+        "SC05",
+        "SC06"
+      ],
+      "train": [
+        "SC00",
+        "SC01",
+        "SC02",
+        "SC03",
+        "SC04",
+        "SC08",
+        "SC10",
+        "SC11",
+        "SC12",
+        "SC13",
+        "SC14",
+        "SC15"
+      ]
+    },
+    "ecg": {
+      "test": [
+        "a11",
+        "a15",
+        "b02",
+        "c04"
+      ],
+      "val": [
+        "a06",
+        "a07",
+        "a13",
+        "b05"
+      ],
+      "train": [
+        "a01",
+        "a02",
+        "a03",
+        "a04",
+        "a05",
+        "a08",
+        "a09",
+        "a10",
+        "a12",
+        "a14",
+        "a16",
+        "a17",
+        "a18",
+        "b01",
+        "b03",
+        "b04",
+        "c01",
+        "c02",
+        "c03",
+        "c05",
+        "c08",
+        "c10"
+      ]
+    }
+  }
+}

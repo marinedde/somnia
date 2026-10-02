@@ -33,8 +33,8 @@ shhs/
 *.h5
 *.hdf5
 # Les fichiers de découpage contiennent des identifiants de participants :
-# à publier seulement si l'accord le permet (voir docs/PLAN_REPRISE.md).
-data/splits/
+# SHHS : à publier seulement si l'accord le permet. PhysioNet (public) : versionné.
+data/splits/shhs*
 notebooks/mlruns/
 
 # Livrables de formation (présentations, scripts d'oral) : hors dépôt, archivés dans JEDHA

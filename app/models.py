@@ -121,6 +121,14 @@ class ModelInfoResponse(BaseModel):
     ecg_f1_apnea      : float
     ecg_n_features    : int
     ecg_classes       : List[str]
+    # Mesure honnête (découpage par personne) — optionnels pour rester rétro-compatible
+    eeg_kappa         : Optional[float] = Field(None, description="Kappa de Cohen, validation croisée par personne")
+    eeg_f1_macro      : Optional[float] = None
+    ecg_auc_pr        : Optional[float] = Field(None, description="Aire sous la courbe précision-rappel, par personne")
+    split_method      : Optional[str]   = Field(None, description="par personne | par époque (fuite)")
+    metrics_source    : Optional[str]   = Field(None, description="Comment les chiffres ont été obtenus")
+    avant_fuite       : Optional[Dict[str, Dict[str, float]]] = Field(
+        None, description="Mêmes métriques avec l'ancien découpage aléatoire par époque, pour comparaison")
     # Général
     training_date     : str
     dataset_eeg       : str

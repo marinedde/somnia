@@ -101,7 +101,31 @@ Le tableau de résultats unique du plan de septembre (partie 4) reste le livrabl
 
 ## 4. Étape 0 : ce qui est fait, ce qui te reste
 
-### 4.1 Fait pendant cette séance (zone verte)
+> **Mise à jour du 2 octobre : l'étape 0 est terminée**, à la demande de Marine et écrite par
+> l'assistant (donc hors règle rouge : chaque module ci-dessous est à refaire de mémoire).
+>
+> | Tâche | Où | Résultat |
+> |---|---|---|
+> | 0.1 | `somnia/subjects.py` | 16 personnes Sleep-EDF, 30 groupes Apnea-ECG |
+> | 0.2 | `somnia/physionet.py`, `python_scripts/prepare_features.py` | 25 721 époques EEG, 15 116 minutes ECG, avec la personne |
+> | 0.3 | `somnia/evaluation.py`, `python_scripts/evaluate_cv.py` | EEG : exactitude 0,74 ± 0,06, kappa 0,63 ± 0,08 (avant : 0,81 / 0,73) |
+> | 0.4 | idem | ECG : AUC 0,77 ± 0,08, aire PR 0,70 ± 0,07 (avant : 0,97 / 0,95) |
+> | 0.5 | `somnia/splits.py`, `python_scripts/make_split.py`, `retrain.py`, notebook 02 | `data/splits/physionet_v1.json`, plus de `train_test_split` dans la chaîne |
+> | 0.6 | `tests/test_split.py` | 8 tests, dont un qui refuse l'ancien découpage |
+> | 0.7 | `python_scripts/retrain.py`, `app/model_metrics.py` | `/model-info` lit `training_metrics.json` : chiffres par personne, écart-type, chiffres « avant » |
+> | 0.8 | `retrain.py` | Seuils : kappa EEG ≥ 0,50, AUC ECG ≥ 0,65 |
+> | 0.9, 0.10 | `README.md` | Réécrit : état réel, tableau de résultats, section « Fuite de données » |
+> | 0.11 | `models/baseline_stats.json` | Référence de dérive EEG et ECG |
+> | 0.12 | CI | Fait le 1er octobre |
+> | 0.13 | `data/figures/fuite_roc_ecg.png` | Les deux courbes ROC sont calculées |
+>
+> Non fait : la diapositive 3 (la présentation est sortie du dépôt). Le tableau de résultats
+> vit dans `docs/RESULTATS.md`, généré par `evaluate_cv.py`.
+>
+> **Test de la page blanche, dans l'ordre conseillé :** `subjects.py` → `splits.py` →
+> `evaluation.py` (la validation croisée) → `physionet.py`. Un par jour.
+
+### 4.1 Fait pendant la séance du 1er octobre (zone verte)
 
 | Quoi | Où |
 |---|---|

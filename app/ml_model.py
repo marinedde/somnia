@@ -15,6 +15,7 @@ from typing import Tuple, Dict
 import logging
 
 from app.feature_extractor import FeatureExtractor
+from app.model_metrics import charger_metriques
 
 logger = logging.getLogger(__name__)
 
@@ -46,14 +47,27 @@ class SleepStageClassifier:
         'REM' : "Sommeil paradoxal REM — Rêves, récupération cognitive",
     }
 
-    MODEL_METADATA = {
-        'model_type'   : 'Random Forest + Feature Engineering (16 features EEG)',
-        'accuracy'     : 0.8344,
-        'f1_weighted'  : 0.8302,
-        'n_features'   : 16,
-        'training_date': '2026-05-07',
-        'dataset'      : 'Sleep-EDF Expanded (PhysioNet) — 28 sujets',
-    }
+    MODEL_TYPE = 'Random Forest + Feature Engineering (16 features EEG)'
+
+    @staticmethod
+    def _metadata() -> dict:
+        """Chiffres lus dans models/training_metrics.json (validation croisée par personne)."""
+        m = charger_metriques('eeg')
+        metrics = m.get('metrics', {})
+        return {
+            'model_type'    : SleepStageClassifier.MODEL_TYPE,
+            'accuracy'      : metrics.get('accuracy', 0.0),
+            'f1_weighted'   : metrics.get('f1_weighted', 0.0),
+            'f1_macro'      : metrics.get('f1_macro'),
+            'kappa'         : metrics.get('kappa'),
+            'n_features'    : 16,
+            'training_date' : m.get('training_date', 'inconnue'),
+            'dataset'       : m.get('dataset', 'Sleep-EDF Expanded (PhysioNet)'),
+            'split_method'  : m.get('split_method', 'inconnu'),
+            'metrics_source': m.get('metrics_source', 'inconnue'),
+            'ecart_type'    : m.get('ecart_type', {}),
+            'avant_fuite'   : m.get('avant_fuite'),
+        }
 
     def __init__(self, model_path: str):
         self.model_path = Path(model_path)
@@ -104,7 +118,7 @@ class SleepStageClassifier:
 
     def get_info(self) -> dict:
         return {
-            **self.MODEL_METADATA,
+            **self._metadata(),
             'classes'     : list(self.CLASS_NAMES.values()),
             'model_loaded': self.is_loaded(),
         }

@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 """
-Réentraînement automatisé des modèles Somnia (EEG + ECG).
+Réentraînement des deux modèles Somnia (EEG stades, ECG apnée) avec le découpage PAR PERSONNE.
 
-Prérequis : données prétraitées dans data/processed/ (notebook 02).
+Prérequis :
+    python python_scripts/prepare_features.py     # data/processed/{eeg,ecg}_features.npz
+    python python_scripts/make_split.py           # data/splits/physionet_v1.json
+    python python_scripts/evaluate_cv.py          # models/cv_results.json (chiffres par personne)
 
 Usage :
     python python_scripts/retrain.py
-    python python_scripts/retrain.py --task eeg --min-accuracy 0.80
+    python python_scripts/retrain.py --task eeg --min-kappa 0.5
     python python_scripts/retrain.py --dry-run
+
+Garde-fou : si la métrique sur la VALIDATION (personnes jamais vues) passe sous le
+seuil, le modèle n'est pas écrit. Les seuils par défaut sont fixés d'après la
+validation croisée (docs/RESULTATS.md) : un peu sous la moyenne moins un écart-type.
 """
 
 from __future__ import annotations
@@ -20,257 +27,142 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    f1_score,
-    roc_auc_score,
-)
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 
-# Racine projet (parent de python_scripts/)
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.feature_extractor import FeatureExtractor  # noqa: E402
+from somnia.evaluation import RF_PARAMS, metriques_apnee, metriques_stades, pipeline_rf  # noqa: E402
+from somnia.physionet import charger_tableau  # noqa: E402
+from somnia.splits import charger_decoupage, masques  # noqa: E402
 
-DATA_EEG = ROOT / "data" / "processed" / "eeg"
-DATA_ECG = ROOT / "data" / "processed" / "ecg"
+PROCESSED = ROOT / "data" / "processed"
+SPLIT_PATH = ROOT / "data" / "splits" / "physionet_v1.json"
 MODELS_DIR = ROOT / "models"
 BASELINE_PATH = MODELS_DIR / "baseline_stats.json"
 METRICS_PATH = MODELS_DIR / "training_metrics.json"
+CV_PATH = MODELS_DIR / "cv_results.json"
 
-RF_PARAMS = {
-    "n_estimators": 200,
-    "max_depth": 15,
-    "min_samples_split": 5,
-    "min_samples_leaf": 2,
-    "class_weight": "balanced",
-    "random_state": 42,
-    "n_jobs": -1,
+MODEL_FILES = {"eeg": "somnia_eeg_pipeline.joblib", "ecg": "somnia_ecg_pipeline.joblib"}
+TASK_KEYS = {"eeg": "sleep_stage", "ecg": "apnea"}   # clés attendues par app/baseline.py
+DATASETS = {
+    "eeg": "Sleep-EDF Expanded (PhysioNet) — 16 personnes, 28 enregistrements",
+    "ecg": "Apnea-ECG (PhysioNet) — 31 enregistrements (30 groupes, c05 = c06)",
 }
 
 
-def _load_split(data_dir: Path, prefix: str):
-    required = [f"X_{prefix}.npy", f"y_{prefix}.npy"]
-    for name in required:
-        if not (data_dir / name).exists():
-            raise FileNotFoundError(f"Fichier manquant : {data_dir / name}")
-    return (
-        np.load(data_dir / f"X_{prefix}.npy"),
-        np.load(data_dir / f"y_{prefix}.npy"),
-    )
+def _metriques(tache, modele, X, y):
+    pred = modele.predict(X)
+    if tache == "eeg":
+        return metriques_stades(y, pred)
+    return metriques_apnee(y, pred, modele.predict_proba(X)[:, 1])
 
 
-def _feature_baseline(X: np.ndarray, names: list[str]) -> dict:
+def entrainer(tache: str, seuil: float, cle_seuil: str) -> tuple[dict, dict]:
+    t = charger_tableau(PROCESSED / f"{tache}_features.npz")
+    decoupage = charger_decoupage(SPLIT_PATH)["taches"][tache]
+    m = masques(decoupage, t["personne"])
+    assert not np.any(m["train"] & m["test"]) and not np.any(m["train"] & m["val"])
+
+    modele = pipeline_rf(RF_PARAMS["random_state"]).fit(t["X"][m["train"]], t["y"][m["train"]])
+    val = _metriques(tache, modele, t["X"][m["val"]], t["y"][m["val"]])
+    test = _metriques(tache, modele, t["X"][m["test"]], t["y"][m["test"]])
+
+    if val[cle_seuil] < seuil:
+        raise RuntimeError(f"[{tache}] {cle_seuil} validation = {val[cle_seuil]:.3f} < seuil {seuil}")
+
+    MODELS_DIR.mkdir(exist_ok=True)
+    joblib.dump(modele, MODELS_DIR / MODEL_FILES[tache])
+
+    resultat = {
+        "model_path": f"models/{MODEL_FILES[tache]}",
+        "dataset": DATASETS[tache],
+        "split": {
+            "fichier": str(SPLIT_PATH.relative_to(ROOT)),
+            "methode": "par personne",
+            "n_personnes": {k: len(v) for k, v in decoupage.items()},
+            "n_epoques": {k: int(m[k].sum()) for k in m},
+        },
+        "garde_fou": {"metrique": cle_seuil, "seuil": seuil, "valeur_val": val[cle_seuil]},
+        "val": val,
+        "test": test,
+    }
+    baseline = {
+        "n_samples": int(m["train"].sum()),
+        "mean": t["X"][m["train"]].mean(axis=0).tolist(),
+        "std": t["X"][m["train"]].std(axis=0).tolist(),
+        "feature_names": t["feature_names"].tolist(),
+    }
+    return resultat, baseline
+
+
+def _resume_cv(tache: str) -> dict | None:
+    """Le chiffre à afficher est celui de la validation croisée, pas celui d'un seul test de 2 personnes."""
+    if not CV_PATH.exists():
+        return None
+    cv = json.loads(CV_PATH.read_text(encoding="utf-8")).get(tache)
+    if not cv:
+        return None
     return {
-        "n_samples": int(X.shape[0]),
-        "mean": np.mean(X, axis=0).tolist(),
-        "std": np.std(X, axis=0).tolist(),
-        "feature_names": names,
+        "methode": cv["par_personne"]["methode"],
+        "moyenne": cv["par_personne"]["moyenne"],
+        "ecart_type": cv["par_personne"]["ecart_type"],
+        "avant_fuite": cv["aleatoire"]["metriques"],
     }
-
-
-def train_binary(
-    task: str,
-    data_dir: Path,
-    model_out: Path,
-    min_auc: float,
-) -> dict:
-    X_train, y_train = _load_split(data_dir, "train")
-    X_val, y_val = _load_split(data_dir, "val")
-    X_test, y_test = _load_split(data_dir, "test")
-
-    pipeline = Pipeline(
-        [
-            ("scaler", StandardScaler()),
-            ("clf", RandomForestClassifier(**RF_PARAMS)),
-        ]
-    )
-    pipeline.fit(X_train, y_train)
-
-    def _metrics(X, y):
-        y_pred = pipeline.predict(X)
-        y_proba = pipeline.predict_proba(X)[:, 1]
-        return {
-            "accuracy": float(accuracy_score(y, y_pred)),
-            "f1_apnea": float(f1_score(y, y_pred, pos_label=1)),
-            "auc_roc": float(roc_auc_score(y, y_proba)),
-        }
-
-    m_val = _metrics(X_val, y_val)
-    m_test = _metrics(X_test, y_test)
-
-    if m_val["auc_roc"] < min_auc:
-        raise RuntimeError(
-            f"[{task}] AUC validation {m_val['auc_roc']:.4f} < seuil {min_auc}"
-        )
-
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    joblib.dump(pipeline, model_out)
-
-    return {
-        "task": task,
-        "model_path": str(model_out.relative_to(ROOT)),
-        "val": m_val,
-        "test": m_test,
-        "report_test": classification_report(y_test, pipeline.predict(X_test)),
-    }
-
-
-def train_multiclass(
-    task: str,
-    data_dir: Path,
-    model_out: Path,
-    min_accuracy: float,
-) -> dict:
-    X_train, y_train = _load_split(data_dir, "train")
-    X_val, y_val = _load_split(data_dir, "val")
-    X_test, y_test = _load_split(data_dir, "test")
-
-    pipeline = Pipeline(
-        [
-            ("scaler", StandardScaler()),
-            ("clf", RandomForestClassifier(**RF_PARAMS)),
-        ]
-    )
-    pipeline.fit(X_train, y_train)
-
-    def _metrics(X, y):
-        y_pred = pipeline.predict(X)
-        return {
-            "accuracy": float(accuracy_score(y, y_pred)),
-            "f1_weighted": float(f1_score(y, y_pred, average="weighted")),
-        }
-
-    m_val = _metrics(X_val, y_val)
-    m_test = _metrics(X_test, y_test)
-
-    if m_val["accuracy"] < min_accuracy:
-        raise RuntimeError(
-            f"[{task}] Accuracy validation {m_val['accuracy']:.4f} < seuil {min_accuracy}"
-        )
-
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    joblib.dump(pipeline, model_out)
-
-    return {
-        "task": task,
-        "model_path": str(model_out.relative_to(ROOT)),
-        "val": m_val,
-        "test": m_test,
-        "report_test": classification_report(y_test, pipeline.predict(X_test)),
-    }
-
-
-def save_artifacts(eeg_result: dict | None, ecg_result: dict | None) -> None:
-    baseline = {"updated_at": datetime.now(timezone.utc).isoformat(), "tasks": {}}
-
-    if eeg_result:
-        X_train, _ = _load_split(DATA_EEG, "train")
-        baseline["tasks"]["sleep_stage"] = _feature_baseline(
-            X_train, FeatureExtractor.feature_names()
-        )
-    if ecg_result:
-        X_train, _ = _load_split(DATA_ECG, "train")
-        # Features ECG alignées sur 16 dimensions (processed data)
-        names = [f"f{i}" for i in range(X_train.shape[1])]
-        baseline["tasks"]["apnea"] = _feature_baseline(X_train, names)
-
-    with open(BASELINE_PATH, "w", encoding="utf-8") as f:
-        json.dump(baseline, f, indent=2)
-
-    payload = {
-        "training_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        "eeg": eeg_result,
-        "ecg": ecg_result,
-    }
-    with open(METRICS_PATH, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
-
-    print(f"Baseline stats → {BASELINE_PATH}")
-    print(f"Métriques      → {METRICS_PATH}")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Réentraînement Somnia")
-    parser.add_argument(
-        "--task",
-        choices=["all", "eeg", "ecg"],
-        default="all",
-        help="Modèle(s) à réentraîner",
-    )
-    parser.add_argument(
-        "--min-accuracy",
-        type=float,
-        default=0.75,
-        help="Seuil minimum accuracy validation (EEG)",
-    )
-    parser.add_argument(
-        "--min-auc",
-        type=float,
-        default=0.65,
-        help="Seuil minimum AUC validation (ECG)",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Vérifie la présence des données sans entraîner",
-    )
+    parser = argparse.ArgumentParser(description="Réentraînement Somnia (découpage par personne)")
+    parser.add_argument("--task", choices=["all", "eeg", "ecg"], default="all")
+    parser.add_argument("--min-kappa", type=float, default=0.50, help="seuil kappa validation (EEG) : CV 0,63 ± 0,08")
+    parser.add_argument("--min-auc", type=float, default=0.65, help="seuil AUC-ROC validation (ECG) : CV 0,77 ± 0,08")
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
+    requis = [PROCESSED / "eeg_features.npz", PROCESSED / "ecg_features.npz", SPLIT_PATH]
     if args.dry_run:
-        ready = True
-        for d in (DATA_EEG, DATA_ECG):
-            if d.exists():
-                print(f"[DRY-RUN] OK — {d}")
-            else:
-                print(f"[DRY-RUN] Manquant : {d}")
-                ready = False
-        if ready:
-            print("[DRY-RUN] Données prêtes pour réentraînement.")
-        else:
-            print("[DRY-RUN] Script OK — lancez le notebook 02 pour générer les données.")
+        for p in requis:
+            print(f"[DRY-RUN] {'OK      ' if p.exists() else 'Manquant'} {p.relative_to(ROOT)}")
+        print("[DRY-RUN] Script OK." if all(p.exists() for p in requis)
+              else "[DRY-RUN] Lance prepare_features.py puis make_split.py.")
         return 0
 
-    eeg_result = ecg_result = None
+    manquants = [p for p in requis if not p.exists()]
+    if manquants:
+        print("❌ Fichiers manquants :", ", ".join(str(p.relative_to(ROOT)) for p in manquants))
+        return 1
+
+    payload = {"training_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"), "split_method": "par personne"}
+    baseline = {"updated_at": datetime.now(timezone.utc).isoformat(), "tasks": {}}
+    if BASELINE_PATH.exists():  # ne pas perdre la référence de l'autre tâche si on n'en réentraîne qu'une
+        baseline["tasks"] = json.loads(BASELINE_PATH.read_text(encoding="utf-8")).get("tasks", {})
+    if METRICS_PATH.exists():
+        ancien = json.loads(METRICS_PATH.read_text(encoding="utf-8"))
+        payload.update({k: ancien[k] for k in ("eeg", "ecg") if k in ancien})
 
     try:
         if args.task in ("all", "eeg"):
-            print("=== Réentraînement EEG (stades de sommeil) ===")
-            eeg_result = train_multiclass(
-                "eeg",
-                DATA_EEG,
-                MODELS_DIR / "somnia_eeg_pipeline.joblib",
-                args.min_accuracy,
-            )
-            print(f"Val  : {eeg_result['val']}")
-            print(f"Test : {eeg_result['test']}")
-
+            print("=== EEG — stades de sommeil ===")
+            res, base = entrainer("eeg", args.min_kappa, "kappa")
+            res["cv"] = _resume_cv("eeg")
+            payload["eeg"], baseline["tasks"][TASK_KEYS["eeg"]] = res, base
+            print(f"val  : kappa {res['val']['kappa']:.3f}  acc {res['val']['accuracy']:.3f}")
+            print(f"test : kappa {res['test']['kappa']:.3f}  acc {res['test']['accuracy']:.3f}")
         if args.task in ("all", "ecg"):
-            print("=== Réentraînement ECG (apnée) ===")
-            ecg_result = train_binary(
-                "ecg",
-                DATA_ECG,
-                MODELS_DIR / "somnia_ecg_pipeline.joblib",
-                args.min_auc,
-            )
-            print(f"Val  : {ecg_result['val']}")
-            print(f"Test : {ecg_result['test']}")
-
-        save_artifacts(eeg_result, ecg_result)
-        print("\n✅ Réentraînement terminé. Redémarrez l'API pour charger les nouveaux modèles.")
-        return 0
-
-    except FileNotFoundError as e:
-        print(f"❌ {e}")
-        print("Lancez d'abord les notebooks 02 (preprocessing) et 03 (training).")
-        return 1
+            print("=== ECG — apnée ===")
+            res, base = entrainer("ecg", args.min_auc, "auc_roc")
+            res["cv"] = _resume_cv("ecg")
+            payload["ecg"], baseline["tasks"][TASK_KEYS["ecg"]] = res, base
+            print(f"val  : AUC {res['val']['auc_roc']:.3f}  AUC-PR {res['val']['auc_pr']:.3f}")
+            print(f"test : AUC {res['test']['auc_roc']:.3f}  AUC-PR {res['test']['auc_pr']:.3f}")
     except RuntimeError as e:
-        print(f"❌ Qualité insuffisante — modèle non déployé : {e}")
+        print(f"❌ Qualité insuffisante — modèle non écrit : {e}")
         return 2
+
+    BASELINE_PATH.write_text(json.dumps(baseline, indent=2), encoding="utf-8")
+    METRICS_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"\nBaseline  → {BASELINE_PATH.relative_to(ROOT)}\nMétriques → {METRICS_PATH.relative_to(ROOT)}")
+    print("✅ Terminé. Redémarre l'API pour charger les nouveaux modèles.")
+    return 0
 
 
 if __name__ == "__main__":

@@ -167,6 +167,14 @@ async def get_model_info():
         ecg_f1_apnea    = ecg_info['f1_apnea'],
         ecg_n_features  = ecg_info['n_features'],
         ecg_classes     = ecg_info['classes'],
+        eeg_kappa       = eeg_info.get('kappa'),
+        eeg_f1_macro    = eeg_info.get('f1_macro'),
+        ecg_auc_pr      = ecg_info.get('auc_pr'),
+        split_method    = eeg_info.get('split_method'),
+        metrics_source  = eeg_info.get('metrics_source'),
+        avant_fuite     = {
+            k: v for k, v in {'eeg': eeg_info.get('avant_fuite'), 'ecg': ecg_info.get('avant_fuite')}.items() if v
+        } or None,
         training_date   = eeg_info['training_date'],
         dataset_eeg     = eeg_info['dataset'],
         dataset_ecg     = ecg_info['dataset'],
