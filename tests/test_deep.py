@@ -1,8 +1,13 @@
-"""Tests du réseau convolutif et de ses briques, sur CPU, sans donnée réelle."""
+"""Tests du réseau convolutif et de ses briques, sur CPU, sans donnée réelle.
+
+PyTorch n'est installé que dans l'environnement de recherche (requirements-research.txt), pas
+dans celui de l'API ni dans la CI : sans lui, ce module est ignoré au lieu de casser la collecte.
+"""
 
 import numpy as np
 import pytest
-import torch
+
+torch = pytest.importorskip("torch", reason="PyTorch absent : environnement API / CI")
 
 from somnia.deep.data import Tableau, normaliser_lot, poids_de_classes, sous_ensemble_de_personnes
 from somnia.deep.model import CNN1D, Encodeur, n_parametres
