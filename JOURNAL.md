@@ -120,6 +120,17 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
   192 000 exemples. Le réseau sur 60 s d'ECG ne voit pas ce qu'une hypopnée change ; il faut du contexte.
 - Écrit sans aide : non (assistant). Page blanche : `model.py` puis `train.py` (la boucle), c'est le cœur de l'entretien.
 
+## 2026-10-03 (suite) — étape 5, pré-entraînement contrastif
+- Fait : `ssl.py` (transformations à critère clinique, lots une-époque-par-personne, InfoNCE, projection, sonde),
+  6 tests, petits lots, pré-entraînements EEG et ECG (2 min chacun), sondes et affinages à 1 / 10 / 100 %.
+- Résultat : stades kappa 1 % : 0,22 → 0,26 ; 10 % : 0,56 → 0,57 ; 100 % : 0,64 = ; sonde gelée 0,58.
+  Apnée : aucun gain, sonde 0,55.
+- Bloquée sur : —
+- Appris : une perte contrastive qui tombe à 0,08 n'est pas une victoire : le réseau a trouvé un raccourci (la
+  personne). Il faut des positives plus dures (CLOCS) et des négatives moins faciles. Le gain de l'auto-supervisé
+  n'apparaît que là où les étiquettes manquent vraiment.
+- Écrit sans aide : non (assistant). Page blanche : `info_nce` et `vue` (20 lignes) : c'est LA question Implicity.
+
 ## 2026-10-__
 - Fait :
 - Résultat :

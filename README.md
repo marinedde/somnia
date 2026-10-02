@@ -91,6 +91,39 @@ Tableau complet, calibration et courbes : [docs/RESULTATS_CNN.md](docs/RESULTATS
   plusieurs minutes et dans la saturation. C'est un résultat, et il oriente la suite :
   contexte plus long, et le pré-entraînement de l'étape 5 là où les étiquettes manquent.
 
+### Pré-entraînement auto-supervisé (étape 5, octobre 2026)
+
+L'encodeur est d'abord entraîné **sans aucune étiquette** à reconnaître deux vues transformées
+d'une même époque parmi celles d'autres personnes (InfoNCE, lots d'une époque par personne),
+sur les signaux des 192 personnes d'entraînement. Les transformations ont été choisies avec un
+critère clinique : bruit léger, amplitude, décalage, masquage court, inversion de signe pour
+l'ECG ; ni inversion temporelle, ni étirement (il change la fréquence cardiaque, qui est le
+signe recherché). Puis sonde linéaire (encodeur gelé) et affinage. Détail : [docs/RESULTATS_CNN.md](docs/RESULTATS_CNN.md).
+
+| Tâche | Personnes étiquetées | De zéro | Pré-entraîné, affiné | Sonde linéaire (gelé) |
+|---|---|---|---|---|
+| Stades, kappa | 2 (1 %) | 0,22 | **0,26** | — |
+| Stades, kappa | 19 (10 %) | 0,56 | 0,57 | 0,54 |
+| Stades, kappa | 192 (100 %) | 0,64 | 0,64 | 0,58 |
+| Apnée, AUC-ROC | 19 (10 %) | 0,48 | 0,50 | 0,49 |
+| Apnée, AUC-ROC | 192 (100 %) | 0,63 | 0,63 | 0,55 |
+
+Conclusion, en cinq lignes :
+
+1. Avec 1 % des étiquettes, le pré-entraînement fait passer le kappa des stades de 0,22 à 0,26 ;
+   avec 10 % et plus, l'écart disparaît. C'est cohérent avec la littérature : l'auto-supervisé
+   aide quand les étiquettes sont rares, pas quand elles abondent.
+2. La sonde linéaire est le résultat le plus parlant : un encodeur qui n'a jamais vu une
+   étiquette, gelé, surmonté d'une simple régression logistique, atteint un kappa de 0,58, le
+   niveau de la forêt aléatoire sur 16 caractéristiques conçues à la main.
+3. Pour l'apnée, rien : la perte contrastive tombe à 0,08, signe que le réseau a surtout appris
+   à reconnaître **la personne** (gain, bruit, électrode) plutôt que le rythme. C'est le piège
+   des voisines sous une autre forme.
+4. Pistes, par ordre : paires positives prises à des instants différents de la même personne
+   (méthode CLOCS, conçue pour l'ECG), contexte de plusieurs minutes, transformations plus
+   dures, pré-entraînement sur plus de personnes, une méthode par masquage.
+5. Une seule graine par ligne : avant d'annoncer un gain, le mesurer sur trois graines.
+
 Ce que ces lignes disent :
 
 - **La validation externe fait chuter les stades de 0,70 à 0,55** dans les deux sens. Autre

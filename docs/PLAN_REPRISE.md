@@ -281,6 +281,15 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 
 ### Étape 5 : pré-entraînement
 
+> **Étape 5 terminée le 3 octobre** (`somnia/deep/ssl.py`, `docs/RESULTATS_CNN.md`). Petit lot
+> contrastif : 4,1 → 0,06. Pré-entraînement : 4 000 pas, lots de 192 (une époque par personne),
+> 2 min ; perte 5,9 → 0,18 (EEG), 0,08 (ECG). Stades : gain à 1 % des étiquettes (kappa 0,22 →
+> 0,26), aucun à 10 % et 100 % ; sonde linéaire gelée 0,58 = niveau de la forêt. Apnée : aucun
+> gain ; perte trop basse = le réseau reconnaît la personne, pas le rythme. Pistes : CLOCS
+> (paires de la même personne à des instants différents), contexte long, transformations plus
+> dures, trois graines. Test toujours fermé.
+
+
 - Rien à changer. C'est l'étape Implicity. Si tu passes un entretien avant d'y être, dis que c'est la prochaine étape et explique les transformations que tu as choisies et pourquoi.
 
 ### Étape 6 : sortie par nuit et documentation

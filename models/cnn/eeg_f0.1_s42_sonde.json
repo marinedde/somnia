@@ -1,0 +1,72 @@
+{
+  "tache": "eeg",
+  "fraction": 0.1,
+  "graine": 42,
+  "n_personnes_train": 19,
+  "n_exemples_train": 19009,
+  "n_personnes_val": 40,
+  "n_exemples_val": 40020,
+  "appareil": "mps",
+  "pre_entrainement": "ssl_eeg_s42",
+  "nom": "eeg_f0.1_s42_sonde",
+  "variante": "sonde linéaire (encodeur gelé)",
+  "meilleure_epoque": null,
+  "historique": [],
+  "validation": {
+    "accuracy": 0.6528735632183909,
+    "f1_macro": 0.5822669315577342,
+    "f1_weighted": 0.6653904788186188,
+    "kappa": 0.5408656996827111,
+    "f1_Wake": 0.7527467538363752,
+    "f1_N1": 0.2289059345983044,
+    "f1_N2": 0.6786216850081184,
+    "f1_N3": 0.6898372944884573,
+    "f1_REM": 0.5612229898574158
+  },
+  "calibration": {
+    "ece_avant": 0.06425417928886112,
+    "ece_apres": 0.10091600493144487,
+    "temperature": 1.6204415413489452,
+    "n_personnes_val": 40
+  },
+  "couverture": [
+    {
+      "couverture": 1.0,
+      "n": 40020,
+      "seuil_confiance": 0.22831633687019348,
+      "accuracy": 0.6528735632183909,
+      "kappa": 0.5408656996827111
+    },
+    {
+      "couverture": 0.9,
+      "n": 36018,
+      "seuil_confiance": 0.44578972458839417,
+      "accuracy": 0.6852962407685046,
+      "kappa": 0.5815436547428654
+    },
+    {
+      "couverture": 0.8,
+      "n": 32016,
+      "seuil_confiance": 0.5130488872528076,
+      "accuracy": 0.7152673663168416,
+      "kappa": 0.6179295308584742
+    },
+    {
+      "couverture": 0.7,
+      "n": 28014,
+      "seuil_confiance": 0.5753936767578125,
+      "accuracy": 0.7415220960948098,
+      "kappa": 0.6497336264789031
+    },
+    {
+      "couverture": 0.5,
+      "n": 20010,
+      "seuil_confiance": 0.7109452486038208,
+      "accuracy": 0.7849575212393803,
+      "kappa": 0.6995646562434041
+    }
+  ],
+  "par_personne": null,
+  "duree_min": 0.0,
+  "date": "2026-10-03T10:43"
+}

@@ -1,0 +1,185 @@
+{
+  "tache": "ecg",
+  "fraction": 0.01,
+  "graine": 42,
+  "n_personnes_train": 2,
+  "n_exemples_train": 593,
+  "n_personnes_val": 40,
+  "n_exemples_val": 14044,
+  "appareil": "mps",
+  "pre_entrainement": "ssl_ecg_s42",
+  "nom": "ecg_f0.01_s42_pre",
+  "variante": "pré-entraîné, affiné",
+  "meilleure_epoque": 6,
+  "historique": [
+    {
+      "epoque": 1,
+      "perte_train": 0.6655226311635408,
+      "perte_val": 0.7229374051094055,
+      "score_val": 0.4157420537214168,
+      "duree_s": 1.0,
+      "accuracy": 0.554044431785816,
+      "f1_apnee": 0.3115312740463889,
+      "auc_roc": 0.4778654200634231,
+      "auc_pr": 0.4157420537214168
+    },
+    {
+      "epoque": 2,
+      "perte_train": 0.6388142549167395,
+      "perte_val": 0.7249303460121155,
+      "score_val": 0.4160455961319838,
+      "duree_s": 0.5,
+      "accuracy": 0.4967957846767303,
+      "f1_apnee": 0.3789436681606468,
+      "auc_roc": 0.47758701228218997,
+      "auc_pr": 0.4160455961319838
+    },
+    {
+      "epoque": 3,
+      "perte_train": 0.6312005310798375,
+      "perte_val": 0.7308497428894043,
+      "score_val": 0.41388788431766277,
+      "duree_s": 0.5,
+      "accuracy": 0.457490743377955,
+      "f1_apnee": 0.45024893570964714,
+      "auc_roc": 0.4748700737765067,
+      "auc_pr": 0.41388788431766277
+    },
+    {
+      "epoque": 4,
+      "perte_train": 0.637991884104518,
+      "perte_val": 0.7448804378509521,
+      "score_val": 0.41322544920608095,
+      "duree_s": 0.5,
+      "accuracy": 0.4480917117630305,
+      "f1_apnee": 0.5046967857371079,
+      "auc_roc": 0.47183786567721475,
+      "auc_pr": 0.41322544920608095
+    },
+    {
+      "epoque": 5,
+      "perte_train": 0.629315065895325,
+      "perte_val": 0.7575544118881226,
+      "score_val": 0.41870886381316186,
+      "duree_s": 0.5,
+      "accuracy": 0.44559954428937626,
+      "f1_apnee": 0.5300012072920439,
+      "auc_roc": 0.4707140936655024,
+      "auc_pr": 0.41870886381316186
+    },
+    {
+      "epoque": 6,
+      "perte_train": 0.6177172556293352,
+      "perte_val": 0.7680005431175232,
+      "score_val": 0.4218186231529459,
+      "duree_s": 0.5,
+      "accuracy": 0.43491882654514386,
+      "f1_apnee": 0.5465661067306593,
+      "auc_roc": 0.4711960346436749,
+      "auc_pr": 0.4218186231529459
+    },
+    {
+      "epoque": 7,
+      "perte_train": 0.6153412389916071,
+      "perte_val": 0.7793713212013245,
+      "score_val": 0.4215094443259405,
+      "duree_s": 0.5,
+      "accuracy": 0.43150099686698945,
+      "f1_apnee": 0.552064631956912,
+      "auc_roc": 0.47199332816749506,
+      "auc_pr": 0.4215094443259405
+    },
+    {
+      "epoque": 8,
+      "perte_train": 0.6072208067216921,
+      "perte_val": 0.7939463257789612,
+      "score_val": 0.42012342729546226,
+      "duree_s": 0.5,
+      "accuracy": 0.4304329250925662,
+      "f1_apnee": 0.5556851635838471,
+      "auc_roc": 0.47271178614715464,
+      "auc_pr": 0.42012342729546226
+    },
+    {
+      "epoque": 9,
+      "perte_train": 0.6098637764811717,
+      "perte_val": 0.8083479404449463,
+      "score_val": 0.41766754505647774,
+      "duree_s": 0.5,
+      "accuracy": 0.4310025633722586,
+      "f1_apnee": 0.5566220939910115,
+      "auc_roc": 0.47241474526413846,
+      "auc_pr": 0.41766754505647774
+    }
+  ],
+  "validation": {
+    "accuracy": 0.43491882654514386,
+    "f1_apnee": 0.5465661067306593,
+    "auc_roc": 0.4711960346436749,
+    "auc_pr": 0.4218186231529459
+  },
+  "calibration": {
+    "ece_avant": 0.18149665741371446,
+    "ece_apres": 0.06462253712859284,
+    "temperature": 3603.3538604724063,
+    "n_personnes_val": 40
+  },
+  "couverture": [
+    {
+      "couverture": 1.0,
+      "n": 14044,
+      "seuil_confiance": 0.5000504851341248,
+      "accuracy": 0.43491882654514386,
+      "f1_apnee": 0.5465661067306593
+    },
+    {
+      "couverture": 0.9,
+      "n": 12640,
+      "seuil_confiance": 0.5331880450248718,
+      "accuracy": 0.4295886075949367,
+      "f1_apnee": 0.5490931832395247
+    },
+    {
+      "couverture": 0.8,
+      "n": 11235,
+      "seuil_confiance": 0.5709295868873596,
+      "accuracy": 0.41824655095683133,
+      "f1_apnee": 0.541397698568622
+    },
+    {
+      "couverture": 0.7,
+      "n": 9831,
+      "seuil_confiance": 0.5948584079742432,
+      "accuracy": 0.41470857491608176,
+      "f1_apnee": 0.5388684083987818
+    },
+    {
+      "couverture": 0.5,
+      "n": 7022,
+      "seuil_confiance": 0.6190757751464844,
+      "accuracy": 0.4131301623469097,
+      "f1_apnee": 0.5285436448918888
+    }
+  ],
+  "par_personne": {
+    "n_personnes": 40,
+    "spearman_part_annotee": -0.04023021795900645,
+    "spearman_ahi_a0h3a": -0.02855720134913929,
+    "spearman_ahi_a0h4": -0.06649450533120754
+  },
+  "duree_min": 0.1,
+  "date": "2026-10-03T10:50",
+  "journal": [
+    "appareil mps | 44,306 paramètres | train 593 | val 14,044",
+    "époque  1 | perte train 0.6655 | perte val 0.7229 | auc_pr val 0.4157 | 1 s",
+    "époque  2 | perte train 0.6388 | perte val 0.7249 | auc_pr val 0.4160 | 0 s",
+    "époque  3 | perte train 0.6312 | perte val 0.7308 | auc_pr val 0.4139 | 0 s",
+    "époque  4 | perte train 0.6380 | perte val 0.7449 | auc_pr val 0.4132 | 0 s",
+    "époque  5 | perte train 0.6293 | perte val 0.7576 | auc_pr val 0.4187 | 0 s",
+    "époque  6 | perte train 0.6177 | perte val 0.7680 | auc_pr val 0.4218 | 0 s",
+    "époque  7 | perte train 0.6153 | perte val 0.7794 | auc_pr val 0.4215 | 0 s",
+    "époque  8 | perte train 0.6072 | perte val 0.7939 | auc_pr val 0.4201 | 0 s",
+    "époque  9 | perte train 0.6099 | perte val 0.8083 | auc_pr val 0.4177 | 0 s",
+    "arrêt anticipé : pas de progrès depuis 3 époques"
+  ]
+}

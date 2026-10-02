@@ -1,0 +1,72 @@
+{
+  "tache": "ecg",
+  "fraction": 1.0,
+  "graine": 42,
+  "n_personnes_train": 192,
+  "n_exemples_train": 66035,
+  "n_personnes_val": 40,
+  "n_exemples_val": 14044,
+  "appareil": "mps",
+  "pre_entrainement": "ssl_ecg_s42",
+  "nom": "ecg_f1_s42_sonde",
+  "variante": "sonde linéaire (encodeur gelé)",
+  "meilleure_epoque": null,
+  "historique": [],
+  "validation": {
+    "accuracy": 0.5239248077470806,
+    "f1_apnee": 0.49880059970014995,
+    "auc_roc": 0.5500626547120336,
+    "auc_pr": 0.47326542400001126
+  },
+  "calibration": {
+    "ece_avant": 0.07448591450165942,
+    "ece_apres": 0.032577523350823014,
+    "temperature": 3.93590758326698,
+    "n_personnes_val": 40
+  },
+  "couverture": [
+    {
+      "couverture": 1.0,
+      "n": 14044,
+      "seuil_confiance": 0.5000001192092896,
+      "accuracy": 0.5239248077470806,
+      "f1_apnee": 0.49880059970014995
+    },
+    {
+      "couverture": 0.9,
+      "n": 12640,
+      "seuil_confiance": 0.5143910050392151,
+      "accuracy": 0.5287183544303797,
+      "f1_apnee": 0.5049447353112274
+    },
+    {
+      "couverture": 0.8,
+      "n": 11235,
+      "seuil_confiance": 0.5278816223144531,
+      "accuracy": 0.5297730307076102,
+      "f1_apnee": 0.5096073517126148
+    },
+    {
+      "couverture": 0.7,
+      "n": 9831,
+      "seuil_confiance": 0.5424967408180237,
+      "accuracy": 0.5313803275353474,
+      "f1_apnee": 0.5169340463458111
+    },
+    {
+      "couverture": 0.5,
+      "n": 7022,
+      "seuil_confiance": 0.5746045112609863,
+      "accuracy": 0.5442893762460838,
+      "f1_apnee": 0.5472552348613469
+    }
+  ],
+  "par_personne": {
+    "n_personnes": 40,
+    "spearman_part_annotee": 0.1349284578525754,
+    "spearman_ahi_a0h3a": -0.04250527914270978,
+    "spearman_ahi_a0h4": -0.10996950806899748
+  },
+  "duree_min": 0.0,
+  "date": "2026-10-03T10:50"
+}
