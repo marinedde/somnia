@@ -66,6 +66,31 @@ Tableau complet : [docs/RESULTATS_SHHS.md](docs/RESULTATS_SHHS.md).
 | Apnée | RF entraîné sur SHHS | PhysioNet, tout (externe) | AUC-ROC / aire PR | 0,71 / 0,60 |
 | Apnée | RF entraîné sur PhysioNet | SHHS val (externe) | AUC-ROC / aire PR | 0,57 / 0,49 |
 
+### Réseau convolutif sur le signal brut (étape 4, octobre 2026)
+
+Même découpage, même validation, test toujours fermé. Réseau 1D de 70 000 paramètres, une
+époque à la fois, normalisation par exemple, test du petit lot réussi avant tout entraînement.
+Tableau complet, calibration et courbes : [docs/RESULTATS_CNN.md](docs/RESULTATS_CNN.md).
+
+| Tâche | Modèle | Personnes étiquetées | Métrique | Score (validation) |
+|---|---|---|---|---|
+| Stades | Random Forest | 192 | exactitude / kappa | 0,70 / 0,60 |
+| Stades | **CNN 1D** | 192 (100 %) | exactitude / kappa | **0,73 / 0,64** |
+| Stades | CNN 1D | 19 (10 %) | exactitude / kappa | 0,68 / 0,56 |
+| Stades | CNN 1D | 2 (1 %) | exactitude / kappa | 0,37 / 0,22 |
+| Apnée | Random Forest | 192 | AUC-ROC / aire PR | **0,65 / 0,56** |
+| Apnée | CNN 1D | 192 (100 %) | AUC-ROC / aire PR | 0,63 / 0,54 |
+| Apnée | CNN 1D | 19 (10 %) | AUC-ROC / aire PR | 0,48 / 0,41 |
+
+- **Stades** : le réseau dépasse la forêt (kappa 0,64 contre 0,60) et sa faim d'étiquettes est
+  nette : 19 personnes suffisent presque, 2 ne suffisent pas. En refusant la moitié des époques
+  les moins sûres, l'exactitude monte à 0,89 : c'est le principe de la file de relecture.
+- **Apnée** : le réseau sur 60 s d'ECG brut **ne bat pas** la forêt sur 16 caractéristiques, et
+  n'ordonne pas mieux les personnes (Spearman 0,07 avec l'index clinique). Soixante secondes
+  d'ECG ne suffisent pas à voir une hypopnée : le signe est dans la variation du rythme sur
+  plusieurs minutes et dans la saturation. C'est un résultat, et il oriente la suite :
+  contexte plus long, et le pré-entraînement de l'étape 5 là où les étiquettes manquent.
+
 Ce que ces lignes disent :
 
 - **La validation externe fait chuter les stades de 0,70 à 0,55** dans les deux sens. Autre

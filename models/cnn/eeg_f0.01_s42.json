@@ -1,0 +1,181 @@
+{
+  "nom": "eeg_f0.01_s42",
+  "tache": "eeg",
+  "fraction": 0.01,
+  "graine": 42,
+  "date": "2026-10-03T10:14",
+  "n_personnes_train": 2,
+  "n_exemples_train": 1804,
+  "n_personnes_val": 40,
+  "n_exemples_val": 40020,
+  "appareil": "mps",
+  "meilleure_epoque": 3,
+  "historique": [
+    {
+      "epoque": 1,
+      "perte_train": 1.5888433395626804,
+      "perte_val": 1.6070897579193115,
+      "score_val": 0.0028723767585446813,
+      "duree_s": 2.4,
+      "accuracy": 0.15194902548725636,
+      "f1_macro": 0.057456731435211614,
+      "f1_weighted": 0.0460610389329012,
+      "kappa": 0.0028723767585446813,
+      "f1_Wake": 0.027720277202772026,
+      "f1_N1": 0.0,
+      "f1_N2": 0.0,
+      "f1_N3": 0.0,
+      "f1_REM": 0.25956337997328605
+    },
+    {
+      "epoque": 2,
+      "perte_train": 1.5237688019111786,
+      "perte_val": 1.5994598865509033,
+      "score_val": 0.014600583008498758,
+      "duree_s": 0.7,
+      "accuracy": 0.26286856571714146,
+      "f1_macro": 0.12295558669468014,
+      "f1_weighted": 0.1420005160152498,
+      "kappa": 0.014600583008498758,
+      "f1_Wake": 0.41651793681956095,
+      "f1_N1": 0.0,
+      "f1_N2": 0.0,
+      "f1_N3": 0.0,
+      "f1_REM": 0.19825999665383973
+    },
+    {
+      "epoque": 3,
+      "perte_train": 1.4340863706267328,
+      "perte_val": 1.556317687034607,
+      "score_val": 0.21652282428786584,
+      "duree_s": 0.7,
+      "accuracy": 0.3670664667666167,
+      "f1_macro": 0.2981684739527216,
+      "f1_weighted": 0.2716531782721885,
+      "kappa": 0.21652282428786584,
+      "f1_Wake": 0.5830039525691699,
+      "f1_N1": 0.10763595378979994,
+      "f1_N2": 0.0,
+      "f1_N3": 0.45483982087495695,
+      "f1_REM": 0.34536264252968146
+    },
+    {
+      "epoque": 4,
+      "perte_train": 1.3418404826039485,
+      "perte_val": 1.560610055923462,
+      "score_val": 0.17619731756975388,
+      "duree_s": 0.7,
+      "accuracy": 0.3358070964517741,
+      "f1_macro": 0.24295461125083367,
+      "f1_weighted": 0.23080638522628735,
+      "kappa": 0.17619731756975388,
+      "f1_Wake": 0.5964568855828521,
+      "f1_N1": 0.1409910843873108,
+      "f1_N2": 0.00047849751779412646,
+      "f1_N3": 0.3480996600192825,
+      "f1_REM": 0.12874692874692875
+    },
+    {
+      "epoque": 5,
+      "perte_train": 1.2582139054317432,
+      "perte_val": 1.5492496490478516,
+      "score_val": 0.18128420329747919,
+      "duree_s": 0.7,
+      "accuracy": 0.3078460769615192,
+      "f1_macro": 0.2699433800091013,
+      "f1_weighted": 0.24912057895930523,
+      "kappa": 0.18128420329747919,
+      "f1_Wake": 0.575302308537926,
+      "f1_N1": 0.13367830961621388,
+      "f1_N2": 0.0,
+      "f1_N3": 0.3402128115403842,
+      "f1_REM": 0.3005234703509826
+    },
+    {
+      "epoque": 6,
+      "perte_train": 1.2021813218186541,
+      "perte_val": 1.5799765586853027,
+      "score_val": 0.19001407007116855,
+      "duree_s": 0.8,
+      "accuracy": 0.31071964017991005,
+      "f1_macro": 0.27145655421242215,
+      "f1_weighted": 0.24941081670534948,
+      "kappa": 0.19001407007116855,
+      "f1_Wake": 0.6090014781589276,
+      "f1_N1": 0.17639040348964014,
+      "f1_N2": 0.0,
+      "f1_N3": 0.3516363238352366,
+      "f1_REM": 0.22025456557830658
+    }
+  ],
+  "validation": {
+    "accuracy": 0.3670664667666167,
+    "f1_macro": 0.2981684739527216,
+    "f1_weighted": 0.2716531782721885,
+    "kappa": 0.21652282428786584,
+    "f1_Wake": 0.5830039525691699,
+    "f1_N1": 0.10763595378979994,
+    "f1_N2": 0.0,
+    "f1_N3": 0.45483982087495695,
+    "f1_REM": 0.34536264252968146
+  },
+  "calibration": {
+    "ece_avant": 0.10263086351231296,
+    "ece_apres": 0.1141528590018129,
+    "temperature": 1.0504233050150258,
+    "n_personnes_val": 40
+  },
+  "couverture": [
+    {
+      "couverture": 1.0,
+      "n": 40020,
+      "seuil_confiance": 0.20420247316360474,
+      "accuracy": 0.3670664667666167,
+      "kappa": 0.21652282428786584
+    },
+    {
+      "couverture": 0.9,
+      "n": 36018,
+      "seuil_confiance": 0.2138936072587967,
+      "accuracy": 0.3879726803265034,
+      "kappa": 0.23176221098998284
+    },
+    {
+      "couverture": 0.8,
+      "n": 32016,
+      "seuil_confiance": 0.21762262284755707,
+      "accuracy": 0.4114192903548226,
+      "kappa": 0.24484576299671001
+    },
+    {
+      "couverture": 0.7,
+      "n": 28014,
+      "seuil_confiance": 0.22050265967845917,
+      "accuracy": 0.43738844863282644,
+      "kappa": 0.2516641836439216
+    },
+    {
+      "couverture": 0.5,
+      "n": 20010,
+      "seuil_confiance": 0.22669494152069092,
+      "accuracy": 0.4996501749125437,
+      "kappa": 0.21735827518899486
+    }
+  ],
+  "par_personne": null,
+  "duree_min": 0.3,
+  "journal": [
+    "[eeg_f0.01_s42] 2 personnes d'entraînement, 1,804 exemples, chargés en 7 s",
+    "validation : 40 personnes, 40,020 exemples",
+    "appareil mps | 44,501 paramètres | train 1,804 | val 40,020",
+    "époque  1 | perte train 1.5888 | perte val 1.6071 | kappa val 0.0029 | 2 s",
+    "époque  2 | perte train 1.5238 | perte val 1.5995 | kappa val 0.0146 | 1 s",
+    "époque  3 | perte train 1.4341 | perte val 1.5563 | kappa val 0.2165 | 1 s",
+    "époque  4 | perte train 1.3418 | perte val 1.5606 | kappa val 0.1762 | 1 s",
+    "époque  5 | perte train 1.2582 | perte val 1.5492 | kappa val 0.1813 | 1 s",
+    "époque  6 | perte train 1.2022 | perte val 1.5800 | kappa val 0.1900 | 1 s",
+    "arrêt anticipé : pas de progrès depuis 3 époques",
+    "meilleure époque 3 | validation : accuracy 0.367, f1_macro 0.298, f1_weighted 0.272, kappa 0.217, f1_Wake 0.583, f1_N1 0.108, f1_N2 0.000, f1_N3 0.455, f1_REM 0.345",
+    "calibration : ECE 0.103 -> 0.114 (T = 1.05)"
+  ]
+}

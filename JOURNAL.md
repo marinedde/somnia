@@ -110,6 +110,16 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
   de désaturation des hypopnées. À trancher avant l'étape 4.
 - Écrit sans aide : non (assistant).
 
+## 2026-10-03 (suite) — étape 4, réseau convolutif
+- Fait : `somnia/deep/` (données, modèle encodeur + tête, boucle, calibration, couverture), 9 tests, petit lot
+  réussi, 6 entraînements (EEG et ECG × 100 / 10 / 1 % des personnes), `docs/RESULTATS_CNN.md`.
+- Résultat : stades CNN 0,733 / kappa 0,641 (RF 0,70 / 0,60), 10 % : 0,56, 1 % : 0,22 ; couverture 50 % → 0,89.
+  Apnée : CNN 0,625 < RF 0,65, et n'ordonne pas les personnes (Spearman 0,07).
+- Bloquée sur : —
+- Appris : la boucle zsh ne découpe pas les variables (`set -- $spec`) : bash. 12 s par époque sur MPS pour
+  192 000 exemples. Le réseau sur 60 s d'ECG ne voit pas ce qu'une hypopnée change ; il faut du contexte.
+- Écrit sans aide : non (assistant). Page blanche : `model.py` puis `train.py` (la boucle), c'est le cœur de l'entretien.
+
 ## 2026-10-__
 - Fait :
 - Résultat :

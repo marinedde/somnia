@@ -267,6 +267,15 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 
 ### Étape 4 : réseau supervisé
 
+> **Étape 4 terminée le 3 octobre** (`docs/RESULTATS_CNN.md`, `somnia/deep/`). Petit lot : perte
+> 1,58 → 0,001 (EEG), 0,70 → 0,0002 (ECG). Entraînement complet en 2 à 3 minutes par run sur la
+> puce graphique du Mac (12 s par époque). Stades : CNN 0,733 / kappa 0,641 contre RF 0,70 / 0,60 ;
+> 10 % des personnes : 0,68 / 0,56 ; 1 % : 0,37 / 0,22. ECE 0,036 (déjà bien calibré, la
+> température n'améliore pas). Couverture 50 % : exactitude 0,89. Apnée : CNN AUC 0,625 < RF 0,65,
+> Spearman par personne 0,07 : 60 s d'ECG brut ne suffisent pas, le signe est multi-minutes.
+> Une seule graine par ligne : l'écart entre graines reste à mesurer. Test fermé.
+
+
 - Deux ajouts de juillet, un jour chacun : **calibration** (diagramme de fiabilité, erreur de calibration attendue, puis mise à l'échelle par température ajustée sur la validation) et **courbe précision / couverture** (que gagne-t-on en refusant les 10 % d'époques les moins sûres ?). Ces deux figures sont la base de la file de relecture triée. Sans calibration, trier par incertitude trie du bruit.
 - Pour les stades, une époque isolée plafonne : le contexte de la nuit compte. Ne t'en occupe pas à l'étape 4 ; note-le comme piste et traite-le à l'étape 6 si le temps le permet (une couche récurrente ou convolutive sur la séquence de vecteurs d'époques).
 

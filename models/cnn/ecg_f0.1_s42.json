@@ -1,0 +1,128 @@
+{
+  "nom": "ecg_f0.1_s42",
+  "tache": "ecg",
+  "fraction": 0.1,
+  "graine": 42,
+  "date": "2026-10-03T10:14",
+  "n_personnes_train": 19,
+  "n_exemples_train": 6567,
+  "n_personnes_val": 40,
+  "n_exemples_val": 14044,
+  "appareil": "mps",
+  "meilleure_epoque": 1,
+  "historique": [
+    {
+      "epoque": 1,
+      "perte_train": 0.6791382879540676,
+      "perte_val": 0.7044969201087952,
+      "score_val": 0.40576096310413856,
+      "duree_s": 2.3,
+      "accuracy": 0.46567929364853317,
+      "f1_apnee": 0.5374753451676528,
+      "auc_roc": 0.47968390503360236,
+      "auc_pr": 0.40576096310413856
+    },
+    {
+      "epoque": 2,
+      "perte_train": 0.6214905178163882,
+      "perte_val": 0.9004951119422913,
+      "score_val": 0.4022990311997999,
+      "duree_s": 1.1,
+      "accuracy": 0.44310737681572204,
+      "f1_apnee": 0.5826796862493997,
+      "auc_roc": 0.481607645772396,
+      "auc_pr": 0.4022990311997999
+    },
+    {
+      "epoque": 3,
+      "perte_train": 0.5853716887094594,
+      "perte_val": 0.9379192590713501,
+      "score_val": 0.3940235768386563,
+      "duree_s": 1.1,
+      "accuracy": 0.4749359156935346,
+      "f1_apnee": 0.536168071455529,
+      "auc_roc": 0.4751752646973645,
+      "auc_pr": 0.3940235768386563
+    },
+    {
+      "epoque": 4,
+      "perte_train": 0.5704533842141105,
+      "perte_val": 1.0714846849441528,
+      "score_val": 0.3963657622126704,
+      "duree_s": 1.1,
+      "accuracy": 0.46147821133580175,
+      "f1_apnee": 0.5611327104973017,
+      "auc_roc": 0.47304416459882787,
+      "auc_pr": 0.3963657622126704
+    }
+  ],
+  "validation": {
+    "accuracy": 0.46567929364853317,
+    "f1_apnee": 0.5374753451676528,
+    "auc_roc": 0.47968390503360236,
+    "auc_pr": 0.40576096310413856
+  },
+  "calibration": {
+    "ece_avant": 0.07210883370469896,
+    "ece_apres": 0.03417092413827322,
+    "temperature": 6889.600390081125,
+    "n_personnes_val": 40
+  },
+  "couverture": [
+    {
+      "couverture": 1.0,
+      "n": 14044,
+      "seuil_confiance": 0.5000002384185791,
+      "accuracy": 0.46567929364853317,
+      "f1_apnee": 0.5374753451676528
+    },
+    {
+      "couverture": 0.9,
+      "n": 12640,
+      "seuil_confiance": 0.5082805752754211,
+      "accuracy": 0.46139240506329116,
+      "f1_apnee": 0.5410543346366455
+    },
+    {
+      "couverture": 0.8,
+      "n": 11235,
+      "seuil_confiance": 0.5150694251060486,
+      "accuracy": 0.4515353805073431,
+      "f1_apnee": 0.5419268510258698
+    },
+    {
+      "couverture": 0.7,
+      "n": 9831,
+      "seuil_confiance": 0.5211429595947266,
+      "accuracy": 0.44522429050961243,
+      "f1_apnee": 0.545727136431784
+    },
+    {
+      "couverture": 0.5,
+      "n": 7022,
+      "seuil_confiance": 0.5312443375587463,
+      "accuracy": 0.4287952150384506,
+      "f1_apnee": 0.5368895046761344
+    }
+  ],
+  "par_personne": {
+    "n_personnes": 40,
+    "spearman_part_annotee": -0.1271330356824912,
+    "spearman_ahi_a0h3a": -0.13183101362249275,
+    "spearman_ahi_a0h4": -0.1322145220257582
+  },
+  "duree_min": 0.3,
+  "journal": [
+    "[ecg_f0.1_s42] 19 personnes d'entraînement, 6,567 exemples, chargés en 7 s",
+    "validation : 40 personnes, 14,044 exemples",
+    "appareil mps | 44,306 paramètres | train 6,567 | val 14,044",
+    "époque  1 | perte train 0.6791 | perte val 0.7045 | auc_pr val 0.4058 | 2 s",
+    "époque  2 | perte train 0.6215 | perte val 0.9005 | auc_pr val 0.4023 | 1 s",
+    "époque  3 | perte train 0.5854 | perte val 0.9379 | auc_pr val 0.3940 | 1 s",
+    "époque  4 | perte train 0.5705 | perte val 1.0715 | auc_pr val 0.3964 | 1 s",
+    "arrêt anticipé : pas de progrès depuis 3 époques",
+    "meilleure époque 1 | validation : accuracy 0.466, f1_apnee 0.537, auc_roc 0.480, auc_pr 0.406",
+    "calibration : ECE 0.072 -> 0.034 (T = 6889.60)",
+    "par personne : {'n_personnes': 40, 'spearman_part_annotee': -0.1271330356824912, 'spearman_ahi_a0h3a': -0.13183101362249275, 'spearman_ahi_a0h4': -0.1322145220257582}"
+  ]
+}
