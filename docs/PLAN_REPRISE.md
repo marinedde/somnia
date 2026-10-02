@@ -251,7 +251,9 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 
 > **Étape 3 terminée le 3 octobre** (`docs/RESULTATS_SHHS.md`). Stades : RF SHHS 0,70 / kappa 0,60
 > sur la validation, 0,55 / 0,40 en externe dans les deux sens. Apnée : RF SHHS AUC 0,65 sur la
-> validation (majoritaire 0,50), 0,70 vers PhysioNet, 0,58 depuis PhysioNet. Deux défauts
+> validation (majoritaire 0,50), 0,71 vers PhysioNet, 0,57 depuis PhysioNet. **Par personne, la référence
+> ECG ordonne mal les gens** : Spearman 0,17 avec l'index clinique (`docs/COVARIABLES_SHHS.md`) ; c'est la
+> mesure à faire progresser à l'étape 4. Deux défauts
 > corrigés en route : ECG SHHS inversé dans la plupart des nuits, détecteur de pics R maison
 > trop bruité (remplacé par `sleepecg`, PhysioNet CV ECG 0,77 → 0,84). Le test SHHS n'a pas été
 > ouvert. Les deux modèles de référence sont dans `models/shhs_rf_*.joblib`, hors git.

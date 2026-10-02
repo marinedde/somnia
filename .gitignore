@@ -49,3 +49,6 @@ docs/pilote_shhs.csv
 
 # Références SHHS entraînées localement : pas déployées, pas versionnées
 models/shhs_rf_*.joblib
+
+# Tables de covariables SHHS (individuelles) : hors dépôt
+**/shhs/datasets/

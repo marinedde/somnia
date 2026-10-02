@@ -33,7 +33,7 @@ d'où viennent les données, sont-elles saines, et le code laisse-t-il passer qu
 | Ce que nous utilisons | EEG Fpz-Cz, 100 Hz, hypnogramme R&K par époque de 30 s | ECG une dérivation, 100 Hz, une étiquette apnée / normal par minute | EEG C4-A1 (canal `EEG`) et ECG, 125 Hz natifs, XML NSRR : stades R&K et événements horodatés |
 | Licence | ouverte (PhysioNet) | ouverte (PhysioNet) | accord d'utilisation NSRR : pas de redistribution, stockage hors dépôt, citation |
 | Vérifié par nous | fréquences, canaux, unités (volts), 32 annotations non mappées | fréquences, unités (mV), doublon c05 = c06 confirmé par corrélation 1,000 à 80 s de décalage | fréquences par canal lues dans les en-têtes, structure XML, documentation sleepdata.org |
-| Non vérifié | âges et sexes (fichier `SC-subjects.xls` non téléchargé) | correspondance enregistrement → personne (non publiée) | covariables (âge, sexe, IMC, index clinique) : tables non téléchargées |
+| Non vérifié | âges et sexes (fichier `SC-subjects.xls` non téléchargé) | correspondance enregistrement → personne (non publiée) | — (covariables jointes le 3 octobre : `docs/COVARIABLES_SHHS.md`) |
 
 Les descriptions de population (âges, sélection) viennent de la documentation des bases, pas
 de nos fichiers. À confirmer sur les tables de covariables avant toute analyse par sous-groupe.
@@ -259,11 +259,17 @@ code.
 - 70 apnées ou hypopnées de plus de 120 s (0,1 %) gardées telles qu'annotées.
 - Apnea-ECG : découpage par enregistrement faute de correspondance personne ; une fuite
   résiduelle entre deux enregistrements d'une même personne reste possible.
-- Covariables (âge, sexe, IMC, index clinique) non encore téléchargées : pas d'analyse par
-  sous-groupe possible pour l'instant.
+- Covariables jointes (`docs/COVARIABLES_SHHS.md`) : âge médian 58,5 ans (minimum 40), 45 % de femmes,
+  IMC médian 26,5 ; les trois ensembles se ressemblent. **Mon index annoté vaut 2,7 fois l'index clinique
+  `ahi_a0h3a` et 6,6 fois `ahi_a0h4`** (toutes les hypopnées comptées, sans critère de désaturation) ;
+  l'ordre des personnes est conservé (Spearman 0,82) mais pas le niveau. Les classes de sévérité à
+  publier sont celles de l'index clinique : avec `ahi_a0h4`, 47 % de la cohorte est « normale » et 8 %
+  « sévère » ; la validation et le test n'ont que 2 personnes sévères chacun.
 
 **À faire**
 
-- Télécharger les tables de covariables SHHS pour les sous-groupes et l'index clinique.
+- Décider, avant l'étape 4, si l'étiquette « apnée » doit se rapprocher de la définition clinique
+  (hypopnée comptée seulement avec une désaturation associée), ou rester celle des annotations.
+  Les désaturations sont dans les XML mais le NSRR prévient qu'elles peuvent manquer ou être décalées.
 - Module « qualité du signal » qui refuse une époque saturée plutôt que de la classer.
 - Pour le réseau convolutif : normalisation ou augmentation de polarité ECG.

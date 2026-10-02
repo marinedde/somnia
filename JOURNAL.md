@@ -99,6 +99,17 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
   les tests de l'API testaient avec des signaux de 1 volt. Deux heures d'audit valent plus qu'une semaine d'entraînement.
 - Écrit sans aide : non (assistant + relecteur).
 
+## 2026-10-03 (suite) — covariables SHHS
+- Fait : table de covariables SHHS1 téléchargée (hors dépôt), jointe aux 272 nuits ; `docs/COVARIABLES_SHHS.md` :
+  cohorte par ensemble, index annoté vs index clinique, références de l'étape 3 par sous-groupe (validation).
+- Résultat : âge médian 58,5 ans, 45 % de femmes, IMC 26,5 ; ensembles comparables. Index annoté = 2,7 × ahi_a0h3a
+  et 6,6 × ahi_a0h4 (ordre conservé, Spearman 0,82 ; niveau non). Par personne, la référence ECG : Spearman 0,17
+  avec l'index clinique. Sous-groupes : pas d'effondrement net, mais 40 personnes seulement.
+- Bloquée sur : —
+- Appris : « apnée » au sens des annotations NSRR n'est pas « apnée » au sens clinique ; la différence, c'est le critère
+  de désaturation des hypopnées. À trancher avant l'étape 4.
+- Écrit sans aide : non (assistant).
+
 ## 2026-10-__
 - Fait :
 - Résultat :

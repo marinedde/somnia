@@ -75,6 +75,10 @@ Ce que ces lignes disent :
   Les hypopnées dominent les étiquettes SHHS, la population est générale et enregistrée à
   domicile, et 16 caractéristiques de variabilité cardiaque sur 60 s n'y suffisent pas. C'est
   le chiffre à battre pour le réseau convolutif et le pré-entraînement.
+- **Par personne**, ce qui compte pour un médecin, la référence ECG ordonne mal les gens : corrélation
+  de 0,17 entre la part de minutes prédites positives et l'index clinique SHHS
+  ([docs/COVARIABLES_SHHS.md](docs/COVARIABLES_SHHS.md), avec la description de la cohorte, les
+  sous-groupes et l'écart entre l'index annoté et l'index clinique).
 - Deux défauts trouvés en route, qui changeaient tout : l'ECG de SHHS est **inversé** dans la
   plupart des nuits (le détecteur de pics R ne cherchait que des pics positifs), et le
   détecteur maison voyait trois fois trop de variabilité RR. Remplacé par celui de `sleepecg`,
