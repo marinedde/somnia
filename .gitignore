@@ -52,3 +52,7 @@ models/shhs_rf_*.joblib
 
 # Tables de covariables SHHS (individuelles) : hors dépôt
 **/shhs/datasets/
+
+# Réseaux entraînés localement (poids et logits) : hors git, métriques JSON versionnées
+models/cnn/*.pt
+models/cnn/*_val_logits.npz
