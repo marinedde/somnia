@@ -11,8 +11,8 @@ Remplace le brouillon ~/Downloads/03_download_shhs.py (juin 2026) :
 Usage :
     export NSRR_TOKEN="..."                 # https://sleepdata.org/token
     python python_scripts/shhs_download.py --dry-run
-    python python_scripts/shhs_download.py                      # pilote : ~10 nuits
-    python python_scripts/shhs_download.py --pattern "*-20000*"  # ~100 nuits
+    python python_scripts/shhs_download.py                          # pilote : 9 nuits
+    python python_scripts/shhs_download.py --pattern "*-2000??[.-]*" # 99 nuits
 
 Prérequis : pip install sleepecg   (déjà dans requirements-research.txt)
 """
@@ -47,8 +47,13 @@ def _check_destination(dest: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Télécharge un sous-ensemble SHHS")
-    parser.add_argument("--pattern", default="*-200000*",
-                        help='motif de nom de fichier (défaut "*-200000*" ≈ 10 nuits)')
+    # Les identifiants vont de 200001 à 205804 (5 793 nuits). Le motif s'applique au nom de
+    # fichier complet : "shhs1-200001.edf" ET "shhs1-200001-nsrr.xml", d'où le "[.-]".
+    #   "*-20000?[.-]*"  -> 200001 à 200009 :  9 nuits (pilote)
+    #   "*-2000??[.-]*"  -> 200001 à 200099 : 99 nuits
+    #   "*-20[0-2]???[.-]*" -> ~300 nuits
+    parser.add_argument("--pattern", default="*-20000?[.-]*",
+                        help='motif de nom de fichier (défaut "*-20000?[.-]*" = 9 nuits)')
     parser.add_argument("--visit", default="shhs1", choices=["shhs1", "shhs2"])
     parser.add_argument("--dest", default=os.environ.get("SHHS_DIR", str(DEFAULT_DIR)),
                         help="dossier de destination (défaut : $SHHS_DIR ou ~/data/shhs/raw)")
