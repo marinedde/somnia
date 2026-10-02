@@ -43,3 +43,6 @@ notebooks/mlruns/
 
 # Figures du pilote SHHS : signaux SHHS, jamais publiés
 docs/figures_pilote/
+
+# Tableau du pilote SHHS : contient des identifiants de participants
+docs/pilote_shhs.csv

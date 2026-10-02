@@ -35,9 +35,12 @@ CANAUX_PREFERES = {"eeg": ["EEG", "EEG (sec)"], "ecg": ["ECG"], "flux": ["New Ai
 
 
 def _trouver(raw, candidats):
+    """Les noms varient d'un fichier à l'autre ('New Air' / 'NEW AIR', 'EEG (sec)' / 'EEG(sec)')."""
+    normaliser = lambda s: s.replace(" ", "").lower()
+    noms = {normaliser(n): n for n in raw.ch_names}
     for c in candidats:
-        if c in raw.ch_names:
-            return c
+        if normaliser(c) in noms:
+            return noms[normaliser(c)]
     return None
 
 

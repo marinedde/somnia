@@ -27,6 +27,19 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
 - Appris : la fuite ECG était bien plus grosse que la fuite EEG ; les écarts-types sont larges avec 16 et 30 personnes.
 - Écrit sans aide : non. Page blanche à faire, dans l'ordre : subjects.py, splits.py, evaluation.py, physionet.py.
 
+## 2026-10-02 (suite) — étape 1, pilote SHHS
+- Fait : jeton en place (régénéré après une fuite dans une trace), TLS via truststore, motif de fichiers corrigé
+  (identifiants à partir de 200001), 9 nuits téléchargées (335 Mo). Inspection des en-têtes EDF, lecture d'un vrai
+  XML, lecteur d'annotations validé, tableau des 9 nuits, 6 figures par nuit.
+- Résultat : deux montages dès 9 fichiers (flux `NEW AIR` ou `AIRFLOW`) ; fréquences conformes à la doc ;
+  IAH estimé de 10 à 63/h ; hypopnées 10 fois plus nombreuses que les apnées obstructives.
+- Bloquée sur : —
+- Appris : les noms de canaux changent de casse et d'espaces d'un fichier à l'autre ; MNE masque les fréquences
+  natives (lire l'en-tête EDF soi-même) ; sleepdata.org n'envoie pas son certificat intermédiaire.
+- Écrit sans aide : non (assistant). Page blanche à faire : `somnia/shhs.py` (lecteur XML), après ceux de l'étape 0.
+- Décisions prises : apnée = apnées obstructives, centrales, mixtes + hypopnées ; époque positive si ≥ 10 s
+  couvertes ; éveil exclu de la tâche apnée. À revoir : garder 125 Hz ou revenir à 100 Hz (conseil : 100 Hz).
+
 ## 2026-10-__
 - Fait :
 - Résultat :

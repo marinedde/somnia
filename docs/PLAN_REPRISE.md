@@ -187,9 +187,32 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 >
 > Ce que ça change : les fréquences diffèrent d'un canal à l'autre dans le même EDF.
 > `python_scripts/shhs_inspect.py` lit l'en-tête EDF directement pour les voir ; MNE les
-> aurait toutes ramenées à une fréquence commune. Les modules d'étape 1 sont écrits
-> (`somnia/shhs.py`, tests sur un XML fabriqué) et attendent la validation sur un vrai
-> fichier : tâche 1.7, à la main, avant de s'y fier.
+> aurait toutes ramenées à une fréquence commune.
+>
+> **Pilote fait le 2 octobre, 9 nuits (shhs1-200001 à 200009), vérifié sur les fichiers :**
+>
+> - Noms de canaux réels, qui diffèrent de la documentation par la casse et les espaces :
+>   `SaO2`, `H.R.`, `EEG(sec)`, `ECG`, `EMG`, `EOG(L)`, `EOG(R)`, `EEG`, `THOR RES`, `ABDO RES`,
+>   `POSITION`, `LIGHT`, `OX stat`, et le flux soit `NEW AIR` (6 nuits sur 9) soit `AIRFLOW`
+>   (3 nuits). Deux montages, donc, dès 9 fichiers : la correspondance de noms doit être
+>   tolérante (fait dans `shhs_plot_pilot.py`, à reprendre dans le futur lecteur).
+> - Fréquences conformes à la documentation : EEG, ECG, EMG 125 Hz ; EOG 50 Hz ; respiration
+>   et flux 10 Hz ; SaO2, fréquence cardiaque, position, lumière 1 Hz. ECG en mV, EEG en µV.
+>   Blocs EDF d'une seconde.
+> - XML NSRR : structure exactement celle attendue (`EpochLength` 30, `ScoredEvent` avec
+>   `EventType`, `EventConcept`, `Start`, `Duration`, parfois `SignalLocation` et `ClockTime`).
+>   Vocabulaire rencontré : `Wake|0`, `Stage 1 sleep|1` … `Stage 4 sleep|4`, `REM sleep|5` ;
+>   `Obstructive apnea`, `Central apnea`, `Hypopnea`, `SpO2 desaturation`, `SpO2 artifact`,
+>   `Arousal`. Pas d'apnée mixte dans ces 9 nuits. Le premier événement, « Recording Start
+>   Time », a un `EventType` vide.
+> - **Lecteur validé** : pour les 9 nuits, la somme des durées de stades lues égale la durée
+>   de l'EDF à la seconde près, et aucune époque n'est non scorée.
+> - Ordres de grandeur des 9 nuits : 7,3 à 9,1 h d'enregistrement, 3,0 à 6,5 h de sommeil,
+>   index d'apnées-hypopnées estimé de 10 à 63 par heure (les hypopnées dominent : 10 fois
+>   plus nombreuses que les apnées obstructives). N1 rare (1 à 5 % des époques), comme dans
+>   Sleep-EDF. Tableau complet, avec identifiants, dans `docs/pilote_shhs.csv` (hors git).
+> - Figures de la tâche 1.9 produites dans `docs/figures_pilote/` (hors git), à regarder à
+>   l'œil : c'est ton métier, pas le mien.
 
 - Le script est prêt : `python python_scripts/shhs_download.py --dry-run`, puis sans `--dry-run` une fois `NSRR_TOKEN` exporté. Dix nuits SHHS pèsent de l'ordre de 500 Mo à 1 Go.
 - Lis **les deux** canaux dès le pilote : l'EEG (C4-A1 ou C3-A2) et l'ECG. Le lecteur d'annotations extrait stades et événements d'un seul coup. C'est ce qui fait que les trois fils partagent le même code.
