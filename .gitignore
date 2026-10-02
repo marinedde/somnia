@@ -36,3 +36,7 @@ shhs/
 # à publier seulement si l'accord le permet (voir docs/PLAN_REPRISE.md).
 data/splits/
 notebooks/mlruns/
+
+# Livrables de formation (présentations, scripts d'oral) : hors dépôt, archivés dans JEDHA
+*.pptx
+*.docx

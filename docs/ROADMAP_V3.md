@@ -497,7 +497,7 @@ seulement la phrase que tu écris sur ta page d'accueil.
 - [x] ~~Trancher le nom~~ → **Somnia**, acté.
 - [ ] Sortir le repo d'iCloud → `~/dev/somnia`.
 - [ ] Purger le dépôt : `venv/` (2,9 Go), `mlruns/` (607 Mo), `htmlcov/`, `.coverage`,
-      `.DS_Store`, la présentation (déplacée en `docs/presentation_AIA_v3.pptx`). Les modèles (319 Mo) → Git LFS ou
+      `.DS_Store`, la présentation AIA (sortie du dépôt, archivée dans JEDHA/…/aia docs/bloc4). Les modèles (319 Mo) → Git LFS ou
       releases.
 - [ ] Créer `~/data/shhs/` hors iCloud (ou SSD externe), vérifier l'espace.
 - [ ] Récupérer le token NSRR (profil NSRR) et repérer la commande exacte de
