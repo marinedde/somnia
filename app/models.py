@@ -12,6 +12,12 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Dict, Optional, List
 
 
+# Plages physiques acceptées (audit du 3 octobre 2026). Un client qui envoie des µV au lieu
+# de volts obtiendrait une prédiction sur des valeurs ×1e6 sans le savoir : on refuse (422).
+EEG_MAX_V = 1e-3      # 1 mV : très au-dessus de tout EEG de scalp (SHHS sature à 125 µV)
+ECG_MAX_MV = 10.0     # 10 mV : très au-dessus d'un QRS (SHHS sature à 1,25 mV)
+
+
 # ============================================================================
 # REQUÊTES
 # ============================================================================
@@ -20,25 +26,34 @@ class SleepStageRequest(BaseModel):
     """Requête pour la classification des stades de sommeil."""
     signal: List[float] = Field(
         ...,
-        description="Signal EEG de 30 secondes — 3000 valeurs à 100 Hz",
+        description="Signal EEG de 30 secondes — 3000 valeurs à 100 Hz, en VOLTS "
+                    "(comme les fichiers EDF lus par MNE : un EEG vaut typiquement ±1e-4 V)",
         min_length=3000,
         max_length=3000,
     )
 
     @field_validator('signal')
     @classmethod
-    def check_signal_length(cls, v):
+    def check_signal(cls, v):
         if len(v) != 3000:
             raise ValueError(
                 f"Le signal EEG doit contenir exactement 3000 points "
                 f"(30s × 100Hz), reçu {len(v)}"
             )
+        amax = max(abs(x) for x in v)
+        if amax > EEG_MAX_V:
+            raise ValueError(
+                f"Amplitude EEG {amax:.3g} au-dessus de {EEG_MAX_V} V : le signal doit être en volts "
+                f"(pas en µV). Un EEG de scalp ne dépasse pas quelques centaines de µV."
+            )
+        if amax == 0:
+            raise ValueError("Signal EEG nul (plat) : rien à classer.")
         return v
 
     model_config = {
         "json_schema_extra": {
             "example": {
-                "signal": [0.0] * 3000
+                "signal": [0.0] * 2999 + [1e-5]
             }
         }
     }
@@ -48,25 +63,33 @@ class ApneaRequest(BaseModel):
     """Requête pour la détection d'apnée."""
     signal: List[float] = Field(
         ...,
-        description="Signal ECG de 60 secondes — 6000 valeurs à 100 Hz",
+        description="Signal ECG de 60 secondes — 6000 valeurs à 100 Hz, en MILLIVOLTS "
+                    "(comme Apnea-ECG et SHHS : un QRS vaut typiquement 0,5 à 3 mV)",
         min_length=6000,
         max_length=6000,
     )
 
     @field_validator('signal')
     @classmethod
-    def check_signal_length(cls, v):
+    def check_signal(cls, v):
         if len(v) != 6000:
             raise ValueError(
                 f"Le signal ECG doit contenir exactement 6000 points "
                 f"(60s × 100Hz), reçu {len(v)}"
             )
+        amax = max(abs(x) for x in v)
+        if amax > ECG_MAX_MV:
+            raise ValueError(
+                f"Amplitude ECG {amax:.3g} au-dessus de {ECG_MAX_MV} mV : le signal doit être en millivolts."
+            )
+        if amax == 0:
+            raise ValueError("Signal ECG nul (plat) : rien à classer.")
         return v
 
     model_config = {
         "json_schema_extra": {
             "example": {
-                "signal": [0.0] * 6000
+                "signal": [0.0] * 5999 + [0.5]
             }
         }
     }

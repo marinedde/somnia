@@ -258,6 +258,11 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 
 - La validation externe va dans les deux sens et pour les deux tâches : SHHS → PhysioNet et PhysioNet → SHHS. Pour l'ECG, les étiquettes ne sont pas définies pareil (une par minute contre des événements horodatés) : il faudra ramener SHHS à des minutes pour comparer, et le dire.
 
+> **Audit du 3 octobre, avant l'étape 4** : `docs/AUDIT_DONNEES_CODE.md`. Données propres (intégrité
+> des 297 annotations, cohérence des unités, découpages disjoints), ECG SHHS inversé par câblage
+> (constant dans la nuit, 80 % des nuits), 13 points de code dont 11 corrigés, 104 tests. Chiffres
+> inchangés après relance complète.
+
 ### Étape 4 : réseau supervisé
 
 - Deux ajouts de juillet, un jour chacun : **calibration** (diagramme de fiabilité, erreur de calibration attendue, puis mise à l'échelle par température ajustée sur la validation) et **courbe précision / couverture** (que gagne-t-on en refusant les 10 % d'époques les moins sûres ?). Ces deux figures sont la base de la file de relecture triée. Sans calibration, trier par incertitude trie du bruit.

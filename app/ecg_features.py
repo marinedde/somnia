@@ -1,13 +1,30 @@
 """
 Feature extractor pour les signaux ECG (détection apnée).
 
-Extrait 16 features d'un segment ECG de 1 minute (6000 points = 60s x 100Hz).
-Utilisé dans le pipeline sklearn ECG.
+Extrait 16 features d'un segment ECG de 1 minute (6000 points = 60s x 100Hz), en mV.
+Utilisé dans le pipeline sklearn ECG, à l'entraînement comme dans l'API : même code.
+
+Règles (audit du 3 octobre 2026) :
+- aucune valeur par défaut « physiologique » : quand aucun battement n'est détectable, les
+  caractéristiques RR, HRV et fréquence cardiaque valent 0 (une fréquence cardiaque de 0 bpm
+  est impossible, donc reconnaissable), jamais un cœur normal inventé ;
+- les NaN/inf sont remplacés ici, une seule fois, pour tout le monde ;
+- rien n'est imprimé : les échecs passent par `logging` et sont comptés dans `n_echecs`.
 """
+
+import logging
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from scipy.signal import welch, find_peaks
+
+log = logging.getLogger(__name__)
+
+N_FEATURES = 16
+# Valeurs quand aucun battement n'est détectable : 0 partout (sentinelle explicite, pas une physiologie)
+RR_SANS_BATTEMENT = [0.0, 0.0, 0.0, 0.0, 0.0]
+HRV_SANS_BATTEMENT = [0.0, 0.0, 0.0]
+QRS_SANS_BATTEMENT = [0.0, 0.0, 0.0]
 
 
 class ECGFeatureExtractor(BaseEstimator, TransformerMixin):
@@ -24,12 +41,13 @@ class ECGFeatureExtractor(BaseEstimator, TransformerMixin):
     def __init__(self, fs=100, expected_len=6000):
         self.fs           = fs
         self.expected_len = expected_len
+        self.n_echecs     = 0
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-        X = np.asarray(X)
+        X = np.asarray(X, dtype=np.float64)      # float16/float32 -> float64 : pas de débordement
         if X.ndim != 2 or X.shape[1] != self.expected_len:
             raise ValueError(
                 f"X doit être (N, {self.expected_len}), reçu {X.shape}"
@@ -38,28 +56,37 @@ class ECGFeatureExtractor(BaseEstimator, TransformerMixin):
         for i, segment in enumerate(X):
             try:
                 feats = self._extract(segment)
-            except Exception as e:
-                print(f"Erreur sample {i}: {e}")
-                feats = np.zeros(16)
+            except Exception as e:  # inattendu : on le dit, on compte, on met des zéros reconnaissables
+                self.n_echecs += 1
+                log.warning("ECG : échec d'extraction sur le segment %d (%s) -> zéros", i, type(e).__name__)
+                feats = np.zeros(N_FEATURES, dtype=np.float32)
             features_list.append(feats)
-        return np.vstack(features_list)
+        out = np.vstack(features_list)
+        return np.nan_to_num(out, nan=0.0, posinf=0.0, neginf=0.0)
 
     def _extract_rr(self, ecg_segment):
         """Détecte les pics R et retourne (intervalles RR en secondes, indices des pics).
 
         Détecteur : `sleepecg.detect_heartbeats` (robuste, référence du domaine). Le détecteur
         maison (find_peaks sur le signal centré-réduit) s'écartait de plus de 10 bpm de la
-        référence sur la moitié des fenêtres SHHS et voyait trois fois trop de variabilité RR
-        (0,146 s contre 0,048 s) : les caractéristiques mesuraient le bruit du détecteur.
+        référence sur la moitié des fenêtres SHHS et voyait trois fois trop de variabilité RR.
         Il reste en repli si sleepecg n'est pas installé.
+
+        Insensible à la polarité : si le pic dominant est négatif (dérivation inversée, 80 % des
+        nuits SHHS), le signal est retourné avant la détection.
         """
         x = np.asarray(ecg_segment, dtype=np.float64)
         x = x - np.mean(x)
-        if abs(x.min()) > abs(x.max()):      # dérivation inversée (fréquent dans SHHS)
+        if np.std(x) < 1e-9:                 # segment plat : aucun battement, pas d'erreur
+            return np.array([]), np.array([], dtype=int)
+        if abs(x.min()) > abs(x.max()):      # dérivation inversée
             x = -x
         try:
             from sleepecg import detect_heartbeats
-            peaks = np.asarray(detect_heartbeats(x, fs=self.fs), dtype=int)
+            try:
+                peaks = np.asarray(detect_heartbeats(x, fs=self.fs), dtype=int)
+            except ValueError:               # sleepecg : "ECG signal is flat" et assimilés
+                return np.array([]), np.array([], dtype=int)
         except ImportError:
             x_norm = x / (np.std(x) + 1e-8)
             peaks, _ = find_peaks(x_norm, height=0.5, distance=int(0.3 * self.fs))
@@ -88,9 +115,11 @@ class ECGFeatureExtractor(BaseEstimator, TransformerMixin):
             features.append(float(np.max(rr)))
             features.append(float(np.sqrt(np.mean(np.diff(rr) ** 2))))
         else:
-            features.extend([0.8, 0.05, 0.6, 1.2, 0.05])
+            features.extend(RR_SANS_BATTEMENT)
 
         # === 3. HRV fréquentielle (3 features) ===
+        # Limite connue : les RR hors [0,3 ; 2] s sont retirés avant le cumsum, l'axe temporel est
+        # donc comprimé quand un battement manque. À remplacer par les instants réels des pics.
         if len(rr) >= 4:
             rr_times   = np.cumsum(rr)
             t_uniform  = np.arange(0, rr_times[-1], 0.25)
@@ -107,22 +136,22 @@ class ECGFeatureExtractor(BaseEstimator, TransformerMixin):
                 ]))
                 features.extend([lf, hf, lf / (hf + 1e-8)])
             else:
-                features.extend([0.0, 0.0, 1.0])
+                features.extend(HRV_SANS_BATTEMENT)
         else:
-            features.extend([0.0, 0.0, 1.0])
+            features.extend(HRV_SANS_BATTEMENT)
 
         # === 4. Morphologie QRS (3 features) ===
-        if len(peaks) > 0:
-            amplitudes = np.abs(segment[peaks] - np.mean(segment))
+        if len(peaks) >= 2:
+            amplitudes = np.abs(segment[peaks] - np.mean(segment))   # valeur absolue : polarité indifférente
             features.append(float(np.mean(amplitudes)))
             features.append(float(np.std(amplitudes)))
             features.append(float(
                 len(peaks) / (len(segment) / self.fs / 60)
             ))
         else:
-            features.extend([0.0, 0.0, 60.0])
+            features.extend(QRS_SANS_BATTEMENT)
 
-        return np.array(features[:16], dtype=np.float32)
+        return np.array(features[:N_FEATURES], dtype=np.float32)
 
     @staticmethod
     def feature_names():

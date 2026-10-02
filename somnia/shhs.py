@@ -95,23 +95,35 @@ def lire_annotations(chemin_xml: str | Path) -> Annotations:
 
     stades: list[int] = []
     evenements: list[Evenement] = []
+    fin_stades = 0.0
     for ev in racine.iter("ScoredEvent"):
         type_ev = ev.findtext("EventType") or ""
         concept = ev.findtext("EventConcept") or ""
-        debut = float(ev.findtext("Start") or 0)
-        duree = float(ev.findtext("Duration") or 0)
+        texte_debut, texte_duree = ev.findtext("Start"), ev.findtext("Duration")
         if type_ev.lower().startswith("stages"):
+            if texte_debut is None or texte_duree is None:
+                raise ValueError(f"{chemin_xml}: bloc de stade sans Start ou Duration ({concept!r})")
+            debut, duree = float(texte_debut), float(texte_duree)
             code = _code_stade(concept)
             stade = VERS_SOMNIA.get(code, STADE_INCONNU)
             n = int(round(duree / duree_epoque))
-            # Les stades sont donnés en blocs contigus ; on vérifie qu'on ne saute rien.
+            # Les stades sont donnés en blocs contigus. Un trou est comblé par « inconnu » ;
+            # un chevauchement décalerait tous les stades suivants par rapport aux événements
+            # (indexés en temps absolu) : on refuse le fichier plutôt que de désaligner.
             attendu = len(stades) * duree_epoque
-            if abs(debut - attendu) > duree_epoque / 2:
-                manque = int(round((debut - attendu) / duree_epoque))
-                stades.extend([STADE_INCONNU] * max(manque, 0))
+            if debut < attendu - duree_epoque / 2:
+                raise ValueError(f"{chemin_xml}: blocs de stades qui se chevauchent "
+                                 f"(début {debut} s, attendu {attendu} s)")
+            if debut > attendu + duree_epoque / 2:
+                stades.extend([STADE_INCONNU] * int(round((debut - attendu) / duree_epoque)))
             stades.extend([stade] * n)
+            fin_stades = debut + duree
         else:
+            debut = float(texte_debut) if texte_debut is not None else 0.0
+            duree = float(texte_duree) if texte_duree is not None else 0.0
             evenements.append(Evenement(_premier(concept), _premier(type_ev), debut, duree))
+    if stades and abs(len(stades) * duree_epoque - fin_stades) > duree_epoque / 2:
+        raise ValueError(f"{chemin_xml}: {len(stades)} époques reconstruites mais les stades finissent à {fin_stades} s")
     return Annotations(duree_epoque, np.asarray(stades, dtype=np.int64), evenements)
 
 

@@ -31,7 +31,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from somnia.evaluation import RF_PARAMS, metriques_apnee, metriques_stades, pipeline_rf  # noqa: E402
+from somnia.evaluation import RF_PARAMS, entrainer_rf, metriques_apnee, metriques_stades  # noqa: E402
 from somnia.physionet import charger_tableau  # noqa: E402
 from somnia.splits import charger_decoupage, masques  # noqa: E402
 
@@ -63,7 +63,7 @@ def entrainer(tache: str, seuil: float, cle_seuil: str) -> tuple[dict, dict]:
     m = masques(decoupage, t["personne"])
     assert not np.any(m["train"] & m["test"]) and not np.any(m["train"] & m["val"])
 
-    modele = pipeline_rf(RF_PARAMS["random_state"]).fit(t["X"][m["train"]], t["y"][m["train"]])
+    modele = entrainer_rf(t["X"][m["train"]], t["y"][m["train"]], RF_PARAMS["random_state"])
     val = _metriques(tache, modele, t["X"][m["val"]], t["y"][m["val"]])
     test = _metriques(tache, modele, t["X"][m["test"]], t["y"][m["test"]])
 

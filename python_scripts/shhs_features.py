@@ -34,7 +34,7 @@ sys.path.insert(0, str(ROOT))
 
 from app.ecg_features import ECGFeatureExtractor  # noqa: E402
 from app.feature_extractor import FeatureExtractor  # noqa: E402
-from somnia.shhs_prepare import charger_nuit  # noqa: E402
+from somnia.shhs_prepare import charger_nuit, fenetres_60s  # noqa: E402
 
 PROCESSED = Path(os.environ.get("SHHS_PROCESSED", Path.home() / "data" / "shhs" / "processed"))
 SPLIT = ROOT / "data" / "splits" / "shhs_v1.json"
@@ -70,14 +70,14 @@ def main() -> int:
         for k, v in (("personne", pers), ("enregistrement", ident), ("ensemble", ens)):
             eeg_parts[k].append(np.full(ok.sum(), v))
 
-        # ECG : fenêtres de 60 s, les deux époques en sommeil
-        m = len(stades) // 2
-        s2 = stades[: 2 * m].reshape(m, 2)
-        sommeil = np.all(np.isin(s2, [1, 2, 3, 4]), axis=1)
+        # ECG : fenêtres de 60 s = paires d'époques, les deux en sommeil (somnia.shhs_prepare.fenetres_60s, testé)
+        garde, y_fen, ab_fen = fenetres_60s(stades, apnee, aberr)
+        m = len(garde)
+        sommeil = garde
         if sommeil.any():
             fen = ecg[: 2 * m].reshape(m, 6000)[sommeil]
-            y2 = apnee[: 2 * m].reshape(m, 2).max(axis=1)[sommeil]
-            ab2 = aberr[: 2 * m].reshape(m, 2).any(axis=1)[sommeil]
+            y2 = y_fen[sommeil]
+            ab2 = ab_fen[sommeil]
             ecg_parts["X"].append(fx_ecg.transform(fen))
             ecg_parts["y"].append(y2)
             ecg_parts["aberrant"].append(ab2)

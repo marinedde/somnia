@@ -79,6 +79,11 @@ class SleepStageClassifier:
             raise FileNotFoundError(f"Modèle EEG non trouvé : {self.model_path}")
         logger.info(f"Chargement modèle EEG : {self.model_path}")
         self.pipeline = joblib.load(self.model_path)
+        # Inférence séquentielle : reproductible au bit près (voir somnia.evaluation.entrainer_rf)
+        try:
+            self.pipeline.named_steps['clf'].set_params(n_jobs=1)
+        except (AttributeError, KeyError, ValueError):
+            pass
         logger.info("Modèle EEG chargé")
 
     def predict(

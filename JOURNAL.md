@@ -85,6 +85,20 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
   Remplacé par sleepecg. Un résultat « au hasard » doit d'abord faire chercher un bug.
 - Écrit sans aide : non (assistant).
 
+## 2026-10-03 (suite) — audit des données et du code
+- Fait : `docs/AUDIT_DONNEES_CODE.md` : provenance et comptages des trois jeux, intégrité des 297 annotations SHHS
+  (durées, événements, montages, fréquences), ECG inversé expliqué par mesure (217 nuits négatives, 8 positives,
+  constant dans la nuit : câblage), cohérence des caractéristiques entre sources, découpages. Relecture indépendante
+  du code : 13 points, 11 corrigés le jour même, 2 différés et documentés. 25 tests ajoutés (104 au total).
+  Toute la chaîne numérique relancée avec le code audité : chiffres inchangés.
+- Résultat : aucune fuite ; défauts corrigés : inférence non reproductible au bit près, époques sans signal
+  apprises, valeurs « physiologiques » inventées sans battement, chevauchement de stades non détecté, unités
+  non contrôlées dans l'API.
+- Bloquée sur : —
+- Appris : un résultat au hasard est d'abord un bug à chercher ; une mesure doit être reproductible au bit près ;
+  les tests de l'API testaient avec des signaux de 1 volt. Deux heures d'audit valent plus qu'une semaine d'entraînement.
+- Écrit sans aide : non (assistant + relecteur).
+
 ## 2026-10-__
 - Fait :
 - Résultat :

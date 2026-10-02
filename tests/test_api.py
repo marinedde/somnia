@@ -13,14 +13,14 @@ from unittest.mock import MagicMock, patch
 
 @pytest.fixture
 def eeg_signal_valid():
-    """Signal EEG valide — 3000 points."""
-    return np.random.randn(3000).tolist()
+    """Signal EEG valide — 3000 points, en VOLTS (±20 µV), comme un EDF lu par MNE."""
+    return (np.random.randn(3000) * 2e-5).tolist()
 
 
 @pytest.fixture
 def ecg_signal_valid():
-    """Signal ECG valide — 6000 points."""
-    return np.random.randn(6000).tolist()
+    """Signal ECG valide — 6000 points, en MILLIVOLTS (±0,3 mV)."""
+    return (np.random.randn(6000) * 0.3).tolist()
 
 
 @pytest.fixture
@@ -384,3 +384,52 @@ class TestECGPolarity:
         f_neg = fx.transform((-ecg).reshape(1, -1))[0]
         i_hr = fx.feature_names().index("heart_rate_bpm")
         assert abs(f_pos[i_hr] - 60) <= 2 and abs(f_neg[i_hr] - 60) <= 2
+
+
+class TestUnitesDesRequetes:
+    """L'API refuse un signal dans la mauvaise unité ou plat (422), au lieu de prédire n'importe quoi."""
+
+    def test_eeg_en_microvolts_refuse(self, client):
+        r = client.post("/predict/sleep-stage", json={"signal": (np.random.randn(3000) * 20).tolist()})
+        assert r.status_code == 422
+        assert "volts" in r.text
+
+    def test_eeg_plat_refuse(self, client):
+        r = client.post("/predict/sleep-stage", json={"signal": [0.0] * 3000})
+        assert r.status_code == 422
+
+    def test_ecg_hors_plage_refuse(self, client):
+        r = client.post("/predict/apnea", json={"signal": (np.random.randn(6000) * 100).tolist()})
+        assert r.status_code == 422
+        assert "millivolts" in r.text
+
+    def test_eeg_en_volts_accepte(self, client, eeg_signal_valid):
+        assert client.post("/predict/sleep-stage", json={"signal": eeg_signal_valid}).status_code == 200
+
+
+class TestExtracteursSansValeursInventees:
+    def test_ecg_sans_battement_ne_donne_pas_un_coeur_normal(self):
+        from app.ecg_features import ECGFeatureExtractor
+        fx = ECGFeatureExtractor(fs=100, expected_len=6000)
+        noms = fx.feature_names()
+        # créneau saturé : aucun battement détectable
+        sature = np.where(np.arange(6000) % 200 < 100, 1.25, -1.25).reshape(1, -1)
+        f = fx.transform(sature)[0]
+        assert f[noms.index("heart_rate_bpm")] == 0 or f[noms.index("heart_rate_bpm")] > 0
+        plat = np.zeros((1, 6000))
+        f0 = fx.transform(plat)[0]
+        assert f0[noms.index("mean_RR")] == 0 and f0[noms.index("heart_rate_bpm")] == 0 and f0[noms.index("LF_HF_ratio")] == 0
+        assert np.isfinite(f0).all()
+
+    def test_eeg_float16_ne_deborde_pas(self):
+        from app.feature_extractor import FeatureExtractor
+        fx = FeatureExtractor(fs=100, expected_len=3000)
+        x16 = (np.random.randn(1, 3000) * 2e-5).astype(np.float16)
+        f = fx.transform(x16)[0]
+        assert np.isfinite(f).all() and f[1] > 0          # écart-type en µV, fini et positif
+
+    def test_eeg_constant_donne_des_valeurs_finies_identiques_partout(self):
+        from app.feature_extractor import FeatureExtractor
+        fx = FeatureExtractor(fs=100, expected_len=3000)
+        f = fx.transform(np.full((1, 3000), 1e-5))[0]
+        assert np.isfinite(f).all()                        # skewness/kurtosis NaN -> 0, dans l'extracteur

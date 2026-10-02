@@ -42,6 +42,7 @@ CATEGORIES = [
     ("canal manquant", "canal EEG ou ECG absent"),
     ("sommeil scoré", "moins de 4 h de sommeil scoré"),
     ("ECG plat", "ECG plat sur plus de 50 % des époques"),
+    ("fréquence native", "fréquence native EEG ou ECG < 100 Hz"),
 ]
 
 
@@ -81,8 +82,11 @@ def main() -> int:
             sans_xml.append(ident)
             continue
         cible = out / f"{ident}.npz"
-        if not args.force and ident in anciens and (cible.exists() or anciens[ident].get("exclue") == "True"):
-            lignes.append(anciens[ident])
+        ancien = anciens.get(ident)
+        exclusion_stable = ancien is not None and ancien.get("exclue") == "True" and not str(
+            ancien.get("motif_exclusion", "")).startswith(("EDF illisible", "XML illisible"))
+        if not args.force and ancien is not None and (cible.exists() or exclusion_stable):
+            lignes.append(ancien)      # un fichier illisible (téléchargement partiel ?) sera réessayé
             continue
         logging.info("[%d/%d] %s", i, len(edfs), ident)
         r = resume_vers_dict(preparer_nuit(edf, xmls[ident], cible))

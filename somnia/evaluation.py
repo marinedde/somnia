@@ -39,15 +39,27 @@ def pipeline_rf(graine: int = 42) -> Pipeline:
     return Pipeline([("scaler", StandardScaler()), ("clf", RandomForestClassifier(**params))])
 
 
+def entrainer_rf(X, y, graine: int = 42) -> Pipeline:
+    """Entraîne en parallèle, puis passe l'inférence en séquentiel.
+
+    Avec n_jobs=-1 à la prédiction, les probabilités des arbres sont additionnées dans un ordre
+    qui dépend des threads : écart de ~4e-16 d'un appel à l'autre, et une égalité parfaite peut
+    basculer. Les arbres, eux, sont identiques. Inférence séquentielle = reproductible au bit près.
+    """
+    modele = pipeline_rf(graine).fit(X, y)
+    modele.named_steps["clf"].set_params(n_jobs=1)
+    return modele
+
+
 # ── Métriques ─────────────────────────────────────────────────────────────
 def metriques_stades(y_vrai, y_pred) -> dict[str, float]:
     m = {
         "accuracy": accuracy_score(y_vrai, y_pred),
-        "f1_macro": f1_score(y_vrai, y_pred, average="macro"),
-        "f1_weighted": f1_score(y_vrai, y_pred, average="weighted"),
+        "f1_macro": f1_score(y_vrai, y_pred, average="macro", labels=sorted(STAGE_NAMES), zero_division=0),
+        "f1_weighted": f1_score(y_vrai, y_pred, average="weighted", labels=sorted(STAGE_NAMES), zero_division=0),
         "kappa": cohen_kappa_score(y_vrai, y_pred),
     }
-    f1_par_stade = f1_score(y_vrai, y_pred, average=None, labels=sorted(STAGE_NAMES))
+    f1_par_stade = f1_score(y_vrai, y_pred, average=None, labels=sorted(STAGE_NAMES), zero_division=0)
     for code, f1 in zip(sorted(STAGE_NAMES), f1_par_stade):
         m[f"f1_{STAGE_NAMES[code]}"] = f1
     return {k: float(v) for k, v in m.items()}
@@ -91,7 +103,7 @@ def validation_croisee_par_personne(X, y, personnes, tache: str,
 
     for i, (itr, ite) in enumerate(cv.split(X, y, groups=personnes)):
         assert set(personnes[itr]).isdisjoint(personnes[ite]), "fuite : personne dans train ET test"
-        modele = pipeline_rf(graine).fit(X[itr], y[itr])
+        modele = entrainer_rf(X[itr], y[itr], graine)
         pred = modele.predict(X[ite])
         proba = modele.predict_proba(X[ite])[:, 1] if tache == "ecg" else None
         oof_pred[ite] = pred
@@ -122,7 +134,7 @@ def decoupage_aleatoire_par_epoque(X, y, tache: str, graine: int = 42, part_test
     """
     X, y = np.asarray(X), np.asarray(y)
     Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=part_test, random_state=graine, stratify=y)
-    modele = pipeline_rf(graine).fit(Xtr, ytr)
+    modele = entrainer_rf(Xtr, ytr, graine)
     pred = modele.predict(Xte)
     proba = modele.predict_proba(Xte)[:, 1] if tache == "ecg" else None
     return {"methode": "train_test_split sur les époques (fuite)", "metriques": _metriques(tache, yte, pred, proba),

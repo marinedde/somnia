@@ -36,7 +36,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from somnia.evaluation import metriques_apnee, metriques_stades, pipeline_rf  # noqa: E402
+from somnia.evaluation import entrainer_rf, metriques_apnee, metriques_stades  # noqa: E402
 from somnia.physionet import charger_tableau  # noqa: E402
 from somnia.splits import charger_decoupage, masques  # noqa: E402
 
@@ -109,7 +109,7 @@ def main() -> int:
         print(f"  3.1 majoritaire (classe {maj.classe}) :", {k: round(r['majoritaire_val'][k], 3) for k in CLES[tache][:3]})
 
         # 3.2 RF SHHS -> validation SHHS
-        rf = pipeline_rf().fit(Xtr, ytr)
+        rf = entrainer_rf(Xtr, ytr)
         r["rf_shhs_val"] = _mesurer(tache, rf, Xva, yva)
         r["rf_shhs_val_sans_aberrantes"] = _mesurer(tache, rf, s["X"][va & propre], s["y"][va & propre])
         print(f"  3.2 RF SHHS -> val SHHS      :", {k: round(r['rf_shhs_val'][k], 3) for k in CLES[tache][:3]})
@@ -124,7 +124,7 @@ def main() -> int:
 
         # 3.4 externe : RF PhysioNet (train) -> validation SHHS
         mp = masques(physio_split[tache], p["personne"])
-        rf_p = pipeline_rf().fit(p["X"][mp["train"]], p["y"][mp["train"]])
+        rf_p = entrainer_rf(p["X"][mp["train"]], p["y"][mp["train"]])
         r["rf_physionet_val_physionet"] = _mesurer(tache, rf_p, p["X"][mp["val"]], p["y"][mp["val"]])
         r["rf_physionet_vers_shhs_val"] = _mesurer(tache, rf_p, Xva, yva)
         print(f"  3.4 RF PhysioNet -> val SHHS :", {k: round(r['rf_physionet_vers_shhs_val'][k], 3) for k in CLES[tache][:3]})

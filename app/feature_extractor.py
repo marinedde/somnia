@@ -7,10 +7,14 @@ Utilisé dans le pipeline sklearn — entièrement sérialisable par joblib.
 Correction : conversion V → µV avant extraction spectrale.
 """
 
+import logging
+
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from scipy import stats
 from scipy.signal import welch
+
+log = logging.getLogger(__name__)
 
 
 class FeatureExtractor(BaseEstimator, TransformerMixin):
@@ -26,12 +30,13 @@ class FeatureExtractor(BaseEstimator, TransformerMixin):
     def __init__(self, fs=100, expected_len=3000):
         self.fs           = fs
         self.expected_len = expected_len
+        self.n_echecs     = 0
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-        X = np.asarray(X)
+        X = np.asarray(X, dtype=np.float64)      # float16 -> ×1e6 déborderait : float64 d'abord
         if X.ndim != 2 or X.shape[1] != self.expected_len:
             raise ValueError(
                 f"X doit être (N, {self.expected_len}), reçu {X.shape}"
@@ -40,11 +45,15 @@ class FeatureExtractor(BaseEstimator, TransformerMixin):
         for i, signal in enumerate(X):
             try:
                 feats = self._extract(signal)
-            except Exception as e:
-                print(f"Erreur sample {i}: {e}")
-                feats = np.zeros(16)
+            except Exception as e:  # inattendu : on le dit, on compte, zéros reconnaissables
+                self.n_echecs += 1
+                log.warning("EEG : échec d'extraction sur l'époque %d (%s) -> zéros", i, type(e).__name__)
+                feats = np.zeros(16, dtype=np.float32)
             features_list.append(feats)
-        return np.vstack(features_list)
+        out = np.vstack(features_list)
+        # Une époque constante donne skewness/kurtosis NaN : remplacés ici, une seule fois,
+        # pour l'entraînement comme pour l'API.
+        return np.nan_to_num(out, nan=0.0, posinf=0.0, neginf=0.0)
 
     def _extract(self, epoch):
         """Extrait 16 features d'une époque EEG de 30s."""

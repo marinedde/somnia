@@ -109,3 +109,23 @@ def test_etiquettes_vides_sans_evenement(tmp_path):
     </ScoredEvents></PSGAnnotation>""", encoding="utf-8")
     a = lire_annotations(p)
     assert np.array_equal(etiquettes_apnee(a), np.zeros(3, dtype=np.int64))
+
+
+def test_chevauchement_de_stades_refuse(tmp_path):
+    """Un bloc qui recouvre le précédent décalerait tous les stades suivants : on refuse le fichier."""
+    p = tmp_path / "chevauchement.xml"
+    p.write_text("""<PSGAnnotation><EpochLength>30</EpochLength><ScoredEvents>
+      <ScoredEvent><EventType>Stages|Stages</EventType><EventConcept>Wake|0</EventConcept><Start>0</Start><Duration>90</Duration></ScoredEvent>
+      <ScoredEvent><EventType>Stages|Stages</EventType><EventConcept>Stage 2 sleep|2</EventConcept><Start>60</Start><Duration>60</Duration></ScoredEvent>
+    </ScoredEvents></PSGAnnotation>""", encoding="utf-8")
+    with pytest.raises(ValueError, match="chevauchent"):
+        lire_annotations(p)
+
+
+def test_stade_sans_start_refuse(tmp_path):
+    p = tmp_path / "sans_start.xml"
+    p.write_text("""<PSGAnnotation><EpochLength>30</EpochLength><ScoredEvents>
+      <ScoredEvent><EventType>Stages|Stages</EventType><EventConcept>Wake|0</EventConcept><Duration>30</Duration></ScoredEvent>
+    </ScoredEvents></PSGAnnotation>""", encoding="utf-8")
+    with pytest.raises(ValueError, match="sans Start"):
+        lire_annotations(p)
