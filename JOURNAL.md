@@ -73,6 +73,18 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
   mouvements et yeux, pas ondes lentes. Les époques aberrantes restent dans les données, marquées.
 - Écrit sans aide : non (assistant).
 
+## 2026-10-03 (suite) — étape 3, références SHHS
+- Fait : 16 caractéristiques sur les 272 nuits (EEG par époque, ECG par fenêtre de 60 s en sommeil) ; référence
+  majoritaire ; Random Forest SHHS mesuré sur la validation (test fermé) ; validation externe dans les deux sens.
+- Résultat : EEG SHHS val exactitude 0,70 / kappa 0,60 ; externe 0,55 / 0,40 dans les deux sens. ECG SHHS val AUC
+  0,65 (après corrections), externe SHHS → PhysioNet 0,70, PhysioNet → SHHS 0,58. PhysioNet CV ECG passe à 0,84.
+- Bloquée sur : —
+- Appris : (1) l'ECG SHHS est INVERSÉ dans 28 nuits sur 40 : le détecteur ne cherchait que des pics positifs et
+  mesurait des ondes T ; (2) même redressé, le détecteur maison s'écartait de > 10 bpm de sleepecg sur la moitié
+  des fenêtres et voyait 3 fois trop de variabilité RR : les caractéristiques HRV mesuraient le bruit du détecteur.
+  Remplacé par sleepecg. Un résultat « au hasard » doit d'abord faire chercher un bug.
+- Écrit sans aide : non (assistant).
+
 ## 2026-10-__
 - Fait :
 - Résultat :

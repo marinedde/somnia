@@ -45,10 +45,24 @@ class ECGFeatureExtractor(BaseEstimator, TransformerMixin):
         return np.vstack(features_list)
 
     def _extract_rr(self, ecg_segment):
-        """Détecte les pics R et retourne les intervalles RR en secondes."""
-        ecg_norm = (ecg_segment - np.mean(ecg_segment)) / (np.std(ecg_segment) + 1e-8)
-        peaks, _ = find_peaks(ecg_norm, height=0.5,
-                               distance=int(0.3 * self.fs))
+        """Détecte les pics R et retourne (intervalles RR en secondes, indices des pics).
+
+        Détecteur : `sleepecg.detect_heartbeats` (robuste, référence du domaine). Le détecteur
+        maison (find_peaks sur le signal centré-réduit) s'écartait de plus de 10 bpm de la
+        référence sur la moitié des fenêtres SHHS et voyait trois fois trop de variabilité RR
+        (0,146 s contre 0,048 s) : les caractéristiques mesuraient le bruit du détecteur.
+        Il reste en repli si sleepecg n'est pas installé.
+        """
+        x = np.asarray(ecg_segment, dtype=np.float64)
+        x = x - np.mean(x)
+        if abs(x.min()) > abs(x.max()):      # dérivation inversée (fréquent dans SHHS)
+            x = -x
+        try:
+            from sleepecg import detect_heartbeats
+            peaks = np.asarray(detect_heartbeats(x, fs=self.fs), dtype=int)
+        except ImportError:
+            x_norm = x / (np.std(x) + 1e-8)
+            peaks, _ = find_peaks(x_norm, height=0.5, distance=int(0.3 * self.fs))
         if len(peaks) < 2:
             return np.array([]), peaks
         rr = np.diff(peaks) / self.fs
@@ -99,7 +113,7 @@ class ECGFeatureExtractor(BaseEstimator, TransformerMixin):
 
         # === 4. Morphologie QRS (3 features) ===
         if len(peaks) > 0:
-            amplitudes = segment[peaks]
+            amplitudes = np.abs(segment[peaks] - np.mean(segment))
             features.append(float(np.mean(amplitudes)))
             features.append(float(np.std(amplitudes)))
             features.append(float(

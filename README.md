@@ -36,9 +36,9 @@ Tableau complet, par pli et par stade : [docs/RESULTATS.md](docs/RESULTATS.md).
 | Stades (EEG) | Exactitude | 0,81 | **0,74 ± 0,06** |
 | Stades (EEG) | Kappa de Cohen | 0,73 | **0,63 ± 0,08** |
 | Stades (EEG) | F1 macro | 0,74 | **0,65 ± 0,06** |
-| Apnée (ECG) | AUC-ROC | 0,97 | **0,77 ± 0,08** |
-| Apnée (ECG) | Aire précision-rappel | 0,95 | **0,70 ± 0,07** |
-| Apnée (ECG) | F1 apnée | 0,88 | **0,59 ± 0,09** |
+| Apnée (ECG) | AUC-ROC | 0,97 | **0,84 ± 0,07** |
+| Apnée (ECG) | Aire précision-rappel | 0,95 | **0,79 ± 0,07** |
+| Apnée (ECG) | F1 apnée | 0,89 | **0,63 ± 0,11** |
 
 ![Avant / après](data/figures/fuite_par_personne.png)
 
@@ -48,6 +48,37 @@ la raison principale du passage à SHHS.
 
 Le stade N1 reste mal reconnu (F1 0,37), comme chez les modèles publiés et chez les
 scoreurs humains.
+
+### Références sur SHHS, et validation externe (octobre 2026)
+
+Mêmes 16 caractéristiques, même Random Forest, entraîné sur les 192 personnes d'entraînement
+SHHS et mesuré sur les 40 de validation. **Le test SHHS reste fermé** jusqu'à la fin du projet.
+Tableau complet : [docs/RESULTATS_SHHS.md](docs/RESULTATS_SHHS.md).
+
+| Tâche | Modèle | Mesuré sur | Métrique | Score |
+|---|---|---|---|---|
+| Stades | classe majoritaire | SHHS val | exactitude / kappa | 0,41 / 0,00 |
+| Stades | RF entraîné sur SHHS | SHHS val | exactitude / kappa | **0,70 / 0,60** |
+| Stades | RF entraîné sur SHHS | PhysioNet, tout (externe) | exactitude / kappa | 0,55 / 0,40 |
+| Stades | RF entraîné sur PhysioNet | SHHS val (externe) | exactitude / kappa | 0,57 / 0,39 |
+| Apnée | classe majoritaire | SHHS val | AUC-ROC / aire PR | 0,50 / 0,43 |
+| Apnée | RF entraîné sur SHHS | SHHS val | AUC-ROC / aire PR | **0,65 / 0,56** |
+| Apnée | RF entraîné sur SHHS | PhysioNet, tout (externe) | AUC-ROC / aire PR | 0,70 / 0,59 |
+| Apnée | RF entraîné sur PhysioNet | SHHS val (externe) | AUC-ROC / aire PR | 0,58 / 0,50 |
+
+Ce que ces lignes disent :
+
+- **La validation externe fait chuter les stades de 0,70 à 0,55** dans les deux sens. Autre
+  dérivation EEG (C4-A1 contre Fpz-Cz), autres appareils, autre population : c'est l'écart
+  qu'un clinicien verrait en changeant de centre.
+- **L'apnée depuis l'ECG seul est difficile sur SHHS** : AUC 0,65 contre 0,84 sur Apnea-ECG.
+  Les hypopnées dominent les étiquettes SHHS, la population est générale et enregistrée à
+  domicile, et 16 caractéristiques de variabilité cardiaque sur 60 s n'y suffisent pas. C'est
+  le chiffre à battre pour le réseau convolutif et le pré-entraînement.
+- Deux défauts trouvés en route, qui changeaient tout : l'ECG de SHHS est **inversé** dans la
+  plupart des nuits (le détecteur de pics R ne cherchait que des pics positifs), et le
+  détecteur maison voyait trois fois trop de variabilité RR. Remplacé par celui de `sleepecg`,
+  sur PhysioNet aussi : l'AUC par personne y passe de 0,77 à 0,84 avec les mêmes données.
 
 ---
 
@@ -62,7 +93,7 @@ Les premières versions du projet découpaient les données **par époque** avec
    16 personnes.
 2. **Époques voisines.** Deux époques consécutives de la même nuit se ressemblent
    beaucoup. Réparties au hasard entre entraînement et test, elles font croire à une
-   généralisation qui n'existe pas. Pour l'ECG, l'effet est massif : AUC 0,97 → 0,77.
+   généralisation qui n'existe pas. Pour l'ECG, l'effet est massif : AUC 0,97 → 0,84.
 
 Ce qui a été fait :
 

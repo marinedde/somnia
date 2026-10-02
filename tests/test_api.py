@@ -352,3 +352,35 @@ class TestMonitoringUnit:
         result = m.detect_drift()
         assert result['drift_detected'] is False
         assert 'insuffisant' in result['message'].lower() or 'insuffisantes' in result['message'].lower()
+
+
+class TestECGPolarity:
+    """Un ECG inversé (pic R vers le bas) doit donner les mêmes intervalles RR qu'un ECG à l'endroit."""
+
+    @staticmethod
+    def _ecg_synthetique(fs=100, duree=60, bpm=72):
+        t = np.arange(0, duree, 1 / fs)
+        ecg = 0.05 * np.sin(2 * np.pi * 0.25 * t)            # dérive lente
+        for r in np.arange(0.3, duree, 60 / bpm):             # un QRS étroit tous les 0,83 s
+            ecg += 1.0 * np.exp(-((t - r) ** 2) / (2 * 0.012 ** 2))
+            ecg += 0.25 * np.exp(-((t - r - 0.25) ** 2) / (2 * 0.05 ** 2))   # onde T
+        return ecg
+
+    def test_rr_identiques_a_l_endroit_et_inverse(self):
+        from app.ecg_features import ECGFeatureExtractor
+        fx = ECGFeatureExtractor(fs=100, expected_len=6000)
+        ecg = self._ecg_synthetique()
+        rr_pos, _ = fx._extract_rr(ecg)
+        rr_neg, _ = fx._extract_rr(-ecg)
+        assert len(rr_pos) > 50
+        assert np.allclose(rr_pos, rr_neg)
+        assert abs(np.mean(rr_pos) - 60 / 72) < 0.02
+
+    def test_frequence_cardiaque_coherente_quel_que_soit_le_signe(self):
+        from app.ecg_features import ECGFeatureExtractor
+        fx = ECGFeatureExtractor(fs=100, expected_len=6000)
+        ecg = self._ecg_synthetique(bpm=60)
+        f_pos = fx.transform(ecg.reshape(1, -1))[0]
+        f_neg = fx.transform((-ecg).reshape(1, -1))[0]
+        i_hr = fx.feature_names().index("heart_rate_bpm")
+        assert abs(f_pos[i_hr] - 60) <= 2 and abs(f_neg[i_hr] - 60) <= 2

@@ -1,6 +1,6 @@
 # Résultats — Somnia
 
-*Généré le 2026-10-02 par `python_scripts/evaluate_cv.py`. Ne pas éditer à la main.*
+*Généré le 2026-10-03 par `python_scripts/evaluate_cv.py`. Ne pas éditer à la main.*
 
 Deux chiffres par métrique : **avant** (découpage aléatoire par époque, celui des notebooks d'origine, fuité) et **après** (validation croisée par personne, 5 plis, moyenne ± écart-type). Même modèle, mêmes 16 caractéristiques, mêmes données. Seul le découpage change.
 
@@ -35,20 +35,20 @@ Détail par pli (personnes mises de côté) :
 
 | Métrique | Avant : aléatoire par époque | Après : par personne (5 plis) |
 |---|---|---|
-| auc_roc | 0.967 | 0.768 ± 0.075 |
-| auc_pr | 0.951 | 0.703 ± 0.073 |
-| f1_apnee | 0.877 | 0.592 ± 0.089 |
-| accuracy | 0.901 | 0.717 ± 0.050 |
+| auc_roc | 0.969 | 0.838 ± 0.074 |
+| auc_pr | 0.953 | 0.787 ± 0.066 |
+| f1_apnee | 0.885 | 0.634 ± 0.107 |
+| accuracy | 0.908 | 0.743 ± 0.042 |
 
 Détail par pli (personnes mises de côté) :
 
 | Pli | n personnes | n époques | auc_roc | auc_pr | f1_apnee |
 |---|---|---|---|---|---|
-| 1 | 6 | 3,364 | 0.842 | 0.802 | 0.642 |
-| 2 | 6 | 2,975 | 0.810 | 0.706 | 0.712 |
-| 3 | 6 | 3,007 | 0.640 | 0.591 | 0.444 |
-| 4 | 6 | 2,854 | 0.818 | 0.755 | 0.602 |
-| 5 | 6 | 2,916 | 0.728 | 0.662 | 0.562 |
+| 1 | 6 | 3,364 | 0.927 | 0.886 | 0.746 |
+| 2 | 6 | 2,975 | 0.893 | 0.826 | 0.727 |
+| 3 | 6 | 3,007 | 0.838 | 0.761 | 0.469 |
+| 4 | 6 | 2,854 | 0.711 | 0.690 | 0.550 |
+| 5 | 6 | 2,916 | 0.819 | 0.772 | 0.680 |
 
 ## Lecture
 

@@ -8,3 +8,4 @@ scipy==1.13.1
 joblib==1.4.2
 python-dotenv==1.0.1
 requests==2.33.1
+sleepecg==0.5.9

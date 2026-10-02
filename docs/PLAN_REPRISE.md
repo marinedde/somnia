@@ -109,7 +109,7 @@ Le tableau de résultats unique du plan de septembre (partie 4) reste le livrabl
 > | 0.1 | `somnia/subjects.py` | 16 personnes Sleep-EDF, 30 groupes Apnea-ECG |
 > | 0.2 | `somnia/physionet.py`, `python_scripts/prepare_features.py` | 25 721 époques EEG, 15 116 minutes ECG, avec la personne |
 > | 0.3 | `somnia/evaluation.py`, `python_scripts/evaluate_cv.py` | EEG : exactitude 0,74 ± 0,06, kappa 0,63 ± 0,08 (avant : 0,81 / 0,73) |
-> | 0.4 | idem | ECG : AUC 0,77 ± 0,08, aire PR 0,70 ± 0,07 (avant : 0,97 / 0,95) |
+> | 0.4 | idem | ECG : AUC 0,84 ± 0,07, aire PR 0,79 ± 0,07 (avant : 0,97 / 0,95), après correction de polarité et détecteur sleepecg du 3 octobre |
 > | 0.5 | `somnia/splits.py`, `python_scripts/make_split.py`, `retrain.py`, notebook 02 | `data/splits/physionet_v1.json`, plus de `train_test_split` dans la chaîne |
 > | 0.6 | `tests/test_split.py` | 8 tests, dont un qui refuse l'ancien découpage |
 > | 0.7 | `python_scripts/retrain.py`, `app/model_metrics.py` | `/model-info` lit `training_metrics.json` : chiffres par personne, écart-type, chiffres « avant » |
@@ -242,6 +242,19 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 - Le fichier contient des identifiants de participants : garde-le dans `data/splits/` (ignoré par git) tant que tu n'as pas relu l'accord. Publie les effectifs et la graine.
 
 ### Étape 3 : références
+
+> **EDA faite le 3 octobre avant d'entraîner** (`docs/EDA_SHHS.md`) : répartition des stades
+> identique dans train, val et test ; 30 % d'époques « apnée » pendant le sommeil ; 7,5 %
+> d'époques aberrantes (EEG saturé à la butée ±125 µV, surtout en éveil ; ECG saturé), gardées
+> et marquées. Pour l'ECG, les minutes de SHHS sont des paires d'époques de 30 s dont les deux
+> sont du sommeil, positives si l'une des deux l'est : même modèle des deux côtés.
+
+> **Étape 3 terminée le 3 octobre** (`docs/RESULTATS_SHHS.md`). Stades : RF SHHS 0,70 / kappa 0,60
+> sur la validation, 0,55 / 0,40 en externe dans les deux sens. Apnée : RF SHHS AUC 0,65 sur la
+> validation (majoritaire 0,50), 0,70 vers PhysioNet, 0,58 depuis PhysioNet. Deux défauts
+> corrigés en route : ECG SHHS inversé dans la plupart des nuits, détecteur de pics R maison
+> trop bruité (remplacé par `sleepecg`, PhysioNet CV ECG 0,77 → 0,84). Le test SHHS n'a pas été
+> ouvert. Les deux modèles de référence sont dans `models/shhs_rf_*.joblib`, hors git.
 
 - La validation externe va dans les deux sens et pour les deux tâches : SHHS → PhysioNet et PhysioNet → SHHS. Pour l'ECG, les étiquettes ne sont pas définies pareil (une par minute contre des événements horodatés) : il faudra ramener SHHS à des minutes pour comparer, et le dire.
 

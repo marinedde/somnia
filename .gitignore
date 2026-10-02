@@ -46,3 +46,6 @@ docs/figures_pilote/
 
 # Tableau du pilote SHHS : contient des identifiants de participants
 docs/pilote_shhs.csv
+
+# Références SHHS entraînées localement : pas déployées, pas versionnées
+models/shhs_rf_*.joblib
