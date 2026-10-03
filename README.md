@@ -22,7 +22,9 @@ Marine Deldicque — projet démarré au bootcamp Jedha (AIA 2026), poursuivi de
 | Découpage | Par personne, figé dans `data/splits/physionet_v1.json`, vérifié par un test automatique |
 | API | FastAPI, déployée sur HuggingFace : [somnia-api](https://huggingface.co/spaces/marinedde/somnia-api) |
 | Démo | Streamlit : [somnia-dashboard](https://huggingface.co/spaces/marinedde/somnia-dashboard), signaux PhysioNet uniquement |
-| Suite | Passage à SHHS (plusieurs milliers de nuits), réseau convolutif, pré-entraînement auto-supervisé : voir [docs/PLAN_REPRISE.md](docs/PLAN_REPRISE.md) |
+| Fiche modèle | [docs/FICHE_MODELE.md](docs/FICHE_MODELE.md) : usage prévu, usages exclus, populations non couvertes, limites |
+| Test final | SHHS test ouvert **une seule fois**, le 3 octobre : [docs/RESULTATS_TEST.md](docs/RESULTATS_TEST.md) |
+| Suite | Les six étapes du plan sont faites ; la suite est en partie 7 de [docs/PLAN_REPRISE.md](docs/PLAN_REPRISE.md) |
 
 ---
 
@@ -123,6 +125,41 @@ Conclusion, en cinq lignes :
    (méthode CLOCS, conçue pour l'ECG), contexte de plusieurs minutes, transformations plus
    dures, pré-entraînement sur plus de personnes, une méthode par masquage.
 5. Une seule graine par ligne : avant d'annoncer un gain, le mesurer sur trois graines.
+
+### La sortie par nuit : l'idée de départ (étape 6)
+
+Un médecin met quatre heures à relire une nuit. Le modèle ne la relit pas à sa place : il
+propose un hypnogramme, des indices, et une **file de relecture** des époques dont la
+confiance calibrée est basse. Démonstration sur une nuit publique de Sleep-EDF, avec le réseau
+entraîné sur SHHS (autre dérivation : c'est aussi une validation externe) :
+
+![Sortie par nuit](data/figures/demo_nuit.png)
+
+Sur cette nuit : accord de 65% avec le technicien (kappa 0.55), 29 % des époques
+sous le seuil de confiance, soit **140 minutes à relire au lieu de 480**. Les erreurs
+sont lisibles : la dérivation frontale de Sleep-EDF (Fpz-Cz) voit plus d'ondes lentes que la
+dérivation centrale de SHHS, et le réseau prend du N2 pour du N3. Résumé : [docs/demo_nuit.json](docs/demo_nuit.json),
+code : `somnia/nuit.py`, `python_scripts/demo_nuit.py`.
+
+### Le test SHHS, ouvert une seule fois
+
+Quarante personnes jamais vues, ni pour entraîner, ni pour choisir. Liste des modèles écrite
+avant d'exécuter, fichier jamais régénéré : [docs/RESULTATS_TEST.md](docs/RESULTATS_TEST.md).
+
+| Tâche | Modèle | Validation | **Test** |
+|---|---|---|---|
+| Stades, kappa | Random Forest SHHS | 0,60 | **0,52** |
+| Stades, kappa | CNN de zéro, 100 % | 0,64 | **0,57** |
+| Stades, kappa | CNN pré-entraîné, 10 % | 0,57 | **0,52** |
+| Stades, kappa | CNN pré-entraîné, 1 % | 0,26 | **0,26** |
+| Apnée, AUC-ROC | Random Forest SHHS | 0,65 | **0,67** |
+| Apnée, AUC-ROC | CNN de zéro, 100 % | 0,63 | **0,62** |
+| Apnée, Spearman par personne avec l'index clinique | Random Forest SHHS | 0,17 | **0,32** |
+
+Les stades perdent 0,05 à 0,08 de kappa entre validation et test. Deux explications, sans doute
+les deux : l'arrêt anticipé et les choix ont été faits sur la validation, qui est donc un peu
+flattée ; et le test est plus âgé (médiane 62,5 ans contre 54,5). L'ordre des modèles ne change
+pas. L'apnée ne bouge pas. C'est exactement pour voir cet écart qu'on garde un test fermé.
 
 Ce que ces lignes disent :
 
@@ -267,6 +304,39 @@ blanche (`python_scripts/deploy_hf.py`) : seuls les fichiers nécessaires y sont
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Donnees["Données (hors dépôt)"]
+        P[PhysioNet<br/>Sleep-EDF, Apnea-ECG]
+        S[SHHS, NSRR<br/>EDF + XML, ~/data/shhs]
+    end
+    subgraph Chaine["Chaîne de données (somnia/)"]
+        ID[identifiant_personne]
+        PR[shhs_prepare : 100 Hz,<br/>époques, étiquettes]
+        SP[splits : par personne,<br/>figés, versionnés]
+        FX[extracteurs 16 caract.<br/>(app/, les mêmes qu'à l'inférence)]
+    end
+    subgraph Modeles["Modèles"]
+        RF[Random Forest<br/>référence, API]
+        CNN[CNN 1D<br/>de zéro ou pré-entraîné]
+        SSL[pré-entraînement<br/>contrastif, sans étiquette]
+    end
+    subgraph Sorties["Sorties"]
+        EV[évaluation par personne,<br/>validation, test ouvert une fois]
+        NUIT[sortie par nuit :<br/>hypnogramme, indices,<br/>file de relecture]
+        API[API FastAPI<br/>+ démo Streamlit]
+    end
+    P --> ID --> SP
+    S --> PR --> ID
+    PR --> FX --> RF --> EV
+    PR --> CNN --> EV
+    SSL --> CNN
+    CNN --> NUIT
+    RF --> API
+```
+
 ## Organisation du dépôt
 
 ```
@@ -301,4 +371,7 @@ JOURNAL.md           journal de bord
 - Kemp B. et al., *Sleep-EDF Database Expanded*, PhysioNet.
 - Penzel T. et al., *The Apnea-ECG Database*, PhysioNet.
 - Goldberger A. et al., *PhysioBank, PhysioToolkit, and PhysioNet*, Circulation 2000.
-- Sleep Heart Health Study, National Sleep Research Resource (NSRR), à citer dès la première utilisation.
+- Quan S.F. et al., *The Sleep Heart Health Study: design, rationale, and methods*, Sleep 1997;20(12):1077-85.
+- Zhang G.Q. et al., *The National Sleep Research Resource: towards a sleep data commons*, JAMIA 2018;25(10):1351-1358.
+- Les données SHHS proviennent du National Sleep Research Resource (sleepdata.org), soutenu par le NHLBI (R24 HL114473,
+  75N92019R002). L'étude SHHS a été financée par le NHLBI (U01HL53916 et suivants).

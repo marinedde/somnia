@@ -1,0 +1,91 @@
+{
+  "nuit": "SC4001E",
+  "source": "Sleep-EDF (PhysioNet), canal Fpz-Cz ; modèle entraîné sur SHHS C4-A1 (validation externe)",
+  "n_epoques": 961,
+  "accord_avec_le_technicien": {
+    "accuracy": 0.651,
+    "f1_macro": 0.575,
+    "f1_weighted": 0.619,
+    "kappa": 0.545,
+    "f1_Wake": 0.934,
+    "f1_N1": 0.397,
+    "f1_N2": 0.234,
+    "f1_N3": 0.656,
+    "f1_REM": 0.653
+  },
+  "accord_sur_les_epoques_gardees": {
+    "accuracy": 0.733,
+    "f1_macro": 0.561,
+    "f1_weighted": 0.662,
+    "kappa": 0.602,
+    "f1_Wake": 0.994,
+    "f1_N1": 0.0,
+    "f1_N2": 0.155,
+    "f1_N3": 0.715,
+    "f1_REM": 0.941
+  },
+  "indices_predits": {
+    "temps_enregistrement_min": 480.5,
+    "temps_sommeil_total_min": 341.0,
+    "efficacite_sommeil_pct": 71.0,
+    "latence_endormissement_min": 50.5,
+    "eveil_intra_sommeil_min": 44.0,
+    "parts_pct": {
+      "W": 29.0,
+      "N1": 9.2,
+      "N2": 6.9,
+      "N3": 46.9,
+      "R": 8.0
+    },
+    "n_epoques": 961
+  },
+  "relecture": {
+    "seuil_confiance": 0.6,
+    "n_epoques_a_relire": 281,
+    "part_a_relire_pct": 29.2,
+    "temps_relecture_estime_min": 140.5
+  },
+  "segments_a_relire_en_premier": [
+    {
+      "debut_epoque": 449,
+      "fin_epoque": 459,
+      "debut_hhmm": "03:44",
+      "duree_min": 5.5,
+      "confiance_min": 0.269,
+      "stades_proposes": "RN2N1RRRRN1RN3N1"
+    },
+    {
+      "debut_epoque": 342,
+      "fin_epoque": 345,
+      "debut_hhmm": "02:51",
+      "duree_min": 2.0,
+      "confiance_min": 0.273,
+      "stades_proposes": "N3N1WN1"
+    },
+    {
+      "debut_epoque": 743,
+      "fin_epoque": 762,
+      "debut_hhmm": "06:11",
+      "duree_min": 10.0,
+      "confiance_min": 0.28,
+      "stades_proposes": "N2N1RRN1N2N3RN1N1N2R…"
+    },
+    {
+      "debut_epoque": 782,
+      "fin_epoque": 784,
+      "debut_hhmm": "06:31",
+      "duree_min": 1.5,
+      "confiance_min": 0.288,
+      "stades_proposes": "N1N1N2"
+    },
+    {
+      "debut_epoque": 614,
+      "fin_epoque": 619,
+      "debut_hhmm": "05:07",
+      "duree_min": 3.0,
+      "confiance_min": 0.292,
+      "stades_proposes": "N3RWN1N1N1"
+    }
+  ],
+  "statut": "NON VALIDÉ — proposition automatique, à relire par un professionnel formé"
+}

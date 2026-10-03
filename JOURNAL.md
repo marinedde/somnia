@@ -131,6 +131,17 @@ Règle des zones (voir `docs/PLAN_REPRISE.md`, partie 2) :
   n'apparaît que là où les étiquettes manquent vraiment.
 - Écrit sans aide : non (assistant). Page blanche : `info_nce` et `vue` (20 lignes) : c'est LA question Implicity.
 
+## 2026-10-03 (suite) — étape 6, et le test ouvert
+- Fait : sortie par nuit (`somnia/nuit.py`, 3 tests) et démo sur une nuit Sleep-EDF (140 min à relire au lieu de 480,
+  kappa 0,54 en externe) ; fiche modèle ; citations NSRR ; schéma ; trois graines lancées ; **test SHHS ouvert une
+  fois** sur une liste déclarée avant exécution.
+- Résultat test : stades CNN kappa 0,57 (val 0,64), RF 0,52 (val 0,60), pré-entraîné 10 % 0,52, 1 % 0,26 ; apnée RF
+  AUC 0,67 (val 0,65), Spearman par personne 0,32. L'ordre des modèles ne change pas ; les stades perdent 0,05-0,08.
+- Bloquée sur : —
+- Appris : la validation est un peu flattée par l'arrêt anticipé, et le test est plus âgé : d'où l'écart. Sur Fpz-Cz
+  le réseau prend du N2 pour du N3 : la dérivation compte autant que le modèle.
+- Écrit sans aide : non (assistant). Le cycle complet est fait ; la suite est dans le plan, partie 7.
+
 ## 2026-10-__
 - Fait :
 - Résultat :

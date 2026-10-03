@@ -13,7 +13,8 @@
 4. Étape 0 : ce qui est fait, ce qui te reste
 5. Étapes 1 à 6 : ajustements par rapport au plan de septembre
 6. Décisions à prendre, et quand
-7. Ce que je n'ai pas vérifié
+7. Après l'étape 6 : si Somnia doit servir à des médecins
+8. Ce que je n'ai pas vérifié
 
 ---
 
@@ -294,6 +295,13 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 
 ### Étape 6 : sortie par nuit et documentation
 
+> **Étape 6 terminée le 3 octobre.** `somnia/nuit.py` + `demo_nuit.py` (hypnogramme, indices, file de
+> relecture ; démo Sleep-EDF : 140 min à relire au lieu de 480, kappa 0,54 en externe) ;
+> `docs/FICHE_MODELE.md` ; citations NSRR ; schéma dans le README ; **test SHHS ouvert une seule
+> fois** (`docs/RESULTATS_TEST.md`) : stades CNN kappa 0,57 (val 0,64), RF 0,52 ; apnée RF AUC 0,67.
+> Trois graines sur les lignes EEG (moyenne ± écart-type dans `docs/RESULTATS_CNN.md`).
+
+
 - C'est ici que l'idée de départ redevient visible : une fonction qui prend une nuit entière, applique les deux modèles époque par époque, et renvoie hypnogramme, liste d'événements, index estimé, temps de sommeil, et la liste des époques dont la probabilité calibrée est en dessous d'un seuil. Quelques dizaines de lignes, pas une plateforme.
 - La démo en ligne reste sur PhysioNet. Une nuit complète de Sleep-EDF suffit pour montrer la file de relecture.
 - Fiche modèle : reprends le gabarit de septembre. Ajoute la ligne « population non couverte : fibrillation auriculaire, stimulateur cardiaque » et dis en entretien que tu veux la mesurer.
@@ -314,7 +322,59 @@ Le plan de septembre reste la référence pour le détail de chaque étape. Voic
 
 ---
 
-## 7. Ce que je n'ai pas vérifié
+## 7. Après l'étape 6 : si un jour Somnia doit servir à des médecins
+
+Réponse à la question du 3 octobre : « faut-il plus de données, de meilleurs modèles ? ». Les
+deux, mais pas dans cet ordre, et ni l'un ni l'autre en premier.
+
+### 7.1 D'abord ce qui rend un outil utilisable, pas ce qui le rend meilleur
+
+| Priorité | Quoi | Pourquoi d'abord |
+|---|---|---|
+| 1 | **Contexte temporel** : un modèle de séquence sur la nuit (encodeur par époque → couche récurrente ou convolutions dilatées sur la suite des vecteurs) | C'est la première limite mesurée : N1 et transitions. Un humain scorera toujours avec le contexte. Attendu : +0,05 à +0,10 de kappa, le plus gros gain disponible, à données constantes |
+| 2 | **Qualité du signal avant tout** : un module qui dit « électrode décollée », « saturé », « inexploitable » et refuse de classer | 7,5 % d'époques saturées sont aujourd'hui classées. Un outil qui annonce ce qu'il ne peut pas lire gagne une confiance qu'aucun score n'achète |
+| 3 | **Deuxième dérivation EEG + EOG + EMG** | Le scoring humain repose sur trois signaux (ondes, yeux, menton). Avec l'EEG seul on plafonne ; SHHS a les trois |
+| 4 | **Mesure par personne et par nuit** comme métrique principale : kappa par nuit, erreur sur le temps de sommeil, sur l'index | C'est ce qu'un médecin lit. Le score par époque est un intermédiaire |
+| 5 | **Trois graines, intervalles de confiance**, et une deuxième cohorte NSRR (MESA ou MrOS) ouverte une fois | Avant toute phrase devant un clinicien : « kappa 0,57 sur SHHS test, 0,5x sur MESA jamais vue » |
+
+### 7.2 Ensuite plus de données, à condition de savoir pourquoi
+
+- Passer de 272 à 1 000 ou 2 000 nuits SHHS coûte une journée de téléchargement et aidera
+  surtout le réseau de séquence et le N1. Pas avant d'avoir le modèle de séquence : plus de
+  données sur un modèle qui ignore le contexte n'achètent pas grand-chose.
+- Une **autre cohorte** vaut plus que plus de nuits de la même : autres appareils, autres
+  scoreurs, autre population. C'est ça, la généralisation que la validation externe a montrée
+  manquante (0,70 → 0,55).
+- Pour l'apnée, le problème n'est pas la quantité : c'est le signal. Soixante secondes d'ECG
+  ne voient pas une hypopnée. Trois voies, par coût croissant : fenêtres de 5 à 10 minutes
+  d'intervalles RR ; ajouter la saturation (SaO2, 1 Hz, présente dans SHHS) ; ajouter le flux
+  et les ceintures. Avec SaO2 + flux, on fait ce que fait un lecteur humain, et on peut viser
+  l'index clinique.
+
+### 7.3 Ce qui n'est pas un problème de modèle
+
+- **Étiquette** : définir « apnée » comme le clinicien (hypopnée + désaturation) si le but est
+  l'index clinique.
+- **Le produit** : la file de relecture triée est déjà la bonne forme. Ce qu'il faut ensuite,
+  c'est la boucle : le médecin corrige, les corrections sont tracées, et servent à mesurer
+  (puis à réentraîner). Le `ValidationStore` de l'API en est l'embryon.
+- **Le cadre** : un pilote avec un médecin se fait sur ses fichiers, **en local sur sa machine ou
+  la tienne**, jamais hébergés : pas d'HDS, pas de dispositif médical tant qu'il n'y a pas
+  d'information diagnostique émise. Le mode « second lecteur » (comparer au scoring existant,
+  afficher les désaccords) est la première conversation terrain la plus simple et la plus
+  honnête. Voir la roadmap de juillet, parties 6 et 7.
+
+### 7.4 L'ordre que je suivrais
+
+1. Modèle de séquence sur la nuit + EOG/EMG, trois graines (deux semaines).
+2. Module qualité du signal et refus (trois jours).
+3. 1 000 nuits SHHS, puis MESA en test externe, ouvert une fois (une semaine, surtout du téléchargement).
+4. Apnée : RR sur 5 minutes + SaO2, étiquette clinique, index par personne (deux semaines).
+5. Seulement alors : montrer à un médecin, en mode second lecteur, sur ses propres fichiers, en local.
+
+Ce qui ne change pas : découpage par personne, test fermé, tableau unique, fiche modèle à jour.
+
+## 8. Ce que je n'ai pas vérifié
 
 - **Les termes de ton accord NSRR.** Les règles supposées (pas de redistribution, stockage sécurisé, citation) sont celles qu'on trouve d'habitude. Relis-le avant le premier téléchargement.
 - **Les chiffres SHHS** (effectifs, fréquences, noms de canaux, structure XML) : ils restent à confirmer sur tes fichiers à l'étape 1, comme le disait le plan de septembre.

@@ -15,6 +15,8 @@ from __future__ import annotations
 import json
 import sys
 from datetime import date
+
+import numpy as np
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -42,7 +44,7 @@ def main() -> int:
 
     L = ["# Résultats — réseaux convolutifs (étape 4)", "",
          f"*Généré le {date.today().isoformat()} par `python_scripts/cnn_report.py`. Validation SHHS uniquement "
-         "(40 personnes) : le test n'a pas été ouvert. Une graine par ligne ; l'écart entre graines reste à mesurer.*", ""]
+         "(40 personnes) : le test a été ouvert une seule fois à la fin (`docs/RESULTATS_TEST.md`). Quand plusieurs graines existent, moyenne ± écart-type.*", ""]
     for tache in ("eeg", "ecg"):
         rs = [r for r in runs if r["tache"] == tache]
         if not rs:
@@ -60,11 +62,20 @@ def main() -> int:
             s = ssl[tache]
             L.append(f"| *Pré-entraînement contrastif (sans étiquette)* | {s['n_personnes']} (signaux seuls) | {s['n_epoques']:,} | {s['pas']} pas | "
                      + " | ".join("—" for _ in cles) + f" | perte {s['perte_debut']:.2f} → {s['perte_fin']:.2f} | {s['duree_min']} min |")
+        groupes = {}
         for r in rs:
-            c = r["calibration"]
-            L.append(f"| CNN 1D, {r['variante']} | {r['n_personnes_train']} ({r['fraction']:.0%}) | {r['n_exemples_train']:,} | {r['meilleure_epoque'] if r['meilleure_epoque'] is not None else '—'} | "
-                     + " | ".join(f"{r['validation'][k]:.3f}" for k in cles)
-                     + f" | {c['ece_avant']:.3f} → {c['ece_apres']:.3f} | {r['duree_min']} min |")
+            groupes.setdefault((r["variante"], r["fraction"]), []).append(r)
+        for (variante, fraction), grp in groupes.items():
+            r = grp[0]
+            def pm(k):
+                v = [g["validation"][k] for g in grp]
+                return f"{np.mean(v):.3f}" + (f" ± {np.std(v):.3f}" if len(v) > 1 else "")
+            c = [g["calibration"] for g in grp]
+            ep = [g["meilleure_epoque"] for g in grp if g["meilleure_epoque"] is not None]
+            L.append(f"| CNN 1D, {variante} | {r['n_personnes_train']} ({fraction:.0%}) | {r['n_exemples_train']:,} | "
+                     f"{(str(int(np.median(ep))) if ep else '—')}{' ('+str(len(grp))+' graines)' if len(grp) > 1 else ''} | "
+                     + " | ".join(pm(k) for k in cles)
+                     + f" | {np.mean([x['ece_avant'] for x in c]):.3f} → {np.mean([x['ece_apres'] for x in c]):.3f} | {np.mean([g['duree_min'] for g in grp]):.1f} min |")
         L.append("")
         plein = next((r for r in rs if r["fraction"] >= 1.0 and r["variante"] == "de zéro"), None)
         if plein:
@@ -106,9 +117,12 @@ def main() -> int:
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))
     for ax, tache, cle in zip(axes, ("eeg", "ecg"), ("kappa", "auc_pr")):
         for variante, couleur, marque in (("de zéro", "#E84855", "o"), ("pré-entraîné, affiné", "#2E4057", "s"), ("sonde linéaire (encodeur gelé)", "#EF8354", "^")):
-            rs = sorted([r for r in runs if r["tache"] == tache and r["variante"] == variante], key=lambda r: r["fraction"])
+            rs = [r for r in runs if r["tache"] == tache and r["variante"] == variante]
             if rs:
-                ax.plot([r["fraction"] * 100 for r in rs], [r["validation"][cle] for r in rs], marker=marque, label=f"CNN 1D, {variante}", color=couleur)
+                fr = sorted({r["fraction"] for r in rs})
+                moy = [np.mean([r["validation"][cle] for r in rs if r["fraction"] == f]) for f in fr]
+                err = [np.std([r["validation"][cle] for r in rs if r["fraction"] == f]) for f in fr]
+                ax.errorbar([f * 100 for f in fr], moy, yerr=err, marker=marque, capsize=3, label=f"CNN 1D, {variante}", color=couleur)
         if base.get(tache):
             ax.axhline(base[tache]["rf_shhs_val"][cle], color="#048A81", ls="--", label="Random Forest, 100 % des personnes")
             ax.axhline(base[tache]["majoritaire_val"][cle], color="grey", ls=":", label="classe majoritaire")
