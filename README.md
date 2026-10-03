@@ -104,16 +104,16 @@ signe recherché). Puis sonde linéaire (encodeur gelé) et affinage. Détail : 
 
 | Tâche | Personnes étiquetées | De zéro | Pré-entraîné, affiné | Sonde linéaire (gelé) |
 |---|---|---|---|---|
-| Stades, kappa | 2 (1 %) | 0,22 | **0,26** | — |
-| Stades, kappa | 19 (10 %) | 0,56 | 0,57 | 0,54 |
-| Stades, kappa | 192 (100 %) | 0,64 | 0,64 | 0,58 |
+| Stades, kappa | 2 (1 %) | 0,25 ± 0,12 | **0,37 ± 0,08** | — |
+| Stades, kappa | 19 (10 %) | 0,58 ± 0,02 | 0,58 ± 0,01 | 0,54 |
+| Stades, kappa | 192 (100 %) | 0,64 ± 0,01 | 0,64 ± 0,02 | 0,57 |
 | Apnée, AUC-ROC | 19 (10 %) | 0,48 | 0,50 | 0,49 |
 | Apnée, AUC-ROC | 192 (100 %) | 0,63 | 0,63 | 0,55 |
 
 Conclusion, en cinq lignes :
 
-1. Avec 1 % des étiquettes, le pré-entraînement fait passer le kappa des stades de 0,22 à 0,26 ;
-   avec 10 % et plus, l'écart disparaît. C'est cohérent avec la littérature : l'auto-supervisé
+1. Avec 1 % des étiquettes, le pré-entraînement fait passer le kappa des stades de 0,25 à 0,37 en
+   moyenne sur trois graines ; avec 10 % et plus, l'écart disparaît. C'est cohérent avec la littérature : l'auto-supervisé
    aide quand les étiquettes sont rares, pas quand elles abondent.
 2. La sonde linéaire est le résultat le plus parlant : un encodeur qui n'a jamais vu une
    étiquette, gelé, surmonté d'une simple régression logistique, atteint un kappa de 0,58, le
@@ -124,7 +124,10 @@ Conclusion, en cinq lignes :
 4. Pistes, par ordre : paires positives prises à des instants différents de la même personne
    (méthode CLOCS, conçue pour l'ECG), contexte de plusieurs minutes, transformations plus
    dures, pré-entraînement sur plus de personnes, une méthode par masquage.
-5. Une seule graine par ligne : avant d'annoncer un gain, le mesurer sur trois graines.
+5. Mesuré sur trois graines (les 2 personnes du « 1 % » changent avec la graine) : à 1 %, le
+   pré-entraînement apporte en moyenne +0.11 de kappa (de +0.01 à +0.29 selon la graine ;
+   0,25 ± 0,12 de zéro contre 0,37 ± 0,08 pré-entraîné) ; à 10 % et 100 %, écart nul (0,58 contre 0,58,
+   0,64 contre 0,64). Moyennes ± écart-type dans [docs/RESULTATS_CNN.md](docs/RESULTATS_CNN.md).
 
 ### La sortie par nuit : l'idée de départ (étape 6)
 

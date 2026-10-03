@@ -40,13 +40,13 @@ Populations **non couvertes** : moins de 40 ans, grossesse, porteurs de stimulat
 fibrillation auriculaire, maladies neurologiques, enregistrements de laboratoire récents
 (pression nasale au lieu de thermistance), autres pays et autres appareils.
 
-## Performance (validation SHHS, 40 personnes, test fermé jusqu'à l'ouverture finale)
+## Performance (validation SHHS, 40 personnes ; test ouvert une fois : `docs/RESULTATS_TEST.md`, kappa CNN 0,57, RF 0,52 ; apnée RF AUC 0,67)
 
 | Tâche | Modèle | Métrique | Valeur |
 |---|---|---|---|
 | Stades | Random Forest | exactitude / kappa | 0,70 / 0,60 |
 | Stades | réseau convolutif | exactitude / kappa | 0,73 / 0,64 |
-| Stades | réseau convolutif, externe sur Sleep-EDF | exactitude / kappa | voir `docs/demo_nuit.json` |
+| Stades | réseau convolutif, externe sur une nuit Sleep-EDF | exactitude / kappa | 0,65 / 0,54 |
 | Stades | Random Forest, externe sur Sleep-EDF | exactitude / kappa | 0,55 / 0,40 |
 | Apnée | Random Forest | AUC-ROC / aire précision-rappel | 0,65 / 0,56 |
 | Apnée | réseau convolutif | AUC-ROC / aire précision-rappel | 0,63 / 0,54 |
@@ -70,7 +70,7 @@ atteint 0,89 : c'est le principe de la file de relecture.
 - La validation externe divise le kappa des stades par 1,5 (autre dérivation, autres appareils).
 - SHHS mesure le flux par thermistance : les critères modernes de l'hypopnée reposent sur la
   pression nasale.
-- Résultats à une graine ; l'écart entre graines est en cours de mesure.
+- Résultats sur trois graines pour les stades (écart-type 0,01 à 0,02 de kappa à 100 %, 0,08 à 0,12 à 1 %) ; une graine pour le reste.
 
 ## Données et droits
 
