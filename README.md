@@ -24,7 +24,7 @@ Marine Deldicque — projet démarré au bootcamp Jedha (AIA 2026), poursuivi de
 | Démo | Streamlit : [somnia-dashboard](https://huggingface.co/spaces/marinedde/somnia-dashboard), signaux PhysioNet uniquement |
 | Fiche modèle | [docs/FICHE_MODELE.md](docs/FICHE_MODELE.md) : usage prévu, usages exclus, populations non couvertes, limites |
 | Test final | SHHS test ouvert **une seule fois**, le 3 octobre : [docs/RESULTATS_TEST.md](docs/RESULTATS_TEST.md) |
-| Suite | Les six étapes du plan sont faites ; la suite est en partie 7 de [docs/PLAN_REPRISE.md](docs/PLAN_REPRISE.md) |
+| Suite | Contexte temporel sur la nuit, qualité du signal, EOG et EMG, deuxième cohorte NSRR, apnée avec la saturation |
 
 ---
 
@@ -349,9 +349,8 @@ app/                 API FastAPI et extracteurs de caractéristiques (les mêmes
 python_scripts/      prepare_features, make_split, evaluate_cv, retrain, deploy_hf, shhs_download
 tests/               API, découpage, identifiants, hygiène du dépôt (aucun fichier SHHS ni jeton)
 data/splits/         découpage par personne, versionné
-docs/                PLAN_REPRISE.md (plan en 7 étapes), RESULTATS.md (généré), ROADMAP_V3.md
+docs/                résultats générés (RESULTATS*.md, EDA, covariables, test), audit, fiche modèle, ROADMAP_V3.md
 notebooks/           exploration et préparation d'origine ; la référence est désormais python_scripts/
-JOURNAL.md           journal de bord
 ```
 
 ---
