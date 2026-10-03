@@ -56,3 +56,6 @@ models/shhs_rf_*.joblib
 # Réseaux entraînés localement (poids et logits) : hors git, métriques JSON versionnées
 models/cnn/*.pt
 models/cnn/*_val_logits.npz
+
+# Notes personnelles (cours, QCM, préparation d'entretien) : jamais sur GitHub ni HuggingFace
+notes_privees/
