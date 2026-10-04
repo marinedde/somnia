@@ -57,7 +57,7 @@ def main() -> int:
     dev = appareil()
     stades_net = CNN1D(5); stades_net.load_state_dict(torch.load(ROOT / "models/cnn/eeg_f1_s42.pt", map_location="cpu")); stades_net.eval()
     T = json.loads((ROOT / "models/cnn/eeg_f1_s42.json").read_text(encoding="utf-8"))["calibration"]["temperature"]
-    ev_net = ReseauEvenements(); ev_net.load_state_dict(torch.load(ROOT / "models/resp/evenements_s42.pt", map_location="cpu")); ev_net.to(dev)
+    ev_net = ReseauEvenements(canaux=5); ev_net.load_state_dict(torch.load(ROOT / "models/resp/evenements_v2_s42.pt", map_location="cpu")); ev_net.to(dev)
 
     def predire_stades(eeg_uv):
         with torch.no_grad():
@@ -78,7 +78,7 @@ def main() -> int:
     ou_sont_les_ref = {"sur": 0, "a_relire": 0, "possible": 0, "manque": 0}
     for k, n in enumerate(nuits):
         eeg = charger_nuit(PROCESSED / f"{n.ident}.npz")["eeg"]                      # µV, (n_epoques, 3000)
-        proba = proba_nuit(ev_net, n, dev)
+        proba = proba_nuit(ev_net, n, dev, canal_sommeil=True)
         r = analyser_nuit_complete(eeg, predire_stades, proba, temperature=T)
         res, fc = r["respiration"]["resume"], r["file_commune"]
 
@@ -95,14 +95,15 @@ def main() -> int:
         for e in r["respiration"]["evenements"]:
             v = 2 if e["a_relire"] else 3
             couv[e["debut_s"]:e["debut_s"] + e["duree_s"]] = np.maximum(couv[e["debut_s"]:e["debut_s"] + e["duree_s"]], v)
-        ref = masque_vers_evenements(n.y)
+        sommeil_ref = sommeil_par_seconde(n.stades)[: n.n_sec]
+        ref_tous = masque_vers_evenements(n.y)
+        ref = [e for e in ref_tous if sommeil_ref[min(e.debut, len(sommeil_ref) - 1)]]      # ceux qui comptent dans l'index
         for e in ref:
             m = int(couv[e.debut:e.fin].max()) if e.fin > e.debut else 0
             ou_sont_les_ref[{3: "sur", 2: "a_relire", 1: "possible", 0: "manque"}[m]] += 1
         # 4. index de bout en bout vs référence (sommeil et événements du technicien)
-        sommeil_ref = sommeil_par_seconde(n.stades)[: n.n_sec]
         lignes.append({
-            "personne": n.personne, "index_ref": index_par_heure(ref, sommeil_ref), "index_bout_en_bout": res["index_par_heure"] or 0.0,
+            "personne": n.personne, "index_ref": index_par_heure(ref_tous, sommeil_ref), "index_bout_en_bout": res["index_par_heure"] or 0.0,
             "n_ref": len(ref), "n_proposes": res["n_evenements"], "n_surs": res["n_surs"], "n_a_relire": res["n_a_relire"],
             "n_possibles": res["n_possibles"], "part_stades_a_relire": r["relecture"]["part_a_relire_pct"],
             "signal_a_relire_min": fc["signal_a_relire_min"], "signal_total_min": fc["signal_total_min"], "part_a_relire": fc["part_a_relire_pct"],
@@ -147,8 +148,9 @@ def main() -> int:
          f"*Généré le {agg['date']} par `python_scripts/nuit_complete.py` sur les {agg['n_nuits']} nuits de validation SHHS. "
          "Agrégats seulement : le détail d'une nuit reste hors dépôt. Le test n'est pas touché.*", "",
          "Pour chaque nuit, deux réseaux tournent : celui des stades (EEG) et celui des événements respiratoires (flux, "
-         "ceintures, saturation). La sortie réunit l'hypnogramme, les événements proposés avec leur confiance, l'index calculé "
-         "sur le sommeil **prédit**, et une file de relecture commune.", "",
+         "ceintures, saturation, et le sommeil prédit par le premier). La sortie réunit l'hypnogramme, les événements proposés "
+         "pendant le sommeil prédit avec leur confiance, l'index, et une file de relecture commune. La référence est l'ensemble "
+         "des événements que le technicien a marqués pendant le sommeil : ceux qui comptent dans l'index.", "",
          "## 1. Ce qu'il reste à relire", "",
          "| Par nuit, médiane (quartiles) | |", "|---|---|",
          f"| Durée de l'enregistrement | {med_iqr([l['signal_total_min'] for l in lignes])} min |",

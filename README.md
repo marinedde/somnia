@@ -139,13 +139,29 @@ chaque seconde, « rien », « apnée » ou « hypopnée », regroupés en évé
 Réseau à convolutions dilatées de 144 000 paramètres, 270 nuits, même découpage par personne,
 validation seulement. Détail : [docs/RESULTATS_EVENEMENTS.md](docs/RESULTATS_EVENEMENTS.md).
 
-| Mesure (validation, 40 personnes, 3 graines) | Résultat |
+| Mesure (validation, 40 personnes, 3 graines, de bout en bout) | Résultat |
 |---|---|
-| Événements retrouvés (rappel) | 0,75 ± 0,02 ; apnées 0,84, hypopnées 0,74 |
-| Événements proposés qui sont justes (précision) | 0,65 ± 0,01 |
-| F1 par événement, tout recouvrement / bornes exigeantes (IoU ≥ 0,3) | 0,70 / 0,67 |
-| Index par personne contre l'index annoté | Spearman 0,84 ; erreur médiane 6 événements / h |
-| Référence simple : désaturations ≥ 4 % par heure, contre l'index clinique | Spearman 0,92 ; erreur médiane 1,9 / h |
+| Événements retrouvés (rappel) | 0,73 ± 0,02 ; apnées 0,91, hypopnées 0,70 |
+| Événements proposés qui sont justes (précision) | 0,73 ± 0,01 |
+| F1 par événement, tout recouvrement / bornes exigeantes (IoU ≥ 0,3) | 0,73 / 0,71 |
+| Index par personne contre l'index annoté | Spearman 0,83 ; erreur médiane 6 événements / h ; biais nul |
+| Index par personne contre l'index clinique à 3 % | Spearman 0,86 |
+| Référence simple : désaturations ≥ 4 % par heure, contre l'index clinique à 4 % | Spearman 0,92 ; erreur médiane 1,9 / h |
+
+« De bout en bout » : la référence est l'ensemble des événements que le technicien a marqués
+pendant le sommeil (ceux qui comptent dans l'index) ; les propositions sont limitées au sommeil
+**prédit** par le réseau de stades ; rien n'est emprunté au technicien.
+
+**Comment le réseau a été amélioré.** Un diagnostic de la première version a montré que 47 %
+des fausses propositions commençaient pendant l'éveil : le réseau ne savait pas si le patient
+dormait. La version 2 reçoit un cinquième canal, la probabilité de sommeil prédite, et une
+pondération des classes adoucie. Six expériences comparées sur la validation :
+
+- dire au réseau si le patient dort améliore la précision (0,66 → 0,73) ; l'élargir ne change rien ;
+- la courbe d'apprentissage est plate : un quart des nuits donne presque le même score, donc
+  plus de nuits du même type n'aideraient pas ;
+- avec le sommeil du technicien à la place du sommeil prédit, le même réseau atteindrait 0,77 :
+  le prochain gain est dans le réseau de stades, pas dans celui des événements.
 
 Deux lectures. Pour **estimer l'index clinique**, compter les désaturations suffit presque : c'est
 une référence simple, et elle est très forte. Ce que le réseau apporte, c'est la **position de
@@ -175,22 +191,25 @@ sur le sommeil prédit, et une file de relecture commune. Mesuré sur les 40 nui
 SHHS (agrégats seulement ; le détail d'une nuit reste hors dépôt) :
 [docs/RESULTATS_NUIT.md](docs/RESULTATS_NUIT.md).
 
-| Par nuit de validation | |
+| Par nuit de validation (événements du technicien pendant le sommeil) | |
 |---|---|
-| Événements du technicien déjà placés dans une proposition « sûre » | 57 % |
-| ... dans une proposition « à relire » | 24 % |
-| ... signalés comme « possibles » | 6 % |
-| ... signalés nulle part, à trouver par le lecteur | 13 % |
-| Précision des propositions sûres (confiance ≥ 0,85) / à relire | 83 % / 44 % |
-| Précision si on exige une confiance ≥ 0,95 | 96 %, pour 13 % des propositions |
-| Index de bout en bout contre l'index annoté | Spearman 0,83, erreur médiane 6 / h |
-| Signal à relire, stades et événements réunis | 63 % de la nuit |
+| Déjà placés dans une proposition « sûre » | 52 % |
+| ... dans une proposition « à relire » | 21 % |
+| ... signalés comme « possibles » | 7 % |
+| ... signalés nulle part, à trouver par le lecteur | 21 % |
+| Précision des propositions sûres (confiance ≥ 0,85) / à relire | **91 %** / 57 % |
+| Précision si on exige une confiance ≥ 0,90 / ≥ 0,95 | 96 % / 98 % |
+| Index de bout en bout contre l'index annoté | Spearman 0,82, erreur médiane 5 / h, biais nul |
+| Signal à relire, stades et événements réunis | 50 % de la nuit |
 
-Lecture honnête : avec 276 événements par nuit en médiane, il y en a partout, et trier par
-incertitude **n'économise presque pas de signal** (63 % reste à regarder). Le gain possible est
-ailleurs : la majorité des événements est déjà placée, et la confiance les trie bien (de 66 %
-à 96 % de précision selon l'exigence). Valider un événement pré-marqué va plus vite que le
-chercher et le marquer ; de combien, seul un chronomètre avec un lecteur le dira.
+Lecture honnête. Avec plus de 200 événements par nuit, trier par incertitude **économise peu de
+signal** : la moitié de la nuit reste à regarder. Le gain possible est dans le pré-marquage :
+une proposition « sûre » est juste neuf fois sur dix, et la confiance trie bien (de 78 % à 98 %
+selon l'exigence). En contrepartie, un événement sur cinq n'est signalé nulle part, souvent
+parce que le réseau de stades a cru le patient éveillé : c'est le prix de la précision, et la
+raison pour laquelle le prochain chantier est la séparation éveil / sommeil. Valider un
+événement pré-marqué va plus vite que le chercher et le marquer ; de combien, seul un
+chronomètre avec un lecteur le dira.
 
 ### Le test SHHS, ouvert une seule fois
 

@@ -2,66 +2,66 @@
   "date": "2026-10-04",
   "n_nuits": 40,
   "signal_a_relire_pct": {
-    "mediane": 63.05,
-    "q1": 54.65,
-    "q3": 70.075
+    "mediane": 50.349999999999994,
+    "q1": 44.5,
+    "q3": 58.375
   },
   "precision_par_niveau": {
-    "sur": 0.8250989590969066,
-    "a_relire": 0.4433480176211454
+    "sur": 0.9106236034938046,
+    "a_relire": 0.5723522167487685
   },
   "effectifs_par_niveau": {
-    "sur": 6821,
-    "a_relire": 5675
+    "sur": 4923,
+    "a_relire": 3248
   },
   "reference_ou": {
-    "sur": 0.57071400549235,
-    "a_relire": 0.24029030992546097,
-    "possible": 0.059925460965084346,
-    "manque": 0.12907022361710474
+    "sur": 0.5190740522026692,
+    "a_relire": 0.2073934097082792,
+    "possible": 0.06850124010865714,
+    "manque": 0.20503129798039446
   },
   "index_bout_en_bout": {
-    "spearman": 0.827392120075047,
-    "erreur_absolue_mediane": 6.033826638477799,
-    "biais": 3.2959158028649007,
-    "spearman_ahi_a0h3a": 0.8393996247654786,
-    "spearman_ahi_a0h4": 0.7048780487804879
+    "spearman": 0.8190261786677424,
+    "erreur_absolue_mediane": 5.420089195298003,
+    "biais": -0.4090841971350992,
+    "spearman_ahi_a0h3a": 0.859180039431751,
+    "spearman_ahi_a0h4": 0.7454733122215214
   },
   "compromis_confiance": [
     {
       "confiance_min": 0.7,
-      "part_des_proposes": 0.9789532650448144,
-      "precision": 0.6587917926918989,
-      "evenements_par_nuit": 305.825,
-      "rapport_aux_references": 0.7904080031384857
+      "part_des_proposes": 0.9931464936972219,
+      "precision": 0.7796672828096118,
+      "evenements_par_nuit": 202.875,
+      "rapport_aux_references": 0.747254045116334
     },
     {
       "confiance_min": 0.8,
-      "part_des_proposes": 0.7297535211267606,
-      "precision": 0.7472310560368461,
-      "evenements_par_nuit": 227.975,
-      "rapport_aux_references": 0.6683012946253433
+      "part_des_proposes": 0.7816668706400686,
+      "precision": 0.8548614372945045,
+      "evenements_par_nuit": 159.675,
+      "rapport_aux_references": 0.644856501712531
     },
     {
       "confiance_min": 0.85,
-      "part_des_proposes": 0.5486555697823303,
-      "precision": 0.8242415402567095,
-      "evenements_par_nuit": 171.4,
-      "rapport_aux_references": 0.5542369556688898
+      "part_des_proposes": 0.6045771631379269,
+      "precision": 0.9101214574898785,
+      "evenements_par_nuit": 123.5,
+      "rapport_aux_references": 0.5310027164284871
     },
     {
       "confiance_min": 0.9,
-      "part_des_proposes": 0.3469110115236876,
-      "precision": 0.8980392156862745,
-      "evenements_par_nuit": 108.375,
-      "rapport_aux_references": 0.38181639858768146
+      "part_des_proposes": 0.3955452209031942,
+      "precision": 0.9619430693069307,
+      "evenements_par_nuit": 80.8,
+      "rapport_aux_references": 0.36719026809968114
     },
     {
       "confiance_min": 0.95,
-      "part_des_proposes": 0.12852112676056338,
-      "precision": 0.9557907845579079,
-      "evenements_par_nuit": 40.15,
-      "rapport_aux_references": 0.15054923499411535
+      "part_des_proposes": 0.15322481948353936,
+      "precision": 0.9840255591054313,
+      "evenements_par_nuit": 31.3,
+      "rapport_aux_references": 0.1455060824376993
     }
   ]
 }

@@ -2,7 +2,8 @@
 """
 Détection d'événements respiratoires — le tableau de résultats (docs/RESULTATS_EVENEMENTS.md).
 
-Lit models/resp/reference_desaturation.json et models/resp/evenements_s*.json.
+Lit models/resp/*.json : la version courante (evenements_v2_s*), la première version
+(evenements_s*), la grille d'expériences (g_*), la référence par désaturation.
 Validation SHHS seulement (40 personnes) : le test n'est pas ouvert pour cette tâche.
 Usage : python python_scripts/resp_report.py
 """
@@ -22,68 +23,106 @@ OUT = ROOT / "docs" / "RESULTATS_EVENEMENTS.md"
 FIG = ROOT / "data" / "figures"
 
 
+def lire(motif: str) -> list[dict]:
+    return sorted((json.loads(p.read_text(encoding="utf-8")) for p in RESP.glob(motif)), key=lambda r: r["graine"])
+
+
+def pm(runs, f, nd=3):
+    v = [f(r) for r in runs]
+    return f"{np.mean(v):.{nd}f}" + (f" ± {np.std(v):.{nd}f}" if len(v) > 1 else "")
+
+
+def ligne_evenements(nom, runs, cle):
+    g = lambda k1, k2: (lambda r: r[cle]["par_evenement"][k1][k2])
+    return (f"| {nom} | {pm(runs, g('recouvrement', 'precision'))} | {pm(runs, g('recouvrement', 'rappel'))} | "
+            f"{pm(runs, g('recouvrement', 'f1'))} | {pm(runs, g('iou_0.3', 'f1'))} | "
+            f"{pm(runs, lambda r: r[cle]['par_evenement']['rappel_apnees'])} | {pm(runs, lambda r: r[cle]['par_evenement']['rappel_hypopnees'])} |")
+
+
 def main() -> int:
-    runs = sorted((json.loads(p.read_text(encoding="utf-8")) for p in RESP.glob("evenements_s*.json")), key=lambda r: r["graine"])
+    v2, v1 = lire("evenements_v2_s*.json"), lire("evenements_s*.json")
+    grille = {p.stem.rsplit("_s", 1)[0]: json.loads(p.read_text(encoding="utf-8")) for p in RESP.glob("g_*_s*.json")}
     base = json.loads((RESP / "reference_desaturation.json").read_text(encoding="utf-8")) if (RESP / "reference_desaturation.json").exists() else None
-    if not runs:
+    courant = v2 or v1
+    if not courant:
         sys.exit("aucun entraînement dans models/resp")
-
-    def pm(f):
-        v = [f(r) for r in runs]
-        return f"{np.mean(v):.3f}" + (f" ± {np.std(v):.3f}" if len(v) > 1 else "")
-
-    def pm1(f):
-        v = [f(r) for r in runs]
-        return f"{np.mean(v):.1f}" + (f" ± {np.std(v):.1f}" if len(v) > 1 else "")
-    r0 = runs[0]; v = r0["validation"]
+    r0 = courant[0]
+    S = "validation_pendant_le_sommeil"
     L = ["# Résultats — détection d'événements respiratoires", "",
          f"*Généré le {date.today().isoformat()} par `python_scripts/resp_report.py`. Validation SHHS ({r0['n_nuits_val']} personnes) ; "
-         f"le test n'est pas ouvert pour cette tâche. {len(runs)} graine(s).*", "",
+         "le test n'est pas ouvert pour cette tâche. Moyenne ± écart-type quand plusieurs graines.*", "",
          "## Ce qui est mesuré", "",
          "Le réseau lit 5 minutes de flux, de ceintures thoracique et abdominale et de saturation (10 Hz), et rend pour chaque "
          "seconde : rien, apnée ou hypopnée. Les secondes positives sont regroupées en événements d'au moins 10 s. La référence "
          "est l'annotation du technicien (apnées obstructives, centrales, mixtes et hypopnées, toutes comptées).", "",
-         f"Entraînement : {r0['n_nuits_train']} nuits. Réseau : {r0['parametres']:,} paramètres, meilleure époque {r0['meilleure_epoque']}, "
-         f"{r0['duree_min']} min sur {r0['appareil']}.", "",
-         "## Par événement", "",
-         "| Critère d'appariement | Précision | Rappel | F1 |", "|---|---|---|---|",
-         f"| Tout recouvrement | {pm(lambda r: r['validation']['par_evenement']['recouvrement']['precision'])} | "
-         f"{pm(lambda r: r['validation']['par_evenement']['recouvrement']['rappel'])} | {pm(lambda r: r['validation']['par_evenement']['recouvrement']['f1'])} |",
-         f"| Recouvrement IoU ≥ 0,3 (bornes exigeantes) | {pm(lambda r: r['validation']['par_evenement']['iou_0.3']['precision'])} | "
-         f"{pm(lambda r: r['validation']['par_evenement']['iou_0.3']['rappel'])} | {pm(lambda r: r['validation']['par_evenement']['iou_0.3']['f1'])} |", "",
-         f"Rappel par type : apnées {pm(lambda r: r['validation']['par_evenement']['rappel_apnees'])} "
-         f"({v['par_evenement']['n_apnees_ref']:,} dans la validation), hypopnées {pm(lambda r: r['validation']['par_evenement']['rappel_hypopnees'])} "
-         f"({v['par_evenement']['n_hypopnees_ref']:,}).", "",
-         f"Par seconde : F1 « événement en cours » {pm(lambda r: r['validation']['par_seconde']['f1_evenement'])} ; "
-         f"{v['par_seconde']['part_reference']:.1%} des secondes sont en événement dans la référence, {v['par_seconde']['part_predite']:.1%} dans la prédiction.", "",
-         "## Par personne : l'index", "",
-         "| Estimateur | Contre | Spearman | Erreur absolue médiane (/h) | Biais (/h) |", "|---|---|---|---|---|",
-         f"| Réseau (événements détectés / h de sommeil) | index annoté | {pm(lambda r: r['validation']['par_personne']['spearman'])} | "
-         f"{pm1(lambda r: r['validation']['par_personne']['erreur_absolue_mediane'])} | {pm1(lambda r: r['validation']['par_personne']['biais'])} |"]
-    for ref in ("ahi_a0h3a", "ahi_a0h4"):
-        if ref in v.get("contre_clinique", {}):
-            L.append(f"| Réseau | index clinique `{ref}` | {pm(lambda r, ref=ref: r['validation']['contre_clinique'][ref]['spearman'])} | "
-                     f"{pm1(lambda r, ref=ref: r['validation']['contre_clinique'][ref]['erreur_absolue_mediane'])} | {pm1(lambda r, ref=ref: r['validation']['contre_clinique'][ref]['biais'])} |")
+         "Deux façons de mesurer :", "",
+         "- **tous les événements** du technicien, y compris ceux marqués pendant l'éveil ;",
+         "- **pendant le sommeil, de bout en bout** : la référence est limitée aux événements qui commencent pendant le sommeil du "
+         "technicien (ceux qui comptent dans l'index) ; les propositions, à celles qui commencent pendant le sommeil **prédit** par "
+         "le réseau de stades ; l'index est calculé sur le temps de sommeil prédit. Rien n'est emprunté au technicien.", ""]
+
+    L += ["## Par événement", "",
+          "| Modèle et mesure | Précision | Rappel | F1 | F1, bornes exigeantes (IoU ≥ 0,3) | Rappel apnées | Rappel hypopnées |",
+          "|---|---|---|---|---|---|---|"]
+    if v1:
+        L.append(ligne_evenements(f"v1, 4 canaux, tous les événements ({len(v1)} graines)", v1, "validation"))
+    if "g_ref" in grille and grille["g_ref"].get(S):
+        L.append(ligne_evenements("v1, pendant le sommeil (1 graine)", [grille["g_ref"]], S))
+    if v2:
+        L.append(ligne_evenements(f"**v2, pendant le sommeil** ({len(v2)} graines)", v2, S))
+        L.append(ligne_evenements(f"v2, tous les événements ({len(v2)} graines)", v2, "validation"))
+    L += ["", "v2 = v1 + un cinquième canal (la probabilité de sommeil prédite par le réseau de stades), une pondération des classes "
+              "adoucie (racine carrée) et un gain aléatoire sur les capteurs à l'entraînement.", ""]
+
+    L += ["## Ce qui a été essayé, et ce que ça a donné", "",
+          "Diagnostic de la v1 sur la validation : **47 % des fausses propositions commençaient pendant l'éveil**, 44 % étaient à "
+          "moins d'une minute d'un vrai événement, et un vote de trois graines n'apportait que +0,004 de F1.", "",
+          "| Expérience (une graine, mesure « pendant le sommeil ») | Précision | Rappel | F1 | Index : Spearman |", "|---|---|---|---|---|"]
+    noms = [("g_ref", "A. référence, 4 canaux"), ("g_sommeil", "B. + canal de sommeil prédit"),
+            ("g_sommeil_racine", "C. + pondération adoucie (retenu : v2)"), ("g_sommeil_large", "D. + réseau plus large et plus profond (96, 8 blocs)"),
+            ("g_f25", "E. comme B, avec 25 % des nuits d'entraînement"), ("g_f50", "F. comme B, avec 50 % des nuits")]
+    for cle, nom in noms:
+        if cle in grille and grille[cle].get(S):
+            e = grille[cle][S]["par_evenement"]["recouvrement"]
+            L.append(f"| {nom} | {e['precision']:.3f} | {e['rappel']:.3f} | {e['f1']:.3f} | {grille[cle][S]['par_personne']['spearman']:.3f} |")
+    L += ["",
+          "- **Le sommeil compte plus que la taille du réseau.** Dire au réseau si le patient dort améliore la précision ; l'élargir ne change rien.",
+          "- **Plus de nuits du même type n'aideraient pas** : avec un quart des nuits, le score est presque le même. La courbe d'apprentissage est plate.",
+          "- **Borne haute mesurée** : avec le sommeil du technicien à la place du sommeil prédit, le même réseau atteint un F1 de 0,77. "
+          "L'écart restant vient donc du réseau de stades (accord éveil/sommeil de 91 % par seconde), pas du réseau d'événements.",
+          "- Lisser le sommeil prédit ou changer son seuil ne change rien (F1 entre 0,717 et 0,725). Les règles de regroupement "
+          "(10 s minimum, trous de 3 s) et le seuil de décision (0,7) sont au bon endroit.",
+          "- Réserve : six expériences ont été comparées sur les mêmes 40 personnes de validation ; l'écart entre réglages voisins "
+          "(0,01) est du même ordre que le bruit entre graines. Le test tranchera, une fois.", ""]
+
+    L += ["## Par personne : l'index", "",
+          "| Estimateur | Contre | Spearman | Erreur absolue médiane (/h) | Biais (/h) |", "|---|---|---|---|---|"]
+    for nom, runs, cle in ((f"Réseau v2, de bout en bout", v2, S), ("Réseau v1 (sommeil du technicien)", v1, "validation")):
+        if not runs:
+            continue
+        L.append(f"| {nom} | index annoté | {pm(runs, lambda r: r[cle]['par_personne']['spearman'])} | "
+                 f"{pm(runs, lambda r: r[cle]['par_personne']['erreur_absolue_mediane'], 1)} | {pm(runs, lambda r: r[cle]['par_personne']['biais'], 1)} |")
+        for ref in ("ahi_a0h3a", "ahi_a0h4"):
+            if ref in runs[0][cle].get("contre_clinique", {}):
+                L.append(f"| {nom} | index clinique `{ref}` | {pm(runs, lambda r, ref=ref: r[cle]['contre_clinique'][ref]['spearman'])} | "
+                         f"{pm(runs, lambda r, ref=ref: r[cle]['contre_clinique'][ref]['erreur_absolue_mediane'], 1)} | "
+                         f"{pm(runs, lambda r, ref=ref: r[cle]['contre_clinique'][ref]['biais'], 1)} |")
     if base:
         for k, nom in (("odi_3", "Désaturations ≥ 3 % / h (référence simple)"), ("odi_4", "Désaturations ≥ 4 % / h (référence simple)")):
             b = base[k]
-            L.append(f"| {nom} | index annoté | {b['contre_annote']['spearman']:.3f} | {b['contre_annote']['erreur_absolue_mediane']:.1f} | {b['contre_annote']['biais']:+.1f} |")
             for ref in ("ahi_a0h3a", "ahi_a0h4"):
                 if ref in b["contre_clinique"]:
                     c = b["contre_clinique"][ref]
                     L.append(f"| {nom} | index clinique `{ref}` | {c['spearman']:.3f} | {c['erreur_absolue_mediane']:.1f} | {c['biais']:+.1f} |")
-    lim = v["par_personne"]["limites_accord_95"]
-    L += ["", f"Accord réseau / index annoté (Bland-Altman, graine {r0['graine']}) : biais {v['par_personne']['biais']:+.1f} événements par heure, "
-              f"limites d'accord à 95 % de {lim[0]:+.1f} à {lim[1]:+.1f}.", "",
-          "## Lecture", "",
+    L += ["", "## Lecture", "",
           "- **Deux index, deux questions.** L'index annoté compte toutes les hypopnées marquées par le technicien ; l'index clinique "
           "SHHS ne garde que celles suivies d'une désaturation. Le réseau apprend le premier ; la référence par désaturation colle "
           "au second par construction.",
           "- **La référence par désaturation est le chiffre à battre pour l'index clinique** : compter les chutes de saturation "
-          "suffit presque à retrouver l'index clinique à 4 %. Ce que le réseau apporte en plus, c'est la **position** de chaque "
-          "événement : c'est ce qui prend du temps à un lecteur.",
-          "- **Le F1 par événement est la mesure du temps gagné** : un événement bien placé est un événement à valider d'un clic "
-          "au lieu de le chercher et de le marquer. Le rappel par type dit ce que le lecteur devra encore trouver seul.",
+          "suffit presque. Ce que le réseau apporte, c'est la **position** de chaque événement : c'est ce qui prend du temps à un lecteur.",
+          "- **Le prochain gain est dans le réseau de stades**, pas ici : mieux séparer éveil et sommeil rapprocherait de la borne de 0,77.",
+          "- Au-delà, la limite probable est l'annotation elle-même : marquer une hypopnée sans critère de désaturation est une "
+          "décision où deux techniciens ne sont pas toujours d'accord. Hypothèse non vérifiée ici, faute de double scoring.",
           "- Figure : `data/figures/evenements_index.png`.", ""]
     OUT.write_text("\n".join(L), encoding="utf-8")
 
@@ -95,7 +134,7 @@ def main() -> int:
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
     m = max(ref.max(), est.max()) * 1.05
     axes[0].scatter(ref, est, color="#2E4057", s=22); axes[0].plot([0, m], [0, m], "k--", lw=1)
-    axes[0].set_xlabel("index annoté (événements / h de sommeil)"); axes[0].set_ylabel("index estimé par le réseau")
+    axes[0].set_xlabel("index annoté (événements / h de sommeil)"); axes[0].set_ylabel("index estimé, de bout en bout")
     axes[0].set_title("Une personne par point (validation)"); axes[0].grid(alpha=0.3)
     moy, diff = (ref + est) / 2, est - ref
     axes[1].scatter(moy, diff, color="#2E4057", s=22)

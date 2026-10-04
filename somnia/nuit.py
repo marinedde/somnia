@@ -117,7 +117,7 @@ def _hhmmss(secondes: float) -> str:
 
 
 def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: float | None = None,
-                        confiance_sure: float = CONFIANCE_SURE) -> dict:
+                        confiance_sure: float = CONFIANCE_SURE, sommeil_seulement: bool = False) -> dict:
     """Probabilités à la seconde (n_sec, 3 : rien, apnée, hypopnée) -> événements proposés.
 
     Chaque événement reçoit une confiance (moyenne de P(événement) sur sa durée). Trois niveaux :
@@ -148,6 +148,11 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
     possibles = [{"debut_s": e.debut, "debut": _hhmmss(e.debut), "duree_s": e.duree,
                   "confiance": round(float(p_ev[e.debut:e.fin].mean()), 3)}
                  for e in masque_vers_evenements(gris, trou_max=0)]
+    if sommeil_seulement:
+        # 47 % des fausses propositions commençaient pendant l'éveil : un événement respiratoire se
+        # marque pendant le sommeil. On ne garde que ce qui commence pendant le sommeil prédit.
+        evenements = [e for e in evenements if e["pendant_le_sommeil"]]
+        possibles = [e for e in possibles if sommeil_sec[e["debut_s"]]]
     heures = float(sommeil_sec.sum()) / 3600
     en_sommeil = [e for e in evenements if e["pendant_le_sommeil"]]
     return {
@@ -212,6 +217,6 @@ def analyser_nuit_complete(epoques_eeg: np.ndarray, predire_stades, proba_evenem
     stades = np.array([_CODES[s] for s in rapport["hypnogramme"]])
     n_sec = len(proba_evenements_sec)
     sommeil_sec = np.repeat(np.isin(stades, [1, 2, 3, 4]), DUREE_EPOQUE_S)
-    rapport["respiration"] = analyser_evenements(proba_evenements_sec, sommeil_sec)
+    rapport["respiration"] = analyser_evenements(proba_evenements_sec, sommeil_sec, sommeil_seulement=True)
     rapport["file_commune"] = file_commune(rapport["relecture"], rapport["respiration"], n_sec)
     return rapport

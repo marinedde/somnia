@@ -2,7 +2,7 @@
 
 *Généré le 2026-10-04 par `python_scripts/nuit_complete.py` sur les 40 nuits de validation SHHS. Agrégats seulement : le détail d'une nuit reste hors dépôt. Le test n'est pas touché.*
 
-Pour chaque nuit, deux réseaux tournent : celui des stades (EEG) et celui des événements respiratoires (flux, ceintures, saturation). La sortie réunit l'hypnogramme, les événements proposés avec leur confiance, l'index calculé sur le sommeil **prédit**, et une file de relecture commune.
+Pour chaque nuit, deux réseaux tournent : celui des stades (EEG) et celui des événements respiratoires (flux, ceintures, saturation, et le sommeil prédit par le premier). La sortie réunit l'hypnogramme, les événements proposés pendant le sommeil prédit avec leur confiance, l'index, et une file de relecture commune. La référence est l'ensemble des événements que le technicien a marqués pendant le sommeil : ceux qui comptent dans l'index.
 
 ## 1. Ce qu'il reste à relire
 
@@ -10,10 +10,10 @@ Pour chaque nuit, deux réseaux tournent : celui des stades (EEG) et celui des �
 |---|---|
 | Durée de l'enregistrement | 510 (480–534) min |
 | Époques dont le stade est à relire | 33 (26–42) % |
-| Événements respiratoires de référence | 276 (143–349) |
-| Événements proposés | 298 (221–372) dont sûrs 136 (98–210), à relire 136 (104–171) |
-| « Événements possibles » signalés (non proposés) | 122 (84–144) |
-| **Signal à relire, stades et événements réunis** | **315 (272–352) min, soit 63 (55–70) % de la nuit** |
+| Événements respiratoires de référence | 212 (119–302) |
+| Événements proposés | 190 (130–293) dont sûrs 100 (56–158), à relire 75 (57–106) |
+| « Événements possibles » signalés (non proposés) | 78 (52–104) |
+| **Signal à relire, stades et événements réunis** | **254 (227–282) min, soit 50 (44–58) % de la nuit** |
 
 Le signal à relire est l'union des passages concernés, avec 30 s de contexte autour de chaque événement. C'est une durée de signal, pas un temps de lecture : seul un chronomètre avec un lecteur dira le temps gagné.
 
@@ -21,27 +21,27 @@ Le signal à relire est l'union des passages concernés, avec 30 s de contexte a
 
 | Niveau | Événements proposés | Part qui recouvre un événement du technicien |
 |---|---|---|
-| Sûrs (confiance ≥ 0,85) | 6,821 | **83%** |
-| À relire (confiance < 0,85) | 5,675 | 44% |
+| Sûrs (confiance ≥ 0,85) | 4,923 | **91%** |
+| À relire (confiance < 0,85) | 3,248 | 57% |
 
 Plus on exige de confiance, plus les propositions sont justes, et moins il y en a :
 
 | Confiance minimale | Part des événements proposés | Précision | Événements par nuit | Événements justes / événements de référence |
 |---|---|---|---|---|
-| 0.70 | 98% | 66% | 306 | 79% |
-| 0.80 | 73% | 75% | 228 | 67% |
-| 0.85 | 55% | 82% | 171 | 55% |
-| 0.90 | 35% | 90% | 108 | 38% |
-| 0.95 | 13% | 96% | 40 | 15% |
+| 0.70 | 99% | 78% | 203 | 75% |
+| 0.80 | 78% | 85% | 160 | 64% |
+| 0.85 | 60% | 91% | 124 | 53% |
+| 0.90 | 40% | 96% | 81 | 37% |
+| 0.95 | 15% | 98% | 31 | 15% |
 
 ## 3. Où tombent les événements du technicien
 
 | | Part des événements de référence |
 |---|---|
-| Dans un événement proposé comme sûr | 57% |
-| Dans un événement proposé à relire | 24% |
-| Dans un « événement possible » signalé | 6% |
-| Nulle part : à trouver par le lecteur | **13%** |
+| Dans un événement proposé comme sûr | 52% |
+| Dans un événement proposé à relire | 21% |
+| Dans un « événement possible » signalé | 7% |
+| Nulle part : à trouver par le lecteur | **21%** |
 
 ## 4. L'index, de bout en bout
 
@@ -49,9 +49,9 @@ Sommeil prédit par le réseau de stades, événements prédits par le réseau r
 
 | Contre | Spearman | Erreur absolue médiane | Biais |
 |---|---|---|---|
-| Index annoté (technicien) | 0.83 | 6.0 / h | +3.3 / h |
-| Index clinique `ahi_a0h3a` | 0.84 | — | — |
-| Index clinique `ahi_a0h4` | 0.70 | — | — |
+| Index annoté (technicien) | 0.82 | 5.4 / h | -0.4 / h |
+| Index clinique `ahi_a0h3a` | 0.86 | — | — |
+| Index clinique `ahi_a0h4` | 0.75 | — | — |
 
 Temps de sommeil : prédit 6.0 (5.2–7.0) h, technicien 6.0 (5.5–6.7) h.
 

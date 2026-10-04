@@ -45,6 +45,7 @@ class NuitResp:
     signaux: np.ndarray     # (4, n_sec * 10) float32
     y: np.ndarray           # (n_sec,) int8
     stades: np.ndarray      # (n_epoques,)
+    p_sommeil: np.ndarray | None = None     # (n_sec,) probabilité de sommeil PRÉDITE par le réseau de stades
 
     @property
     def n_sec(self) -> int:
@@ -64,8 +65,20 @@ def charger_nuits(personnes: list[str], dossier: Path = RESP_DIR) -> list[NuitRe
         if p not in dispo:
             continue
         with np.load(dossier / f"{dispo[p]}.npz", allow_pickle=False) as d:
-            nuits.append(NuitResp(dispo[p], p, d["signaux"].astype(np.float32), d["y"].astype(np.int8), d["stades"].astype(np.int8)))
+            nuit = NuitResp(dispo[p], p, d["signaux"].astype(np.float32), d["y"].astype(np.int8), d["stades"].astype(np.int8))
+        chemin = dossier / f"{dispo[p]}_psommeil.npy"
+        if chemin.exists():
+            ps = np.load(chemin).astype(np.float32)[: nuit.n_sec]
+            nuit.p_sommeil = np.concatenate([ps, np.zeros(nuit.n_sec - len(ps), dtype=np.float32)]) if len(ps) < nuit.n_sec else ps
+        nuits.append(nuit)
     return nuits
+
+
+def sommeil_predit(nuit: NuitResp, seuil: float = 0.5) -> np.ndarray:
+    """Booléen par seconde : le réseau de stades dit « sommeil ». C'est ce dont dispose un outil réel."""
+    if nuit.p_sommeil is None:
+        raise ValueError(f"{nuit.ident} : pas de sommeil prédit (lancer python_scripts/resp_sommeil_predit.py)")
+    return nuit.p_sommeil >= seuil
 
 
 def debuts_de_fenetres(n_sec: int, fenetre: int = FENETRE_S, pas: int = PAS_S) -> list[int]:
@@ -78,22 +91,31 @@ def debuts_de_fenetres(n_sec: int, fenetre: int = FENETRE_S, pas: int = PAS_S) -
     return d
 
 
-def extraire_fenetre(nuit: NuitResp, debut_s: int, fenetre: int = FENETRE_S):
-    """(x (4, fenetre*10) normalisé, y (fenetre,)) ; complété par répétition du bord si la nuit est plus courte."""
+def extraire_fenetre(nuit: NuitResp, debut_s: int, fenetre: int = FENETRE_S, canal_sommeil: bool = False):
+    """(x (4 ou 5, fenetre*10) normalisé, y (fenetre,)) ; complété par répétition du bord si la nuit est plus courte.
+
+    `canal_sommeil` : ajoute un 5e canal, la probabilité de sommeil prédite, ramenée entre −1 (éveil) et +1 (sommeil).
+    """
     a, b = debut_s * FS_RESP, (debut_s + fenetre) * FS_RESP
     x = nuit.signaux[:, a:b]
     y = nuit.y[debut_s:debut_s + fenetre]
     if x.shape[1] < fenetre * FS_RESP:
         x = np.pad(x, ((0, 0), (0, fenetre * FS_RESP - x.shape[1])), mode="edge")
         y = np.pad(y, (0, fenetre - len(y)))
-    return normaliser_fenetre(x), y.astype(np.int64)
+    x = normaliser_fenetre(x)
+    if canal_sommeil:
+        ps = nuit.p_sommeil[debut_s:debut_s + fenetre]
+        if len(ps) < fenetre:
+            ps = np.pad(ps, (0, fenetre - len(ps)))
+        x = np.concatenate([x, (np.repeat(ps, FS_RESP)[None, :] * 2.0 - 1.0).astype(np.float32)])
+    return x, y.astype(np.int64)
 
 
 class FenetresResp(Dataset):
     """Fenêtres de 5 minutes. À l'entraînement, le début de chaque fenêtre est décalé au hasard (±75 s)."""
 
-    def __init__(self, nuits: list[NuitResp], entrainement: bool = False, graine: int = 42):
-        self.nuits, self.entrainement = nuits, entrainement
+    def __init__(self, nuits: list[NuitResp], entrainement: bool = False, graine: int = 42, canal_sommeil: bool = False):
+        self.nuits, self.entrainement, self.canal_sommeil = nuits, entrainement, canal_sommeil
         self.index = [(i, d) for i, n in enumerate(nuits) for d in debuts_de_fenetres(n.n_sec)]
         self.rng = np.random.default_rng(graine)
 
@@ -105,7 +127,9 @@ class FenetresResp(Dataset):
         nuit = self.nuits[i]
         if self.entrainement:
             d = int(np.clip(d + self.rng.integers(-PAS_S // 2, PAS_S // 2 + 1), 0, max(0, nuit.n_sec - FENETRE_S)))
-        x, y = extraire_fenetre(nuit, d)
+        x, y = extraire_fenetre(nuit, d, canal_sommeil=self.canal_sommeil)
+        if self.entrainement:
+            x[:3] *= self.rng.uniform(0.8, 1.25, size=(3, 1)).astype(np.float32)        # gain des capteurs
         return torch.from_numpy(x), torch.from_numpy(y)
 
 
@@ -138,7 +162,7 @@ class ReseauEvenements(nn.Module):
 
 # ── Inférence sur une nuit et mesures ─────────────────────────────────────
 @torch.no_grad()
-def proba_nuit(modele: nn.Module, nuit: NuitResp, dev: torch.device, batch: int = 64) -> np.ndarray:
+def proba_nuit(modele: nn.Module, nuit: NuitResp, dev: torch.device, batch: int = 64, canal_sommeil: bool = False) -> np.ndarray:
     """Probabilités (n_sec, 3) : les fenêtres se recouvrent de moitié, on moyenne."""
     modele.eval()
     debuts = debuts_de_fenetres(nuit.n_sec)
@@ -146,7 +170,7 @@ def proba_nuit(modele: nn.Module, nuit: NuitResp, dev: torch.device, batch: int 
     compte = np.zeros(nuit.n_sec, dtype=np.float64)
     for i in range(0, len(debuts), batch):
         lot = debuts[i:i + batch]
-        x = torch.from_numpy(np.stack([extraire_fenetre(nuit, d)[0] for d in lot])).to(dev)
+        x = torch.from_numpy(np.stack([extraire_fenetre(nuit, d, canal_sommeil=canal_sommeil)[0] for d in lot])).to(dev)
         p = torch.softmax(modele(x), dim=1).permute(0, 2, 1).float().cpu().numpy()      # (B, 300, 3)
         for d, pi in zip(lot, p):
             n = min(FENETRE_S, nuit.n_sec - d)
@@ -154,8 +178,14 @@ def proba_nuit(modele: nn.Module, nuit: NuitResp, dev: torch.device, batch: int 
     return somme / np.maximum(compte, 1)[:, None]
 
 
-def mesurer_nuits(nuits: list[NuitResp], masques_pred: list[np.ndarray]) -> dict:
-    """Toutes les mesures : par seconde, par événement (deux exigences), par classe, par personne."""
+def mesurer_nuits(nuits: list[NuitResp], masques_pred: list[np.ndarray], pendant_le_sommeil: bool = False) -> dict:
+    """Toutes les mesures : par seconde, par événement (deux exigences), par classe, par personne.
+
+    `pendant_le_sommeil` (la tâche qui compte pour l'index) : la référence est restreinte aux
+    événements qui commencent pendant le sommeil du TECHNICIEN ; les propositions, à celles qui
+    commencent pendant le sommeil PRÉDIT par le réseau de stades ; l'index estimé est calculé sur
+    le temps de sommeil prédit. C'est la mesure de bout en bout, sans rien emprunter au technicien.
+    """
     from sklearn.metrics import f1_score
 
     y_tout = np.concatenate([n.y for n in nuits]); p_tout = np.concatenate(masques_pred)
@@ -163,6 +193,12 @@ def mesurer_nuits(nuits: list[NuitResp], masques_pred: list[np.ndarray]) -> dict
     par_personne, rappel_classe = [], {1: [0, 0], 2: [0, 0]}
     for n, mp in zip(nuits, masques_pred):
         ref, pred = masque_vers_evenements(n.y), masque_vers_evenements(mp)
+        sommeil_ref = sommeil_par_seconde(n.stades)[: n.n_sec]
+        ref_tous = ref
+        if pendant_le_sommeil:
+            som_pred = sommeil_predit(n)
+            ref = [e for e in ref if sommeil_ref[min(e.debut, len(sommeil_ref) - 1)]]
+            pred = [e for e in pred if som_pred[min(e.debut, n.n_sec - 1)]]
         for nom, iou in (("large", 0.0), ("strict", 0.3)):
             m = apparier(pred, ref, iou)
             for k in ("vp", "fp", "fn"):
@@ -170,9 +206,9 @@ def mesurer_nuits(nuits: list[NuitResp], masques_pred: list[np.ndarray]) -> dict
         for c in (1, 2):                                               # rappel par type d'événement de référence
             ref_c = [e for e in ref if e.classe == c]
             rappel_classe[c][0] += apparier(pred, ref_c)["vp"]; rappel_classe[c][1] += len(ref_c)
-        sommeil = sommeil_par_seconde(n.stades)[: n.n_sec]
-        par_personne.append({"personne": n.personne, "index_reference": index_par_heure(ref, sommeil),
-                             "index_estime": index_par_heure(pred, sommeil), "n_ref": len(ref), "n_pred": len(pred)})
+        sommeil_est = sommeil_predit(n) if pendant_le_sommeil else sommeil_ref
+        par_personne.append({"personne": n.personne, "index_reference": index_par_heure(ref_tous, sommeil_ref),
+                             "index_estime": index_par_heure(pred, sommeil_est), "n_ref": len(ref), "n_pred": len(pred)})
 
     def prf(d):
         p = d["vp"] / (d["vp"] + d["fp"]) if d["vp"] + d["fp"] else 0.0

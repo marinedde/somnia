@@ -94,6 +94,12 @@ def main() -> int:
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--patience", type=int, default=4)
     parser.add_argument("--batch", type=int, default=64)
+    parser.add_argument("--nom", default=None, help="étiquette de l'expérience (défaut : evenements)")
+    parser.add_argument("--canal-sommeil", action="store_true", help="5e canal : probabilité de sommeil prédite par le réseau de stades")
+    parser.add_argument("--largeur", type=int, default=64)
+    parser.add_argument("--blocs", type=int, default=6, help="nombre de blocs dilatés (dilatations 1, 2, 4, ... )")
+    parser.add_argument("--poids", choices=["equilibre", "racine", "aucun"], default="equilibre")
+    parser.add_argument("--fraction", type=float, default=1.0, help="fraction des nuits d'entraînement (courbe d'apprentissage)")
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     cov = covariables()
@@ -115,16 +121,24 @@ def main() -> int:
 
     fixer_graines(args.seed)
     dev = appareil()
-    train = charger_nuits(personnes_du_split("train"))
+    from somnia.deep.data import sous_ensemble_de_personnes
+    train = charger_nuits(sous_ensemble_de_personnes(personnes_du_split("train"), args.fraction, args.seed))
     journal(f"entraînement : {len(train)} nuits, {sum(n.n_sec for n in train) / 3600:.0f} h, chargées en {time.time() - t0:.0f} s")
-    modele = ReseauEvenements().to(dev)
-    journal(f"appareil {dev.type} | {n_parametres(modele):,} paramètres")
-    poids = poids_des_classes(train).to(dev)
+    canaux = 5 if args.canal_sommeil else 4
+    dilatations = tuple(2 ** (i % 6) for i in range(args.blocs))
+    modele = ReseauEvenements(canaux=canaux, largeur=args.largeur, dilatations=dilatations).to(dev)
+    journal(f"appareil {dev.type} | {n_parametres(modele):,} paramètres | canaux {canaux} | largeur {args.largeur} | dilatations {dilatations} | poids {args.poids}")
+    poids = poids_des_classes(train)
+    if args.poids == "racine":
+        poids = torch.sqrt(poids)
+    elif args.poids == "aucun":
+        poids = torch.ones_like(poids)
+    poids = poids.to(dev)
     journal(f"poids des classes (rien, apnée, hypopnée) : {[round(float(w), 1) for w in poids]}")
     perte = nn.CrossEntropyLoss(weight=poids)
 
     if args.petit_lot:
-        ds = FenetresResp(train[:4])
+        ds = FenetresResp(train[:4], canal_sommeil=args.canal_sommeil)
         # 16 fenêtres qui contiennent des événements
         idx = [k for k in range(len(ds)) if ds[k][1].sum() > 0][:16]
         x = torch.stack([ds[k][0] for k in idx]).to(dev); y = torch.stack([ds[k][1] for k in idx]).to(dev)
@@ -140,7 +154,15 @@ def main() -> int:
         print("OK : le réseau apprend par cœur" if ok else "ÉCHEC : la perte ne descend pas")
         return 0 if ok else 1
 
-    loader = DataLoader(FenetresResp(train, entrainement=True, graine=args.seed), batch_size=args.batch, shuffle=True, num_workers=0)
+    loader = DataLoader(FenetresResp(train, entrainement=True, graine=args.seed, canal_sommeil=args.canal_sommeil),
+                        batch_size=args.batch, shuffle=True, num_workers=0)
+    a_le_sommeil = all(n.p_sommeil is not None for n in val)
+
+    def evaluer():
+        masques = [proba_vers_masque(proba_nuit(modele, nv, dev, canal_sommeil=args.canal_sommeil)) for nv in val]
+        tout = mesurer_nuits(val, masques)
+        som = mesurer_nuits(val, masques, pendant_le_sommeil=True) if a_le_sommeil else None
+        return tout, som
     opt = torch.optim.AdamW(modele.parameters(), lr=1e-3, weight_decay=1e-4)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.epochs)
     historique, meilleur, meilleur_etat, sans_progres = [], -1.0, None, 0
@@ -153,14 +175,15 @@ def main() -> int:
             nn.utils.clip_grad_norm_(modele.parameters(), 5.0); opt.step()
             total += loss.item() * len(y); n += len(y)
         sched.step()
-        masques = [proba_vers_masque(proba_nuit(modele, nv, dev)) for nv in val]
-        m = mesurer_nuits(val, masques)
-        f1 = m["par_evenement"]["recouvrement"]["f1"]
-        historique.append({"epoque": ep, "perte_train": total / n, "f1_evenement": f1,
-                           "f1_seconde": m["par_seconde"]["f1_evenement"], "spearman_index": m["par_personne"]["spearman"],
+        m, ms = evaluer()
+        # Critère d'arrêt : le F1 par événement sur la tâche « pendant le sommeil » quand le sommeil prédit existe
+        f1 = (ms or m)["par_evenement"]["recouvrement"]["f1"]
+        historique.append({"epoque": ep, "perte_train": total / n, "f1_selection": f1,
+                           "f1_tous_evenements": m["par_evenement"]["recouvrement"]["f1"],
+                           "f1_seconde": m["par_seconde"]["f1_evenement"], "spearman_index": (ms or m)["par_personne"]["spearman"],
                            "duree_s": round(time.time() - te, 1)})
-        journal(f"époque {ep:2d} | perte {total / n:.4f} | val : F1 événement {f1:.3f}, F1 seconde {m['par_seconde']['f1_evenement']:.3f}, "
-                f"Spearman index {m['par_personne']['spearman']:.3f} | {time.time() - te:.0f} s")
+        journal(f"époque {ep:2d} | perte {total / n:.4f} | val : F1 sommeil {f1:.3f}, F1 tous {m['par_evenement']['recouvrement']['f1']:.3f}, "
+                f"Spearman index {(ms or m)['par_personne']['spearman']:.3f} | {time.time() - te:.0f} s")
         if f1 > meilleur + 1e-4:
             meilleur, sans_progres = f1, 0
             meilleur_etat = {k: v.detach().cpu().clone() for k, v in modele.state_dict().items()}
@@ -170,11 +193,13 @@ def main() -> int:
             if sans_progres >= args.patience:
                 journal("arrêt anticipé"); break
     modele.load_state_dict(meilleur_etat)
-    masques = [proba_vers_masque(proba_nuit(modele, nv, dev)) for nv in val]
-    m = mesurer_nuits(val, masques)
+    m, ms = evaluer()
     m["contre_clinique"] = contre_clinique(m["par_personne"]["detail"], cov)
     detail = m["par_personne"].pop("detail")       # identifiants : pas dans le fichier versionné
-    nom = f"evenements_s{args.seed}"
+    if ms is not None:
+        ms["contre_clinique"] = contre_clinique(ms["par_personne"]["detail"], cov)
+        detail = ms["par_personne"].pop("detail")
+    nom = f"{args.nom or 'evenements'}_s{args.seed}"
     torch.save(modele.state_dict(), OUT / f"{nom}.pt")
     np.savez_compressed(OUT / f"{nom}_val_detail.npz", personne=np.array([d["personne"] for d in detail]),
                         index_reference=np.array([d["index_reference"] for d in detail]),
@@ -182,6 +207,9 @@ def main() -> int:
     rapport = {"nom": nom, "graine": args.seed, "date": datetime.now().isoformat(timespec="minutes"), "appareil": dev.type,
                "n_nuits_train": len(train), "n_nuits_val": len(val), "parametres": n_parametres(modele),
                "seuil_evenement": SEUIL_EVENEMENT,
+               "config": {"canal_sommeil": args.canal_sommeil, "largeur": args.largeur, "blocs": args.blocs, "poids": args.poids,
+                          "fraction": args.fraction},
+               "validation_pendant_le_sommeil": ms,
                "meilleure_epoque": meilleure_epoque, "historique": historique, "validation": m,
                "duree_min": round((time.time() - t0) / 60, 1), "journal": lignes}
     (OUT / f"{nom}.json").write_text(json.dumps(rapport, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -189,6 +217,11 @@ def main() -> int:
     journal(f"IoU ≥ 0,3 : F1 {m['par_evenement']['iou_0.3']['f1']:.3f} | rappel apnées {m['par_evenement']['rappel_apnees']:.3f}, hypopnées {m['par_evenement']['rappel_hypopnees']:.3f}")
     journal(f"par personne : Spearman {m['par_personne']['spearman']:.3f}, erreur médiane {m['par_personne']['erreur_absolue_mediane']:.1f}/h, biais {m['par_personne']['biais']:+.1f}/h")
     journal(f"contre l'index clinique : {m['contre_clinique']}")
+    if ms is not None:
+        e = ms["par_evenement"]
+        journal(f"PENDANT LE SOMMEIL (bout en bout) : précision {e['recouvrement']['precision']:.3f} rappel {e['recouvrement']['rappel']:.3f} "
+                f"F1 {e['recouvrement']['f1']:.3f} | IoU0,3 F1 {e['iou_0.3']['f1']:.3f} | apnées {e['rappel_apnees']:.3f} hypopnées {e['rappel_hypopnees']:.3f} "
+                f"| index Spearman {ms['par_personne']['spearman']:.3f} err {ms['par_personne']['erreur_absolue_mediane']:.1f}/h biais {ms['par_personne']['biais']:+.1f}")
     return 0
 
 
