@@ -228,6 +228,30 @@ Compter tous les événements proposés surestimait l'index de près de 20 par h
 définition, pas de détection. L'avantage sur le simple compte des désaturations n'est pas établi
 sur 40 personnes (intervalle de la différence : −0,01 à +0,14).
 
+### Savoir dire « ici, je ne peux pas » : qualité du signal et refus (octobre 2026)
+
+Une électrode décollée ou un oxymètre tombé du doigt : le réseau rend quand même une réponse.
+`somnia/qualite.py` repère, par époque et par capteur, un signal **plat**, **écrêté** ou une
+saturation **invalide**, avec des règles relatives à la nuit elle-même (aucun seuil en microvolts).
+Là où la respiration est inexploitable, rien n'est proposé, le passage part en relecture et ce
+temps sort du dénominateur de l'index. Au-delà d'un quart de la nuit, l'outil refuse de rendre
+l'index et le dit. Mesures : [docs/RESULTATS_QUALITE.md](docs/RESULTATS_QUALITE.md).
+
+| Validation, 40 nuits | |
+|---|---|
+| Propositions justes, respiration exploitable / inexploitable | 80 % / 65 % |
+| Événements écartés parce que le signal y était inexploitable | 127 sur 8 234 |
+| Nuits où l'index est refusé | 1 sur 40 |
+| Index clinique contre `ahi_a0h3`, sans / avec le module | Spearman 0,96 / 0,97 ; erreur médiane 2,3 / 1,9 par heure |
+| Stades si yeux et menton sont débranchés (simulé) : réseau multi-capteurs / modèle EEG seul | kappa 0,58 / 0,72 |
+
+Deux leçons. La première version des règles, écrite avant de regarder, comptait les mouvements
+comme des pannes : 848 des 850 époques d'EEG signalées étaient de l'éveil, que le réseau reconnaît
+très bien. La définition a été resserrée, sur la validation : c'est une hypothèse à confirmer
+ailleurs. Et un capteur débranché fait plus de mal que son absence, d'où une règle de repli vers
+le modèle EEG seul. Cette cohorte, déjà triée, contient peu de vraies pannes : le module reste à
+éprouver sur des nuits venues d'ailleurs.
+
 ### Ce qui est établi, et ce qui ne l'est pas (octobre 2026)
 
 Intervalles à 95 % par bootstrap sur les 40 personnes de validation, moyenne de trois

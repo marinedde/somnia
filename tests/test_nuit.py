@@ -132,3 +132,36 @@ def test_zones_possibles_reglables():
     sommeil = np.ones(3600, dtype=bool)
     assert analyser_evenements(proba, sommeil)["possibles"] == []
     assert len(analyser_evenements(proba, sommeil, duree_possible=5)["possibles"]) == 1
+
+
+# ── Qualité du signal et refus (horizon 1.5) ──────────────────────────────
+def test_epoque_inexploitable_part_en_relecture_malgre_la_confiance():
+    from somnia.nuit import analyser_nuit
+    logits = np.zeros((10, 5)); logits[:, 2] = 20.0                    # réseau très sûr partout
+    mauvais = np.zeros(10, dtype=bool); mauvais[4] = True
+    r = analyser_nuit(None, lambda _: logits, inexploitable=mauvais)
+    assert r["relecture"]["n_epoques_a_relire"] == 1 and r["confiance"][4] == 0.0
+    assert analyser_nuit(None, lambda _: logits)["relecture"]["n_epoques_a_relire"] == 0
+
+
+def test_evenement_ecarte_et_index_sur_le_temps_analysable():
+    proba = np.zeros((7200, 3)); proba[:, 0] = 1.0
+    for a in (100, 4000):
+        proba[a:a + 20] = 0.0; proba[a:a + 20, 1] = 1.0
+    sommeil = np.ones(7200, dtype=bool)
+    mauvais = np.zeros(7200, dtype=bool); mauvais[3600:] = True       # la seconde heure : capteur perdu
+    r = analyser_evenements(proba, sommeil, inexploitable_sec=mauvais)["resume"]
+    assert (r["n_evenements"], r["n_ecartes_signal_inexploitable"]) == (1, 1)
+    assert r["heures_de_sommeil"] == 1.0 and r["index_par_heure"] == 1.0   # 1 événement sur 1 h analysable, pas sur 2 h
+
+
+def test_nuit_refusee_pas_d_index_et_motif_dans_le_statut():
+    logits = np.zeros((20, 5)); logits[:, 2] = 20.0
+    proba = np.zeros((600, 3)); proba[:, 0] = 1.0
+    q = {"eeg_inexploitable": np.zeros(20, dtype=bool), "resp_inexploitable": np.r_[np.ones(300, dtype=bool), np.zeros(300, dtype=bool)],
+         "rapport": {"refus": {"stades": False, "index": True}, "motifs": ["respiration inexploitable sur 50 % de la nuit : pas d'index"]}}
+    r = analyser_nuit_complete(None, lambda _: logits, proba, sao2_1hz=np.full(600, 96.0), qualite=q)
+    assert r["respiration"]["resume"]["index_par_heure"] is None and r["respiration"]["resume"]["index_clinique_3"] is None
+    assert "QUALITÉ DU SIGNAL" in r["statut"] and r["indices"] is not None
+    item = [i for i in r["file_commune"]["items"] if i["quoi"] == "signal respiratoire inexploitable"]
+    assert len(item) == 1 and item[0]["duree_s"] == 300

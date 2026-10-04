@@ -83,17 +83,21 @@ def _hhmm(secondes: float) -> str:
     return f"{h:02d}:{m:02d}"
 
 
-def analyser_nuit(epoques_volts: np.ndarray, predire_proba, temperature: float = 1.0, seuil: float = 0.6) -> dict:
+def analyser_nuit(epoques_volts: np.ndarray, predire_proba, temperature: float = 1.0, seuil: float = 0.6,
+                  inexploitable: np.ndarray | None = None) -> dict:
     """Tout le compte rendu d'une nuit à partir d'une fonction `predire_proba(epoques) -> logits (n, 5)`.
 
     `temperature` : celle ajustée sur la validation (calibration). `seuil` : sous cette confiance,
-    l'époque part en relecture.
+    l'époque part en relecture. `inexploitable` (booléen par époque, voir somnia.qualite) : la
+    confiance de ces époques est mise à zéro, elles partent donc en relecture quoi que dise le réseau.
     """
     logits = np.asarray(predire_proba(epoques_volts), dtype=np.float64) / temperature
     z = logits - logits.max(axis=1, keepdims=True)
     proba = np.exp(z) / np.exp(z).sum(axis=1, keepdims=True)
     stades = proba.argmax(axis=1)
     confiance = proba.max(axis=1)
+    if inexploitable is not None:
+        confiance = np.where(np.asarray(inexploitable, dtype=bool)[: len(confiance)], 0.0, confiance)
     return {
         "statut": "NON VALIDÉ — proposition automatique, à relire par un professionnel formé",
         "hypnogramme": [STADES[int(s)] for s in stades],
@@ -122,7 +126,8 @@ def _hhmmss(secondes: float) -> str:
 def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: float | None = None,
                         confiance_sure: float = CONFIANCE_SURE, sommeil_seulement: bool = False,
                         sao2_1hz: np.ndarray | None = None, p_possible: float | None = None,
-                        duree_possible: int | None = None, trou_possible: int | None = None) -> dict:
+                        duree_possible: int | None = None, trou_possible: int | None = None,
+                        inexploitable_sec: np.ndarray | None = None) -> dict:
     """Probabilités à la seconde (n_sec, 3 : rien, apnée, hypopnée) -> événements proposés.
 
     Chaque événement reçoit une confiance (moyenne de P(événement) sur sa durée). Trois niveaux :
@@ -134,6 +139,10 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
     Avec `sao2_1hz` (saturation nettoyée, une valeur par seconde), chaque événement reçoit sa
     désaturation associée, et le résumé donne les index CLINIQUES : toutes les apnées, plus les
     hypopnées suivies d'une chute d'au moins 3 (ou 4) points. C'est la définition des index SHHS.
+
+    Avec `inexploitable_sec` (booléen par seconde, voir somnia.qualite) : rien n'est proposé là où la
+    respiration est inexploitable, et ce temps sort du dénominateur de l'index. Un index calculé sur
+    six heures dont deux sans capteur serait sous-estimé d'un tiers.
     """
     from somnia.resp import CLASSES, SEUIL_EVENEMENT, chute_de_saturation, masque_vers_evenements, proba_vers_masque
 
@@ -163,6 +172,15 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
     possibles = [{"debut_s": e.debut, "debut": _hhmmss(e.debut), "duree_s": e.duree,
                   "confiance": round(float(p_ev[e.debut:e.fin].mean()), 3)}
                  for e in masque_vers_evenements(gris, duree_min=duree_possible, trou_max=trou_possible)]
+    n_ecartes = 0
+    if inexploitable_sec is not None:
+        mauvais = np.asarray(inexploitable_sec, dtype=bool)[:n]
+        mauvais = np.concatenate([mauvais, np.zeros(n - len(mauvais), dtype=bool)])
+        # compte ce que l'outil aurait proposé : pendant le sommeil prédit seulement, si c'est la règle
+        n_ecartes = sum(bool(mauvais[e["debut_s"]]) and (e["pendant_le_sommeil"] or not sommeil_seulement) for e in evenements)
+        evenements = [e for e in evenements if not mauvais[e["debut_s"]]]
+        possibles = [e for e in possibles if not mauvais[e["debut_s"]]]
+        sommeil_sec = sommeil_sec & ~mauvais
     if sommeil_seulement:
         # 47 % des fausses propositions commençaient pendant l'éveil : un événement respiratoire se
         # marque pendant le sommeil. On ne garde que ce qui commence pendant le sommeil prédit.
@@ -188,11 +206,13 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
             "heures_de_sommeil": round(heures, 2),
             "index_par_heure": round(len(en_sommeil) / heures, 1) if heures > 0 else None,
             "seuil_decision": seuil, "confiance_sure": confiance_sure, **cliniques,
+            "n_ecartes_signal_inexploitable": n_ecartes,
         },
     }
 
 
-def file_commune(relecture_stades: dict, respiration: dict, n_sec: int, duree_epoque_s: int = DUREE_EPOQUE_S) -> dict:
+def file_commune(relecture_stades: dict, respiration: dict, n_sec: int, duree_epoque_s: int = DUREE_EPOQUE_S,
+                 resp_inexploitable: np.ndarray | None = None, sommeil_sec: np.ndarray | None = None) -> dict:
     """Une seule liste, dans l'ordre de la nuit, de tout ce qu'il faut regarder, et le temps de signal que ça représente.
 
     Le temps de signal à relire est l'UNION des passages concernés (une époque douteuse et un événement
@@ -216,6 +236,16 @@ def file_commune(relecture_stades: dict, respiration: dict, n_sec: int, duree_ep
         a_voir[a:b] = True
         items.append({"quoi": "événement possible", "debut_s": e["debut_s"], "debut": e["debut"], "duree_s": e["duree_s"],
                       "confiance": e["confiance"], "proposition": "non proposé"})
+    if resp_inexploitable is not None:
+        # Là où la respiration est inexploitable pendant le sommeil prédit, l'outil n'a rien proposé : au lecteur de regarder.
+        mauvais = np.asarray(resp_inexploitable, dtype=bool)[:n_sec]
+        if sommeil_sec is not None:
+            mauvais = mauvais & np.asarray(sommeil_sec, dtype=bool)[: len(mauvais)]
+        bords = np.diff(np.concatenate([[0], mauvais.astype(np.int8), [0]]))
+        for a, b in zip(np.flatnonzero(bords == 1), np.flatnonzero(bords == -1)):
+            a_voir[a:b] = True
+            items.append({"quoi": "signal respiratoire inexploitable", "debut_s": int(a), "debut": _hhmmss(a), "duree_s": int(b - a),
+                          "confiance": 0.0, "proposition": "non analysé"})
     items.sort(key=lambda x: x["debut_s"])
     return {
         "items": items,
@@ -227,16 +257,33 @@ def file_commune(relecture_stades: dict, respiration: dict, n_sec: int, duree_ep
 
 
 def analyser_nuit_complete(epoques_eeg: np.ndarray, predire_stades, proba_evenements_sec: np.ndarray,
-                           temperature: float = 1.0, seuil_stade: float = 0.6, sao2_1hz: np.ndarray | None = None) -> dict:
+                           temperature: float = 1.0, seuil_stade: float = 0.6, sao2_1hz: np.ndarray | None = None,
+                           qualite: dict | None = None) -> dict:
     """Hypnogramme + événements respiratoires + une file de relecture commune.
 
     Le sommeil utilisé pour l'index est le sommeil PRÉDIT (pas celui du technicien) : c'est ce
     dont disposerait un outil qui reçoit une nuit non scorée.
+
+    `qualite` (facultatif) : {"eeg_inexploitable": booléen par époque, "resp_inexploitable": booléen
+    par seconde, "rapport": somnia.qualite.rapport_qualite(...)}. Les passages inexploitables partent
+    en relecture ; si la nuit est refusée, les indices ou l'index sont retirés et le motif est donné.
     """
-    rapport = analyser_nuit(epoques_eeg, predire_stades, temperature, seuil_stade)
+    q = qualite or {}
+    rapport = analyser_nuit(epoques_eeg, predire_stades, temperature, seuil_stade, inexploitable=q.get("eeg_inexploitable"))
     stades = np.array([_CODES[s] for s in rapport["hypnogramme"]])
     n_sec = len(proba_evenements_sec)
     sommeil_sec = np.repeat(np.isin(stades, [1, 2, 3, 4]), DUREE_EPOQUE_S)
-    rapport["respiration"] = analyser_evenements(proba_evenements_sec, sommeil_sec, sommeil_seulement=True, sao2_1hz=sao2_1hz)
-    rapport["file_commune"] = file_commune(rapport["relecture"], rapport["respiration"], n_sec)
+    rapport["respiration"] = analyser_evenements(proba_evenements_sec, sommeil_sec, sommeil_seulement=True, sao2_1hz=sao2_1hz,
+                                                 inexploitable_sec=q.get("resp_inexploitable"))
+    rapport["file_commune"] = file_commune(rapport["relecture"], rapport["respiration"], n_sec,
+                                           resp_inexploitable=q.get("resp_inexploitable"), sommeil_sec=sommeil_sec)
+    if "rapport" in q:
+        rapport["qualite"] = q["rapport"]
+        if q["rapport"]["refus"]["stades"]:
+            rapport["indices"] = None
+        if q["rapport"]["refus"]["index"]:
+            for cle in [c for c in rapport["respiration"]["resume"] if c.startswith("index_")]:
+                rapport["respiration"]["resume"][cle] = None
+        if q["rapport"]["motifs"]:
+            rapport["statut"] += " | QUALITÉ DU SIGNAL : " + " ; ".join(q["rapport"]["motifs"])
     return rapport

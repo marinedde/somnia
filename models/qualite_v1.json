@@ -1,0 +1,296 @@
+{
+  "date": "2026-10-04",
+  "frequence": {
+    "EEG": {
+      "inexploitable": {
+        "moyenne": 0.015685008948961944,
+        "mediane": 0.0,
+        "p90": 0.058150619637750235,
+        "max": 0.25724976613657624,
+        "nuits_au_dela_du_quart": 1
+      },
+      "plat": {
+        "moyenne": 0.0,
+        "mediane": 0.0,
+        "p90": 0.0,
+        "max": 0.0,
+        "nuits_au_dela_du_quart": 0
+      },
+      "ecrete": {
+        "moyenne": 0.0,
+        "mediane": 0.0,
+        "p90": 0.0,
+        "max": 0.0,
+        "nuits_au_dela_du_quart": 0
+      },
+      "artefact": {
+        "moyenne": 0.015685008948961944,
+        "mediane": 0.0,
+        "p90": 0.058150619637750235,
+        "max": 0.25724976613657624,
+        "nuits_au_dela_du_quart": 1
+      }
+    },
+    "EEG2": {
+      "inexploitable": {
+        "moyenne": 0.015604890887408568,
+        "mediane": 0.0,
+        "p90": 0.05292792792792793,
+        "max": 0.314638783269962,
+        "nuits_au_dela_du_quart": 1
+      },
+      "plat": {
+        "moyenne": 0.0,
+        "mediane": 0.0,
+        "p90": 0.0,
+        "max": 0.0,
+        "nuits_au_dela_du_quart": 0
+      },
+      "ecrete": {
+        "moyenne": 0.0,
+        "mediane": 0.0,
+        "p90": 0.0,
+        "max": 0.0,
+        "nuits_au_dela_du_quart": 0
+      },
+      "artefact": {
+        "moyenne": 0.015604890887408568,
+        "mediane": 0.0,
+        "p90": 0.05292792792792793,
+        "max": 0.314638783269962,
+        "nuits_au_dela_du_quart": 1
+      }
+    },
+    "EOG-G": {
+      "inexploitable": {
+        "moyenne": 0.03484117978386249,
+        "mediane": 0.007497656982193065,
+        "p90": 0.11764705882352941,
+        "max": 0.32558139534883723,
+        "nuits_au_dela_du_quart": 3
+      },
+      "plat": {
+        "moyenne": 0.0,
+        "mediane": 0.0,
+        "p90": 0.0,
+        "max": 0.0,
+        "nuits_au_dela_du_quart": 0
+      },
+      "ecrete": {
+        "moyenne": 0.0011136353512405898,
+        "mediane": 0.0,
+        "p90": 0.0,
+        "max": 0.25724976613657624,
+        "nuits_au_dela_du_quart": 1
+      },
+      "artefact": {
+        "moyenne": 0.03484117978386249,
+        "mediane": 0.007497656982193065,
+        "p90": 0.11764705882352941,
+        "max": 0.32558139534883723,
+        "nuits_au_dela_du_quart": 3
+      }
+    },
+    "EOG-D": {
+      "inexploitable": {
+        "moyenne": 0.032532002797336826,
+        "mediane": 0.007366482504604052,
+        "p90": 0.09448082319925163,
+        "max": 0.2882136279926335,
+        "nuits_au_dela_du_quart": 2
+      },
+      "plat": {
+        "moyenne": 0.0,
+        "mediane": 0.0,
+        "p90": 0.0,
+        "max": 0.0,
+        "nuits_au_dela_du_quart": 0
+      },
+      "ecrete": {
+        "moyenne": 0.0,
+        "mediane": 0.0,
+        "p90": 0.0,
+        "max": 0.0,
+        "nuits_au_dela_du_quart": 0
+      },
+      "artefact": {
+        "moyenne": 0.032532002797336826,
+        "mediane": 0.007366482504604052,
+        "p90": 0.09448082319925163,
+        "max": 0.2882136279926335,
+        "nuits_au_dela_du_quart": 2
+      }
+    },
+    "EMG": {
+      "inexploitable": {
+        "moyenne": 0.03662483153485624,
+        "mediane": 0.014084507042253521,
+        "p90": 0.10944808231992516,
+        "max": 0.283595922150139,
+        "nuits_au_dela_du_quart": 4
+      },
+      "plat": {
+        "moyenne": 0.0026879428727339134,
+        "mediane": 0.0,
+        "p90": 0.0,
+        "max": 0.2376425855513308,
+        "nuits_au_dela_du_quart": 0
+      },
+      "ecrete": {
+        "moyenne": 0.0,
+        "mediane": 0.0,
+        "p90": 0.0,
+        "max": 0.0,
+        "nuits_au_dela_du_quart": 0
+      },
+      "artefact": {
+        "moyenne": 0.03393688866212232,
+        "mediane": 0.011992619926199263,
+        "p90": 0.09576427255985268,
+        "max": 0.283595922150139,
+        "nuits_au_dela_du_quart": 3
+      }
+    },
+    "flux": {
+      "inexploitable": {
+        "moyenne": 0.0572396085556096,
+        "mediane": 0.0011123470522803114,
+        "p90": 0.14680648236415633,
+        "max": 0.9833134684147795,
+        "nuits_au_dela_du_quart": 13
+      }
+    },
+    "thorax": {
+      "inexploitable": {
+        "moyenne": 0.09336077994069839,
+        "mediane": 0.07398568019093078,
+        "p90": 0.18396711202466598,
+        "max": 0.5014031805425632,
+        "nuits_au_dela_du_quart": 11
+      }
+    },
+    "abdomen": {
+      "inexploitable": {
+        "moyenne": 0.13719963706149355,
+        "mediane": 0.08719646799116998,
+        "p90": 0.3023023023023023,
+        "max": 1.0,
+        "nuits_au_dela_du_quart": 31
+      }
+    },
+    "sao2": {
+      "inexploitable": {
+        "moyenne": 0.0319287264524487,
+        "mediane": 0.004752851711026616,
+        "p90": 0.0967741935483871,
+        "max": 0.29704797047970477,
+        "nuits_au_dela_du_quart": 3
+      }
+    },
+    "respiration": {
+      "inexploitable": {
+        "moyenne": 0.12079762263349077,
+        "mediane": 0.08333333333333333,
+        "p90": 0.24406457739791074,
+        "max": 0.9833134684147795,
+        "nuits_au_dela_du_quart": 23
+      }
+    }
+  },
+  "refus": {
+    "stades": 1,
+    "index": 23,
+    "n": 231
+  },
+  "stades": {
+    "EEG exploitable": {
+      "n": 39170,
+      "part": 0.9787606196901549,
+      "exactitude": 0.7936175644625989,
+      "confiance_mediane": 0.8413635492324829,
+      "sous_le_seuil": 0.18046974725555273
+    },
+    "EEG inexploitable": {
+      "n": 850,
+      "part": 0.02123938030984508,
+      "exactitude": 0.8870588235294118,
+      "confiance_mediane": 0.9928669929504395,
+      "sous_le_seuil": 0.04823529411764706
+    },
+    "Yeux inexploitables (EEG exploitable)": {
+      "n": 1341,
+      "part": 0.03350824587706147,
+      "exactitude": 0.9224459358687547,
+      "confiance_mediane": 0.993523120880127,
+      "sous_le_seuil": 0.03206562266964952
+    },
+    "Menton inexploitable (EEG exploitable)": {
+      "n": 1462,
+      "part": 0.036531734132933535,
+      "exactitude": 0.8686730506155951,
+      "confiance_mediane": 0.9926272630691528,
+      "sous_le_seuil": 0.10054719562243503
+    },
+    "Tout exploitable": {
+      "n": 36860,
+      "part": 0.92103948025987,
+      "exactitude": 0.786109603906674,
+      "confiance_mediane": 0.8284482955932617,
+      "sous_le_seuil": 0.18749321758003257
+    }
+  },
+  "evenements": {
+    "precision": {
+      "bon": 0.793701389774321,
+      "mauvais": 0.7723785166240409
+    },
+    "n_proposes": {
+      "bon": 7843,
+      "mauvais": 391
+    },
+    "rappel": {
+      "bon": 0.7441831683168317,
+      "mauvais": 0.6976744186046512
+    },
+    "n_references": {
+      "bon": 8080,
+      "mauvais": 387
+    }
+  },
+  "signal_a_relire_pct": {
+    "sans": 38.2,
+    "avec": 41.349999999999994
+  },
+  "index_clinique_3": {
+    "sans": {
+      "spearman": 0.9576883427079398,
+      "erreur_absolue_mediane": 2.3045286094
+    },
+    "avec": {
+      "spearman": 0.9552980919557603,
+      "erreur_absolue_mediane": 2.0157878414
+    }
+  },
+  "capteur_perdu": {
+    "Rien de débranché": {
+      "kappa": 0.7263385212044033,
+      "accord_eveil_sommeil": 0.9409545227386307
+    },
+    "Menton débranché": {
+      "kappa": 0.7016819489734331,
+      "accord_eveil_sommeil": 0.9257621189405297
+    },
+    "Yeux débranchés": {
+      "kappa": 0.6629950019734798,
+      "accord_eveil_sommeil": 0.9054222888555722
+    },
+    "Yeux et menton débranchés": {
+      "kappa": 0.5785404979595316,
+      "accord_eveil_sommeil": 0.8393553223388306
+    },
+    "Modèle EEG seul": {
+      "kappa": 0.7238471150088714,
+      "accord_eveil_sommeil": 0.9300099950024987
+    }
+  }
+}

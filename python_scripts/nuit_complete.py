@@ -37,6 +37,7 @@ from somnia.deep.model import CNN1D  # noqa: E402
 from somnia.deep.resp_net import ReseauEvenements, charger_nuits, proba_nuit  # noqa: E402
 from somnia.deep.train import appareil  # noqa: E402
 from somnia.nuit import analyser_nuit_complete  # noqa: E402
+from somnia.qualite import qualite_nuit  # noqa: E402
 from somnia.resp import FS_RESP, index_par_heure, masque_vers_evenements, sommeil_par_seconde  # noqa: E402
 from somnia.shhs_prepare import charger_nuit  # noqa: E402
 
@@ -61,9 +62,18 @@ def main() -> int:
     T = json.loads((ROOT / "models/multi/eeg_eog_emg_s42.json").read_text(encoding="utf-8"))["calibration"]["temperature"]
     ev_net = ReseauEvenements(canaux=5); ev_net.load_state_dict(torch.load(ROOT / "models/resp/evenements_v4_s42.pt", map_location="cpu")); ev_net.to(dev)
 
-    def predire_stades(signaux):                       # (n_epoques, 5, 3000) : les cinq capteurs préparés
-        X = preparer_signaux(signaux, stades_net.canaux)
-        return predire_nuit_multi(stades_net, NuitMulti("nuit", "personne", X, np.zeros(len(X), dtype=np.int64)), torch.device("cpu"))
+    # Repli (horizon 1.5) : si les yeux ou le menton sont inexploitables, le modèle EEG seul, avec sa propre température.
+    repli_net = ReseauMulti(VARIANTES["eeg"]); repli_net.load_state_dict(torch.load(ROOT / "models/multi/eeg_s42.pt", map_location="cpu")); repli_net.eval()
+    T_repli = json.loads((ROOT / "models/multi/eeg_s42.json").read_text(encoding="utf-8"))["calibration"]["temperature"]
+    from somnia.deep.multi import NOMS_CANAUX
+    from somnia.deep.resp_net import RESP_DIR
+
+    def predire_avec(net):
+        def predire_stades(signaux):                   # (n_epoques, 5, 3000) : les cinq capteurs préparés
+            X = preparer_signaux(signaux, net.canaux)
+            return predire_nuit_multi(net, NuitMulti("nuit", "personne", X, np.zeros(len(X), dtype=np.int64)), torch.device("cpu"))
+        return predire_stades
+    qual = {"refus_stades": 0, "refus_index": 0, "repli_eeg": 0, "ecartes": 0, "resp_inexploitable_pct": []}
 
     cov = {}
     if (PROCESSED / "covariables.csv").exists():
@@ -78,7 +88,14 @@ def main() -> int:
         with np.load(MULTI_DIR / f"{n.ident}.npz", allow_pickle=False) as d:
             eeg = d["signaux"]                                                      # µV, (n_epoques, 5 capteurs, 3000)
         proba = proba_nuit(ev_net, n, dev, canal_sommeil=True)
-        r = analyser_nuit_complete(eeg, predire_stades, proba, temperature=T, sao2_1hz=n.signaux[3, ::FS_RESP][: n.n_sec])
+        chemin_q = RESP_DIR / f"{n.ident}_sao2_invalide.npy"
+        q = qualite_nuit(eeg, NOMS_CANAUX, n.signaux, n.n_sec, np.load(chemin_q) if chemin_q.exists() else None, FS_RESP)
+        repli = q["rapport"]["modele_stades"] == "eeg"
+        r = analyser_nuit_complete(eeg, predire_avec(repli_net if repli else stades_net), proba, temperature=T_repli if repli else T,
+                                   sao2_1hz=n.signaux[3, ::FS_RESP][: n.n_sec], qualite=q)
+        qual["refus_stades"] += q["rapport"]["refus"]["stades"]; qual["refus_index"] += q["rapport"]["refus"]["index"]; qual["repli_eeg"] += repli
+        qual["ecartes"] += r["respiration"]["resume"]["n_ecartes_signal_inexploitable"]
+        qual["resp_inexploitable_pct"].append(q["rapport"]["respiration_inexploitable_pct"])
         res, fc = r["respiration"]["resume"], r["file_commune"]
 
         # 2. la confiance trie-t-elle ? un événement proposé est « juste » s'il recouvre un événement de référence
@@ -102,8 +119,9 @@ def main() -> int:
             ou_sont_les_ref[{3: "sur", 2: "a_relire", 1: "possible", 0: "manque"}[m]] += 1
         # 4. index de bout en bout vs référence (sommeil et événements du technicien)
         lignes.append({
-            "personne": n.personne, "index_ref": index_par_heure(ref_tous, sommeil_ref), "index_bout_en_bout": res["index_par_heure"] or 0.0,
-            "index_clinique_3": res["index_clinique_3"] or 0.0, "index_clinique_4": res["index_clinique_4"] or 0.0,
+            "personne": n.personne, "index_ref": index_par_heure(ref_tous, sommeil_ref), "index_bout_en_bout": res["index_par_heure"] if res["index_par_heure"] is not None else np.nan,
+            "index_clinique_3": res["index_clinique_3"] if res["index_clinique_3"] is not None else np.nan,
+            "index_clinique_4": res["index_clinique_4"] if res["index_clinique_4"] is not None else np.nan, "index_refuse": res["index_par_heure"] is None,
             "n_ref": len(ref), "n_proposes": res["n_evenements"], "n_surs": res["n_surs"], "n_a_relire": res["n_a_relire"],
             "n_possibles": res["n_possibles"], "part_stades_a_relire": r["relecture"]["part_a_relire_pct"],
             "signal_a_relire_min": fc["signal_a_relire_min"], "signal_total_min": fc["signal_total_min"], "part_a_relire": fc["part_a_relire_pct"],
@@ -117,7 +135,8 @@ def main() -> int:
                  "premiers_items": fc["items"][:25]}, indent=2, ensure_ascii=False), encoding="utf-8")
 
     from scipy.stats import spearmanr
-    ref_i = np.array([l["index_ref"] for l in lignes]); est_i = np.array([l["index_bout_en_bout"] for l in lignes])
+    rendus = [l for l in lignes if not l["index_refuse"]]                       # l'index n'est mesuré que là où l'outil le rend
+    ref_i = np.array([l["index_ref"] for l in rendus]); est_i = np.array([l["index_bout_en_bout"] for l in rendus])
     total_ref = sum(ou_sont_les_ref.values())
     agg = {
         "date": date.today().isoformat(), "n_nuits": len(lignes),
@@ -130,6 +149,8 @@ def main() -> int:
         "index_bout_en_bout": {"spearman": float(spearmanr(est_i, ref_i).correlation),
                                "erreur_absolue_mediane": float(np.median(np.abs(est_i - ref_i))), "biais": float(np.mean(est_i - ref_i))},
     }
+    agg["qualite"] = {**{k: v for k, v in qual.items() if k != "resp_inexploitable_pct"},
+                      "resp_inexploitable_pct_mediane": float(np.median(qual["resp_inexploitable_pct"]))}
     conf, juste = np.array([c for c, _ in paires]), np.array([j for _, j in paires])
     n_ref_total = sum(l["n_ref"] for l in lignes)
     agg["compromis_confiance"] = [
@@ -138,12 +159,12 @@ def main() -> int:
         for s in (0.70, 0.80, 0.85, 0.90, 0.95)]
     for cle, col in (("ahi_a0h3", "index_clinique_3"), ("ahi_a0h4", "index_clinique_4")):
         cli = np.array([float(cov[l["personne"]][cle]) if l["personne"] in cov and cov[l["personne"]].get(cle) else np.nan for l in lignes])
-        e = np.array([l[col] for l in lignes]); ok = np.isfinite(cli)
+        e = np.array([l[col] for l in lignes]); ok = np.isfinite(cli) & np.isfinite(e)
         if ok.sum() > 3:
             agg[col] = {"contre": cle, "spearman": float(spearmanr(e[ok], cli[ok]).correlation),
                         "erreur_absolue_mediane": float(np.median(np.abs(e[ok] - cli[ok]))), "biais": float(np.mean(e[ok] - cli[ok]))}
     for cle in ("ahi_a0h3a", "ahi_a0h4"):
-        cli = np.array([float(cov[l["personne"]][cle]) if l["personne"] in cov and cov[l["personne"]][cle] else np.nan for l in lignes])
+        cli = np.array([float(cov[l["personne"]][cle]) if l["personne"] in cov and cov[l["personne"]][cle] else np.nan for l in rendus])
         ok = np.isfinite(cli)
         if ok.sum() > 3:
             agg["index_bout_en_bout"][f"spearman_{cle}"] = float(spearmanr(est_i[ok], cli[ok]).correlation)
@@ -195,7 +216,16 @@ def main() -> int:
             c = agg[col]
             L.append(f"| **Index clinique estimé** (apnées + hypopnées avec désaturation ≥ {nom} points), contre `{c['contre']}` | "
                      f"**{c['spearman']:.2f}** | {c['erreur_absolue_mediane']:.1f} / h | {c['biais']:+.1f} / h |")
-    L += ["", f"Temps de sommeil : prédit {med_iqr([l['heures_sommeil_pred'] for l in lignes], '{:.1f}')} h, "
+    ql = agg["qualite"]
+    L += ["", "## 5. Qualité du signal et refus", "",
+          "| Sur les nuits de validation | |", "|---|---|",
+          f"| Respiration inexploitable, médiane par nuit | {ql['resp_inexploitable_pct_mediane']:.1f} % |",
+          f"| Événements proposés puis écartés parce que le signal y était inexploitable | {ql['ecartes']:,} |",
+          f"| Nuits où l'outil refuse de rendre un index | {ql['refus_index']} sur {agg['n_nuits']} |",
+          f"| Nuits où l'outil refuse de rendre les indices de sommeil | {ql['refus_stades']} sur {agg['n_nuits']} |",
+          f"| Nuits où les stades sont calculés avec l'EEG seul (yeux ou menton inexploitables) | {ql['repli_eeg']} sur {agg['n_nuits']} |", "",
+          "Règles et mesures : `docs/RESULTATS_QUALITE.md`. L'index ci-dessus n'est mesuré que sur les nuits où l'outil le rend."]
+    L += ["", f"Temps de sommeil : prédit et analysable {med_iqr([l['heures_sommeil_pred'] for l in lignes], '{:.1f}')} h, "
               f"technicien {med_iqr([l['heures_sommeil_ref'] for l in lignes], '{:.1f}')} h.", "",
           "## Lecture", "",
           "- Les événements « sûrs » sont ceux qu'un lecteur validerait d'un coup d'œil ; leur précision dit si on peut lui faire cette promesse.",

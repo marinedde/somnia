@@ -2,78 +2,85 @@
   "date": "2026-10-04",
   "n_nuits": 40,
   "signal_a_relire_pct": {
-    "mediane": 38.2,
-    "q1": 31.5,
-    "q3": 46.65
+    "mediane": 38.25,
+    "q1": 32.25,
+    "q3": 47.025
   },
   "precision_par_niveau": {
-    "sur": 0.9093018758460646,
-    "a_relire": 0.595626631853786
+    "sur": 0.9099628107261695,
+    "a_relire": 0.598866288762921
   },
   "effectifs_par_niveau": {
-    "sur": 5171,
-    "a_relire": 3064
+    "sur": 5109,
+    "a_relire": 2999
   },
   "reference_ou": {
-    "sur": 0.5391520018896894,
-    "a_relire": 0.20290539742529823,
-    "possible": 0.07464273060115743,
-    "manque": 0.18329987008385495
+    "sur": 0.5338372505019487,
+    "a_relire": 0.20007086335183655,
+    "possible": 0.07417030825558049,
+    "manque": 0.19192157789063422
   },
   "index_bout_en_bout": {
-    "spearman": 0.8071294559099439,
-    "erreur_absolue_mediane": 6.485615354174912,
-    "biais": -2.0390841971350997,
-    "spearman_ahi_a0h3a": 0.85609756097561,
-    "spearman_ahi_a0h4": 0.7664165103189494
+    "spearman": 0.8145973672895026,
+    "erreur_absolue_mediane": 7.21278195488722,
+    "biais": -1.407800292118415,
+    "spearman_ahi_a0h3a": 0.8589360831926718,
+    "spearman_ahi_a0h4": 0.7625651755675188
+  },
+  "qualite": {
+    "refus_stades": 0,
+    "refus_index": 1,
+    "repli_eeg": 0,
+    "ecartes": 127,
+    "resp_inexploitable_pct_mediane": 8.149999999999999
   },
   "compromis_confiance": [
     {
       "confiance_min": 0.7,
-      "part_des_proposes": 0.9931997571341834,
-      "precision": 0.7953295023841546,
-      "evenements_par_nuit": 204.475,
-      "rapport_aux_references": 0.7682768394945081
+      "part_des_proposes": 0.9932165762210163,
+      "precision": 0.7975909598907239,
+      "evenements_par_nuit": 201.325,
+      "rapport_aux_references": 0.7585921814101807
     },
     {
       "confiance_min": 0.8,
-      "part_des_proposes": 0.8010928961748633,
-      "precision": 0.860997423071093,
-      "evenements_par_nuit": 164.925,
-      "rapport_aux_references": 0.6708397307192631
+      "part_des_proposes": 0.8030340404538727,
+      "precision": 0.8619259714329596,
+      "evenements_par_nuit": 162.775,
+      "rapport_aux_references": 0.6628085508444549
     },
     {
       "confiance_min": 0.85,
-      "part_des_proposes": 0.6292653309046752,
-      "precision": 0.9087225009648784,
-      "evenements_par_nuit": 129.55,
-      "rapport_aux_references": 0.5561592063304595
+      "part_des_proposes": 0.631228416378885,
+      "precision": 0.9095349745994529,
+      "evenements_par_nuit": 127.95,
+      "rapport_aux_references": 0.5497815046651706
     },
     {
       "confiance_min": 0.9,
-      "part_des_proposes": 0.4207650273224044,
-      "precision": 0.9564213564213564,
-      "evenements_par_nuit": 86.625,
-      "rapport_aux_references": 0.39140191331049956
+      "part_des_proposes": 0.42328564380858413,
+      "precision": 0.9568764568764568,
+      "evenements_par_nuit": 85.8,
+      "rapport_aux_references": 0.3878587457186725
     },
     {
       "confiance_min": 0.95,
-      "part_des_proposes": 0.15919854280510018,
-      "precision": 0.9778794813119756,
-      "evenements_par_nuit": 32.775,
-      "rapport_aux_references": 0.15141136175741113
+      "part_des_proposes": 0.16107548100641342,
+      "precision": 0.9777947932618682,
+      "evenements_par_nuit": 32.65,
+      "rapport_aux_references": 0.15082083382543995
     }
   ],
   "index_clinique_3": {
     "contre": "ahi_a0h3",
-    "spearman": 0.9576883427079398,
-    "erreur_absolue_mediane": 2.3045286094,
-    "biais": 1.5499657199574997
+    "spearman": 0.9685712852122892,
+    "erreur_absolue_mediane": 1.8833935018,
+    "biais": 1.6014162197923076
   },
   "index_clinique_4": {
     "contre": "ahi_a0h4",
-    "spearman": 0.9044759671504102,
-    "erreur_absolue_mediane": 1.74782608695,
-    "biais": 0.9079877751424996
+    "spearman": 0.9211299402318952,
+    "erreur_absolue_mediane": 1.3480620155,
+    "biais": 0.8602003305769228
   }
 }

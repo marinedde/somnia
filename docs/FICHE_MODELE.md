@@ -62,6 +62,11 @@ atteint 0,89 : c'est le principe de la file de relecture.
 
 ## Limites connues
 
+- **Qualité du signal** : `somnia/qualite.py` repère un capteur plat, écrêté ou une saturation invalide, écarte les propositions
+  à ces endroits et refuse l'index au-delà d'un quart de la nuit inexploitable. Il ne voit pas un capteur mal posé mais actif,
+  une saturation plausible mais fausse, ni une inversion de canaux. Définition révisée sur la validation, peu de vraies pannes
+  dans cette cohorte : à éprouver ailleurs (`docs/RESULTATS_QUALITE.md`).
+
 - Une seule dérivation par signal, pas de contexte entre époques : le N1 et les transitions
   sont mal reconnus (F1 N1 ≈ 0,28), comme chez les scoreurs humains mais davantage.
 - L'étiquette « apnée » compte toutes les hypopnées annotées, sans critère de désaturation :

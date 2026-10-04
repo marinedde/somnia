@@ -11,9 +11,9 @@ Pour chaque nuit, deux réseaux tournent : celui des stades (EEG, yeux, menton) 
 | Durée de l'enregistrement | 510 (480–534) min |
 | Époques dont le stade est à relire | 15 (13–22) % |
 | Événements respiratoires de référence | 212 (119–302) |
-| Événements proposés | 191 (119–278) dont sûrs 106 (58–161), à relire 70 (55–93) |
-| « Événements possibles » signalés (non proposés) | 75 (49–93) |
-| **Signal à relire, stades et événements réunis** | **191 (165–226) min, soit 38 (32–47) % de la nuit** |
+| Événements proposés | 183 (118–277) dont sûrs 102 (57–160), à relire 68 (54–93) |
+| « Événements possibles » signalés (non proposés) | 71 (47–92) |
+| **Signal à relire, stades et événements réunis** | **194 (168–228) min, soit 38 (32–47) % de la nuit** |
 
 Le signal à relire est l'union des passages concernés, avec 30 s de contexte autour de chaque événement. C'est une durée de signal, pas un temps de lecture : seul un chronomètre avec un lecteur dira le temps gagné.
 
@@ -21,27 +21,27 @@ Le signal à relire est l'union des passages concernés, avec 30 s de contexte a
 
 | Niveau | Événements proposés | Part qui recouvre un événement du technicien |
 |---|---|---|
-| Sûrs (confiance ≥ 0,85) | 5,171 | **91%** |
-| À relire (confiance < 0,85) | 3,064 | 60% |
+| Sûrs (confiance ≥ 0,85) | 5,109 | **91%** |
+| À relire (confiance < 0,85) | 2,999 | 60% |
 
 Plus on exige de confiance, plus les propositions sont justes, et moins il y en a :
 
 | Confiance minimale | Part des événements proposés | Précision | Événements par nuit | Événements justes / événements de référence |
 |---|---|---|---|---|
-| 0.70 | 99% | 80% | 204 | 77% |
-| 0.80 | 80% | 86% | 165 | 67% |
-| 0.85 | 63% | 91% | 130 | 56% |
-| 0.90 | 42% | 96% | 87 | 39% |
+| 0.70 | 99% | 80% | 201 | 76% |
+| 0.80 | 80% | 86% | 163 | 66% |
+| 0.85 | 63% | 91% | 128 | 55% |
+| 0.90 | 42% | 96% | 86 | 39% |
 | 0.95 | 16% | 98% | 33 | 15% |
 
 ## 3. Où tombent les événements du technicien
 
 | | Part des événements de référence |
 |---|---|
-| Dans un événement proposé comme sûr | 54% |
+| Dans un événement proposé comme sûr | 53% |
 | Dans un événement proposé à relire | 20% |
 | Dans un « événement possible » signalé | 7% |
-| Nulle part : à trouver par le lecteur | **18%** |
+| Nulle part : à trouver par le lecteur | **19%** |
 
 ## 4. L'index, de bout en bout
 
@@ -49,13 +49,25 @@ Sommeil prédit par le réseau de stades, événements prédits par le réseau r
 
 | Contre | Spearman | Erreur absolue médiane | Biais |
 |---|---|---|---|
-| Index annoté (technicien) | 0.81 | 6.5 / h | -2.0 / h |
+| Index annoté (technicien) | 0.81 | 7.2 / h | -1.4 / h |
 | Tous les événements proposés, contre l'index clinique `ahi_a0h3a` | 0.86 | — | — |
-| Tous les événements proposés, contre l'index clinique `ahi_a0h4` | 0.77 | — | — |
-| **Index clinique estimé** (apnées + hypopnées avec désaturation ≥ 3 points), contre `ahi_a0h3` | **0.96** | 2.3 / h | +1.5 / h |
-| **Index clinique estimé** (apnées + hypopnées avec désaturation ≥ 4 points), contre `ahi_a0h4` | **0.90** | 1.7 / h | +0.9 / h |
+| Tous les événements proposés, contre l'index clinique `ahi_a0h4` | 0.76 | — | — |
+| **Index clinique estimé** (apnées + hypopnées avec désaturation ≥ 3 points), contre `ahi_a0h3` | **0.97** | 1.9 / h | +1.6 / h |
+| **Index clinique estimé** (apnées + hypopnées avec désaturation ≥ 4 points), contre `ahi_a0h4` | **0.92** | 1.3 / h | +0.9 / h |
 
-Temps de sommeil : prédit 6.3 (5.8–6.9) h, technicien 6.0 (5.5–6.7) h.
+## 5. Qualité du signal et refus
+
+| Sur les nuits de validation | |
+|---|---|
+| Respiration inexploitable, médiane par nuit | 8.1 % |
+| Événements proposés puis écartés parce que le signal y était inexploitable | 127 |
+| Nuits où l'outil refuse de rendre un index | 1 sur 40 |
+| Nuits où l'outil refuse de rendre les indices de sommeil | 0 sur 40 |
+| Nuits où les stades sont calculés avec l'EEG seul (yeux ou menton inexploitables) | 0 sur 40 |
+
+Règles et mesures : `docs/RESULTATS_QUALITE.md`. L'index ci-dessus n'est mesuré que sur les nuits où l'outil le rend.
+
+Temps de sommeil : prédit et analysable 6.1 (5.3–6.7) h, technicien 6.0 (5.5–6.7) h.
 
 ## Lecture
 
