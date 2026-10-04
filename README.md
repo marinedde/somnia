@@ -129,6 +129,31 @@ Conclusion, en cinq lignes :
    0,25 ± 0,12 de zéro contre 0,37 ± 0,08 pré-entraîné) ; à 10 % et 100 %, écart nul (0,58 contre 0,58,
    0,64 contre 0,64). Moyennes ± écart-type dans [docs/RESULTATS_CNN.md](docs/RESULTATS_CNN.md).
 
+### Détection d'événements respiratoires (octobre 2026)
+
+Ce qui prend du temps à un lecteur de polysomnographie, ce sont les événements respiratoires :
+250 par nuit en moyenne dans cette cohorte, chacun à marquer avec son début et sa fin. Un
+second modèle les détecte à partir de ce que regarde un humain : **le flux, les ceintures
+thoracique et abdominale, et la saturation**, sur des fenêtres de 5 minutes. Il rend, pour
+chaque seconde, « rien », « apnée » ou « hypopnée », regroupés en événements d'au moins 10 s.
+Réseau à convolutions dilatées de 144 000 paramètres, 270 nuits, même découpage par personne,
+validation seulement. Détail : [docs/RESULTATS_EVENEMENTS.md](docs/RESULTATS_EVENEMENTS.md).
+
+| Mesure (validation, 40 personnes, 3 graines) | Résultat |
+|---|---|
+| Événements retrouvés (rappel) | 0,75 ± 0,02 ; apnées 0,84, hypopnées 0,74 |
+| Événements proposés qui sont justes (précision) | 0,65 ± 0,01 |
+| F1 par événement, tout recouvrement / bornes exigeantes (IoU ≥ 0,3) | 0,70 / 0,67 |
+| Index par personne contre l'index annoté | Spearman 0,84 ; erreur médiane 6 événements / h |
+| Référence simple : désaturations ≥ 4 % par heure, contre l'index clinique | Spearman 0,92 ; erreur médiane 1,9 / h |
+
+Deux lectures. Pour **estimer l'index clinique**, compter les désaturations suffit presque : c'est
+une référence simple, et elle est très forte. Ce que le réseau apporte, c'est la **position de
+chaque événement** : trois événements sur quatre sont déjà placés, à valider plutôt qu'à chercher.
+C'est la brique qui vise le temps de lecture ; il reste à la mesurer avec un chronomètre et un lecteur.
+
+![Index par personne](data/figures/evenements_index.png)
+
 ### La sortie par nuit : l'idée de départ (étape 6)
 
 Un médecin met quatre heures à relire une nuit. Le modèle ne la relit pas à sa place : il

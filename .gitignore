@@ -59,3 +59,7 @@ models/cnn/*_val_logits.npz
 
 # Notes personnelles (cours, QCM, préparation d'entretien) : jamais sur GitHub ni HuggingFace
 notes_privees/
+
+# Détection d'événements : poids et détail par personne (identifiants) hors git, métriques JSON versionnées
+models/resp/*.pt
+models/resp/*_val_detail.npz

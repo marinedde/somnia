@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-04T15:39",
+  "n_personnes": 40,
+  "odi_3": {
+    "contre_annote": {
+      "spearman": 0.5881801125703565,
+      "erreur_absolue_mediane": 22.890948510987286,
+      "biais": -20.407453084406292
+    },
+    "contre_clinique": {
+      "ahi_a0h3a": {
+        "spearman": 0.7756097560975611,
+        "erreur_absolue_mediane": 5.639213267077785,
+        "biais": -4.034046888608695
+      },
+      "ahi_a0h4": {
+        "spearman": 0.8684803001876175,
+        "erreur_absolue_mediane": 4.200729042655135,
+        "biais": 4.559618887871305
+      }
+    }
+  },
+  "odi_4": {
+    "contre_annote": {
+      "spearman": 0.5973733583489681,
+      "erreur_absolue_mediane": 28.38126874412971,
+      "biais": -27.90971498523038
+    },
+    "contre_clinique": {
+      "ahi_a0h3a": {
+        "spearman": 0.7926829268292683,
+        "erreur_absolue_mediane": 10.41484353398954,
+        "biais": -11.536308789432777
+      },
+      "ahi_a0h4": {
+        "spearman": 0.9185741088180113,
+        "erreur_absolue_mediane": 1.8710986267296503,
+        "biais": -2.942643012952778
+      }
+    }
+  }
+}
