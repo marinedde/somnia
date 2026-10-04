@@ -1,0 +1,190 @@
+{
+  "nom": "eeg_eog_s42",
+  "tache": "eeg",
+  "fraction": 1.0,
+  "graine": 42,
+  "variante": "eeg_eog",
+  "capteurs": [
+    "EEG",
+    "EOG-G",
+    "EOG-D"
+  ],
+  "date": "2026-10-04T17:58",
+  "appareil": "mps",
+  "n_personnes_train": 192,
+  "n_exemples_train": 192298,
+  "n_personnes_val": 40,
+  "n_exemples_val": 40020,
+  "meilleure_epoque": 1,
+  "historique": [
+    {
+      "epoque": 1,
+      "perte_train": 0.6695064629387596,
+      "perte_val": NaN,
+      "score_val": 0.7071599044824306,
+      "duree_s": 29.0,
+      "accuracy": 0.7817091454272863,
+      "f1_macro": 0.7225731462453023,
+      "f1_weighted": 0.7934184329314352,
+      "kappa": 0.7071599044824306,
+      "f1_Wake": 0.8649131887262974,
+      "f1_N1": 0.40044868199663486,
+      "f1_N2": 0.7916330915928015,
+      "f1_N3": 0.7369756274349913,
+      "f1_REM": 0.8188951414757867,
+      "accord_eveil_sommeil": 0.9282608695652174
+    },
+    {
+      "epoque": 2,
+      "perte_train": 0.5750808553041323,
+      "perte_val": NaN,
+      "score_val": 0.702631167195418,
+      "duree_s": 25.2,
+      "accuracy": 0.7772613693153423,
+      "f1_macro": 0.719826313051559,
+      "f1_weighted": 0.7889586068505402,
+      "kappa": 0.702631167195418,
+      "f1_Wake": 0.8582604018970322,
+      "f1_N1": 0.41311987504880904,
+      "f1_N2": 0.7893847194050034,
+      "f1_N3": 0.7174295038072128,
+      "f1_REM": 0.8209370650997371,
+      "accord_eveil_sommeil": 0.9275612193903049
+    },
+    {
+      "epoque": 3,
+      "perte_train": 0.5538518381831439,
+      "perte_val": NaN,
+      "score_val": 0.7070206654328278,
+      "duree_s": 22.3,
+      "accuracy": 0.7821589205397301,
+      "f1_macro": 0.7237988933161507,
+      "f1_weighted": 0.7975979415138021,
+      "kappa": 0.7070206654328278,
+      "f1_Wake": 0.8645137168761976,
+      "f1_N1": 0.37853201805718106,
+      "f1_N2": 0.7952755905511811,
+      "f1_N3": 0.7402609772359272,
+      "f1_REM": 0.8404121638602664,
+      "accord_eveil_sommeil": 0.9275612193903049
+    },
+    {
+      "epoque": 4,
+      "perte_train": 0.5603821172338465,
+      "perte_val": NaN,
+      "score_val": 0.7014477696948624,
+      "duree_s": 19.3,
+      "accuracy": 0.776311844077961,
+      "f1_macro": 0.7184946939302219,
+      "f1_weighted": 0.792205568888803,
+      "kappa": 0.7014477696948624,
+      "f1_Wake": 0.8665608007314374,
+      "f1_N1": 0.3824915824915825,
+      "f1_N2": 0.7901101492235658,
+      "f1_N3": 0.7348424323124723,
+      "f1_REM": 0.8184685048920515,
+      "accord_eveil_sommeil": 0.9307096451774113
+    },
+    {
+      "epoque": 5,
+      "perte_train": 0.5356850891333559,
+      "perte_val": NaN,
+      "score_val": 0.6944974257199539,
+      "duree_s": 19.2,
+      "accuracy": 0.7704397801099451,
+      "f1_macro": 0.7158130188431987,
+      "f1_weighted": 0.785841752792561,
+      "kappa": 0.6944974257199539,
+      "f1_Wake": 0.8719726515479802,
+      "f1_N1": 0.3982194829652457,
+      "f1_N2": 0.7766171016366668,
+      "f1_N3": 0.7204079953936003,
+      "f1_REM": 0.8118478626725009,
+      "accord_eveil_sommeil": 0.9335582208895552
+    }
+  ],
+  "validation": {
+    "accuracy": 0.7817091454272863,
+    "f1_macro": 0.7225731462453023,
+    "f1_weighted": 0.7934184329314352,
+    "kappa": 0.7071599044824306,
+    "f1_Wake": 0.8649131887262974,
+    "f1_N1": 0.40044868199663486,
+    "f1_N2": 0.7916330915928015,
+    "f1_N3": 0.7369756274349913,
+    "f1_REM": 0.8188951414757867
+  },
+  "eveil_sommeil": {
+    "accord": 0.9282608695652174,
+    "sensibilite_eveil": 0.8499953759363729,
+    "specificite_eveil": 0.9572362789742185
+  },
+  "kappa_par_nuit": {
+    "mediane": 0.7025926774442566,
+    "q1": 0.6501182187890588,
+    "q3": 0.7977808007436478,
+    "min": 0.14955951295441772
+  },
+  "calibration": {
+    "ece_avant": 0.04130614136301952,
+    "ece_apres": 0.022385960785696483,
+    "temperature": 1.1801907645251408,
+    "n_personnes_val": 40
+  },
+  "couverture": [
+    {
+      "couverture": 1.0,
+      "n": 40020,
+      "seuil_confiance": 0.25116387009620667,
+      "accuracy": 0.7817091454272863,
+      "kappa": 0.7071599044824306
+    },
+    {
+      "couverture": 0.9,
+      "n": 36018,
+      "seuil_confiance": 0.5520221590995789,
+      "accuracy": 0.8195624410017214,
+      "kappa": 0.7573855209758107
+    },
+    {
+      "couverture": 0.8,
+      "n": 32016,
+      "seuil_confiance": 0.6584808826446533,
+      "accuracy": 0.851980259870065,
+      "kappa": 0.8007072633218222
+    },
+    {
+      "couverture": 0.7,
+      "n": 28014,
+      "seuil_confiance": 0.7514405846595764,
+      "accuracy": 0.8802741486399658,
+      "kappa": 0.8383736209277235
+    },
+    {
+      "couverture": 0.5,
+      "n": 20010,
+      "seuil_confiance": 0.8806386590003967,
+      "accuracy": 0.9338330834582709,
+      "kappa": 0.9084668808894696
+    }
+  ],
+  "par_personne": null,
+  "config": {
+    "longueur": 32,
+    "init_encodeur": true
+  },
+  "duree_min": 2.3,
+  "journal": [
+    "[eeg_eog_s42] entraînement : 192 nuits, 192,298 époques, chargées en 14 s",
+    "encodeur initialisé depuis eeg_f1_s42.pt ; capteurs ajoutés à zéro",
+    "capteurs : EEG, EOG-G, EOG-D",
+    "appareil mps | 95,221 paramètres | tranches de 32 époques",
+    "validation : 40 nuits, 40,020 époques",
+    "époque  1 | perte 0.6695 | val : kappa 0.7072, exactitude 0.782, F1 N1 0.400, éveil/sommeil 0.928 | 29 s",
+    "époque  2 | perte 0.5751 | val : kappa 0.7026, exactitude 0.777, F1 N1 0.413, éveil/sommeil 0.928 | 25 s",
+    "époque  3 | perte 0.5539 | val : kappa 0.7070, exactitude 0.782, F1 N1 0.379, éveil/sommeil 0.928 | 22 s",
+    "époque  4 | perte 0.5604 | val : kappa 0.7014, exactitude 0.776, F1 N1 0.382, éveil/sommeil 0.931 | 19 s",
+    "époque  5 | perte 0.5357 | val : kappa 0.6945, exactitude 0.770, F1 N1 0.398, éveil/sommeil 0.934 | 19 s",
+    "arrêt anticipé"
+  ]
+}

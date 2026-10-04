@@ -36,9 +36,9 @@ class Bloc(nn.Module):
 class Encodeur(nn.Module):
     """Signal (B, 1, L) -> vecteur (B, dim)."""
 
-    def __init__(self, canaux=(16, 32, 64, 64), noyaux=(15, 9, 7, 5), pas=(4, 4, 2, 2), dim: int = 64):
+    def __init__(self, canaux=(16, 32, 64, 64), noyaux=(15, 9, 7, 5), pas=(4, 4, 2, 2), dim: int = 64, c_entree: int = 1):
         super().__init__()
-        couches, c_in = [], 1
+        couches, c_in = [], c_entree          # c_entree > 1 : plusieurs capteurs lus ensemble (horizon 1.3)
         for c, k, s in zip(canaux, noyaux, pas):
             couches.append(Bloc(c_in, c, k, s))
             c_in = c

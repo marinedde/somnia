@@ -150,6 +150,26 @@ ouvert une fois, n'est pas rouvert pour ce modèle.
 C'est le plus gros gain du projet à données constantes (+0,07 de kappa), obtenu sans une nuit
 de plus. Le N1 reste le stade le plus difficile, comme pour les scoreurs humains.
 
+### Lire ce que lit un technicien : yeux et menton (octobre 2026)
+
+Un technicien score avec trois familles de signaux : l'EEG, les mouvements des yeux (EOG) et le
+tonus du menton (EMG). Même architecture, seule l'entrée change ; les poids des capteurs ajoutés
+partent de zéro, donc le réseau commence exactement comme le modèle EEG. Ablation sur la
+validation, trois graines par ligne : [docs/RESULTATS_MULTI.md](docs/RESULTATS_MULTI.md).
+
+| Capteurs lus | Kappa | Accord éveil / sommeil | F1 éveil | F1 REM |
+|---|---|---|---|---|
+| EEG seul (témoin : redonne exactement le modèle de séquence) | 0,708 ± 0,011 | 92,0 % | 0,85 | 0,84 |
+| EEG + second EEG | 0,722 ± 0,004 | 93,4 % | 0,88 | 0,85 |
+| EEG + menton | 0,722 ± 0,004 | 93,4 % | 0,88 | 0,85 |
+| EEG + yeux | 0,720 ± 0,010 | 93,2 % | 0,87 | 0,84 |
+| **EEG + yeux + menton** | **0,731 ± 0,003** | **94,3 %** | **0,89** | 0,85 |
+| Les cinq capteurs | 0,726 ± 0,004 | 93,6 % | 0,88 | 0,85 |
+
+Le gain est réel mais modeste (+0,02 de kappa), et la cible fixée d'avance, 95 % d'accord
+éveil / sommeil, n'est pas atteinte. Le N1 ne bouge pas (F1 0,41), quel que soit le capteur.
+Réserve : la variante retenue a été choisie sur la validation, où elle est aussi mesurée.
+
 ### Détection d'événements respiratoires (octobre 2026)
 
 Ce qui prend du temps à un lecteur de polysomnographie, ce sont les événements respiratoires :
@@ -162,11 +182,11 @@ validation seulement. Détail : [docs/RESULTATS_EVENEMENTS.md](docs/RESULTATS_EV
 
 | Mesure (validation, 40 personnes, 3 graines, de bout en bout) | Résultat |
 |---|---|
-| Événements retrouvés (rappel) | 0,76 ± 0,02 ; apnées 0,94, hypopnées 0,74 |
-| Événements proposés qui sont justes (précision) | 0,72 ± 0,02 |
-| F1 par événement, tout recouvrement / bornes exigeantes (IoU ≥ 0,3) | 0,73 / 0,72 |
-| Index par personne contre l'index annoté | Spearman 0,82 ; erreur médiane 6 événements / h ; biais nul |
-| Index par personne contre l'index clinique à 3 % | Spearman 0,84 |
+| Événements retrouvés (rappel) | 0,74 ± 0,01 ; apnées 0,94, hypopnées 0,72 |
+| Événements proposés qui sont justes (précision) | 0,73 ± 0,01 |
+| F1 par événement, tout recouvrement / bornes exigeantes (IoU ≥ 0,3) | 0,74 / 0,72 |
+| Index par personne contre l'index annoté | Spearman 0,81 ; erreur médiane 6 événements / h ; biais −1 / h |
+| Index par personne contre l'index clinique à 3 % | Spearman 0,86 |
 | Référence simple : désaturations ≥ 4 % par heure, contre l'index clinique à 4 % | Spearman 0,92 ; erreur médiane 1,9 / h |
 
 « De bout en bout » : la référence est l'ensemble des événements que le technicien a marqués
@@ -183,7 +203,15 @@ pondération des classes adoucie. Six expériences comparées sur la validation 
   plus de nuits du même type n'aideraient pas ;
 - avec le sommeil du technicien à la place du sommeil prédit, le même réseau atteindrait 0,77 :
   le prochain gain était dans le réseau de stades. La version 3 reçoit le sommeil prédit par le
-  modèle de séquence : F1 0,726 → 0,734, rappel des apnées 0,91 → 0,94.
+  modèle de séquence : F1 0,726 → 0,734, rappel des apnées 0,91 → 0,94 ;
+- la version 4 reçoit le sommeil prédit avec les yeux et le menton (accord éveil / sommeil
+  92 % → 94 %) : **le F1 ne bouge plus** (0,736). Ce n'est plus le sommeil prédit qui limite.
+
+**Où sont les événements manqués.** Sur 8 467 événements du technicien pendant le sommeil,
+17 % ne sont signalés nulle part. Ce sont à 98 % des hypopnées, courtes (15 s en médiane), et
+79 % n'ont pas de désaturation de 3 points. Parmi les événements **avec** désaturation, 9 % sont
+manqués ; parmi les apnées, 3 %. Dans six cas sur dix le réseau a réagi, mais moins de 10 s.
+Détail : [docs/ANALYSE_MANQUES.md](docs/ANALYSE_MANQUES.md).
 
 Deux lectures. Pour **estimer l'index clinique**, compter les désaturations suffit presque : c'est
 une référence simple, et elle est très forte. Ce que le réseau apporte, c'est la **position de
@@ -216,14 +244,14 @@ SHHS (agrégats seulement ; le détail d'une nuit reste hors dépôt) :
 | Par nuit de validation (événements du technicien pendant le sommeil) | |
 |---|---|
 | Déjà placés dans une proposition « sûre » | 54 % |
-| ... dans une proposition « à relire » | 21 % |
+| ... dans une proposition « à relire » | 20 % |
 | ... signalés comme « possibles » | 7 % |
 | ... signalés nulle part, à trouver par le lecteur | 18 % |
-| Précision des propositions sûres (confiance ≥ 0,85) / à relire | **91 %** / 59 % |
-| Précision si on exige une confiance ≥ 0,90 / ≥ 0,95 | 95 % / 97 % |
+| Précision des propositions sûres (confiance ≥ 0,85) / à relire | **91 %** / 60 % |
+| Précision si on exige une confiance ≥ 0,90 / ≥ 0,95 | 96 % / 98 % |
 | Époques dont le stade est à relire | 15 % |
-| Index de bout en bout contre l'index annoté | Spearman 0,82, erreur médiane 6 / h, biais nul |
-| Signal à relire, stades et événements réunis | **37 % de la nuit** (195 min sur 510) |
+| Index de bout en bout contre l'index annoté | Spearman 0,81, erreur médiane 6,5 / h, biais −2 / h |
+| Signal à relire, stades et événements réunis | **38 % de la nuit** (191 min sur 510) |
 
 Lecture honnête. Trois versions successives ont fait passer la part de signal à relire de 63 %
 à 50 % puis 37 % : d'abord en ne proposant que pendant le sommeil prédit, puis en lisant la nuit

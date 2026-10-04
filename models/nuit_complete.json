@@ -2,66 +2,66 @@
   "date": "2026-10-04",
   "n_nuits": 40,
   "signal_a_relire_pct": {
-    "mediane": 37.3,
-    "q1": 31.825,
-    "q3": 46.95
+    "mediane": 38.2,
+    "q1": 31.5,
+    "q3": 46.65
   },
   "precision_par_niveau": {
-    "sur": 0.906454091432962,
-    "a_relire": 0.5914826498422713
+    "sur": 0.9093018758460646,
+    "a_relire": 0.595626631853786
   },
   "effectifs_par_niveau": {
-    "sur": 5206,
-    "a_relire": 3170
+    "sur": 5171,
+    "a_relire": 3064
   },
   "reference_ou": {
-    "sur": 0.5408054800992087,
-    "a_relire": 0.20621235384433684,
-    "possible": 0.07180819652769577,
-    "manque": 0.18117396952875872
+    "sur": 0.5391520018896894,
+    "a_relire": 0.20290539742529823,
+    "possible": 0.07464273060115743,
+    "manque": 0.18329987008385495
   },
   "index_bout_en_bout": {
-    "spearman": 0.8178236397748594,
-    "erreur_absolue_mediane": 5.819731728125888,
-    "biais": -0.9065841971350995,
-    "spearman_ahi_a0h3a": 0.853095684803002,
-    "spearman_ahi_a0h4": 0.7452157598499062
+    "spearman": 0.8071294559099439,
+    "erreur_absolue_mediane": 6.485615354174912,
+    "biais": -2.0390841971350997,
+    "spearman_ahi_a0h3a": 0.85609756097561,
+    "spearman_ahi_a0h4": 0.7664165103189494
   },
   "compromis_confiance": [
     {
       "confiance_min": 0.7,
-      "part_des_proposes": 0.9933142311365807,
-      "precision": 0.7893028846153847,
-      "evenements_par_nuit": 208.0,
-      "rapport_aux_references": 0.7755993858509508
+      "part_des_proposes": 0.9931997571341834,
+      "precision": 0.7953295023841546,
+      "evenements_par_nuit": 204.475,
+      "rapport_aux_references": 0.7682768394945081
     },
     {
       "confiance_min": 0.8,
-      "part_des_proposes": 0.7934574976122254,
-      "precision": 0.8603671381281974,
-      "evenements_par_nuit": 166.15,
-      "rapport_aux_references": 0.675327743002244
+      "part_des_proposes": 0.8010928961748633,
+      "precision": 0.860997423071093,
+      "evenements_par_nuit": 164.925,
+      "rapport_aux_references": 0.6708397307192631
     },
     {
       "confiance_min": 0.85,
-      "part_des_proposes": 0.623447946513849,
-      "precision": 0.9061662198391421,
-      "evenements_par_nuit": 130.55,
-      "rapport_aux_references": 0.5588756348175269
+      "part_des_proposes": 0.6292653309046752,
+      "precision": 0.9087225009648784,
+      "evenements_par_nuit": 129.55,
+      "rapport_aux_references": 0.5561592063304595
     },
     {
       "confiance_min": 0.9,
-      "part_des_proposes": 0.4071155682903534,
-      "precision": 0.953958944281525,
-      "evenements_par_nuit": 85.25,
-      "rapport_aux_references": 0.38419747254045117
+      "part_des_proposes": 0.4207650273224044,
+      "precision": 0.9564213564213564,
+      "evenements_par_nuit": 86.625,
+      "rapport_aux_references": 0.39140191331049956
     },
     {
       "confiance_min": 0.95,
-      "part_des_proposes": 0.156279847182426,
-      "precision": 0.972498090145149,
-      "evenements_par_nuit": 32.725,
-      "rapport_aux_references": 0.150348411479863
+      "part_des_proposes": 0.15919854280510018,
+      "precision": 0.9778794813119756,
+      "evenements_par_nuit": 32.775,
+      "rapport_aux_references": 0.15141136175741113
     }
   ]
 }

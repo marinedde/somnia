@@ -55,27 +55,28 @@ def main() -> int:
     parser.add_argument("--nuit-locale", type=int, default=0, help="indice de la nuit dont on garde le détail en local")
     args = parser.parse_args()
     dev = appareil()
-    # Stades : encodeur + lecture de la nuit (horizon 1.2). Événements : v3, qui reçoit le sommeil prédit par ce modèle.
-    from somnia.deep.seq import NuitEEG, ReseauSequence, predire_nuit
-    stades_net = ReseauSequence(); stades_net.load_state_dict(torch.load(ROOT / "models/cnn/eeg_seq_s42.pt", map_location="cpu")); stades_net.eval()
-    T = json.loads((ROOT / "models/cnn/eeg_seq_s42.json").read_text(encoding="utf-8"))["calibration"]["temperature"]
-    ev_net = ReseauEvenements(canaux=5); ev_net.load_state_dict(torch.load(ROOT / "models/resp/evenements_v3_s42.pt", map_location="cpu")); ev_net.to(dev)
+    # Stades : EEG + yeux + menton, lecture de la nuit (horizon 1.3). Événements : v4, qui reçoit le sommeil prédit par ce modèle.
+    from somnia.deep.multi import MULTI_DIR, VARIANTES, NuitMulti, ReseauMulti, predire_nuit_multi, preparer_signaux
+    stades_net = ReseauMulti(VARIANTES["eeg_eog_emg"]); stades_net.load_state_dict(torch.load(ROOT / "models/multi/eeg_eog_emg_s42.pt", map_location="cpu")); stades_net.eval()
+    T = json.loads((ROOT / "models/multi/eeg_eog_emg_s42.json").read_text(encoding="utf-8"))["calibration"]["temperature"]
+    ev_net = ReseauEvenements(canaux=5); ev_net.load_state_dict(torch.load(ROOT / "models/resp/evenements_v4_s42.pt", map_location="cpu")); ev_net.to(dev)
 
-    def predire_stades(eeg_uv):
-        nuit = NuitEEG("nuit", "personne", eeg_uv.astype(np.float16), np.zeros(len(eeg_uv), dtype=np.int64))
-        return predire_nuit(stades_net, nuit, torch.device("cpu"))
+    def predire_stades(signaux):                       # (n_epoques, 5, 3000) : les cinq capteurs préparés
+        X = preparer_signaux(signaux, stades_net.canaux)
+        return predire_nuit_multi(stades_net, NuitMulti("nuit", "personne", X, np.zeros(len(X), dtype=np.int64)), torch.device("cpu"))
 
     cov = {}
     if (PROCESSED / "covariables.csv").exists():
         with open(PROCESSED / "covariables.csv", encoding="utf-8") as f:
             cov = {f"shhs-{r['nsrrid']}": r for r in csv.DictReader(f)}
 
-    nuits = charger_nuits(personnes_du_split("val"), sommeil="seq")
+    nuits = charger_nuits(personnes_du_split("val"), sommeil="multi")
     lignes, niveaux = [], {"sur": [0, 0], "a_relire": [0, 0]}          # [justes, total]
     paires = []                                                        # (confiance, juste) de chaque événement proposé
     ou_sont_les_ref = {"sur": 0, "a_relire": 0, "possible": 0, "manque": 0}
     for k, n in enumerate(nuits):
-        eeg = charger_nuit(PROCESSED / f"{n.ident}.npz")["eeg"]                      # µV, (n_epoques, 3000)
+        with np.load(MULTI_DIR / f"{n.ident}.npz", allow_pickle=False) as d:
+            eeg = d["signaux"]                                                      # µV, (n_epoques, 5 capteurs, 3000)
         proba = proba_nuit(ev_net, n, dev, canal_sommeil=True)
         r = analyser_nuit_complete(eeg, predire_stades, proba, temperature=T)
         res, fc = r["respiration"]["resume"], r["file_commune"]
@@ -145,7 +146,7 @@ def main() -> int:
     L = ["# Résultats — la sortie par nuit complète", "",
          f"*Généré le {agg['date']} par `python_scripts/nuit_complete.py` sur les {agg['n_nuits']} nuits de validation SHHS. "
          "Agrégats seulement : le détail d'une nuit reste hors dépôt. Le test n'est pas touché.*", "",
-         "Pour chaque nuit, deux réseaux tournent : celui des stades (EEG) et celui des événements respiratoires (flux, "
+         "Pour chaque nuit, deux réseaux tournent : celui des stades (EEG, yeux, menton) et celui des événements respiratoires (flux, "
          "ceintures, saturation, et le sommeil prédit par le premier). La sortie réunit l'hypnogramme, les événements proposés "
          "pendant le sommeil prédit avec leur confiance, l'index, et une file de relecture commune. La référence est l'ensemble "
          "des événements que le technicien a marqués pendant le sommeil : ceux qui comptent dans l'index.", "",

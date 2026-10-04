@@ -74,7 +74,7 @@ class Tranches(Dataset):
         y = n.y[d:d + self.longueur].astype(np.int64)
         if len(y) < self.longueur:                      # nuit plus courte que la tranche
             pad = self.longueur - len(y)
-            x = np.concatenate([x, np.zeros((pad, x.shape[1]), dtype=np.float32)])
+            x = np.concatenate([x, np.zeros((pad, *x.shape[1:]), dtype=np.float32)])
             y = np.concatenate([y, np.full(pad, -1, dtype=np.int64)])
         y = np.where(y < 0, IGNORER, y)
         return torch.from_numpy(x), torch.from_numpy(y)

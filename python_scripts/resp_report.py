@@ -40,10 +40,10 @@ def ligne_evenements(nom, runs, cle):
 
 
 def main() -> int:
-    v3, v2, v1 = lire("evenements_v3_s*.json"), lire("evenements_v2_s*.json"), lire("evenements_s*.json")
+    v4, v3, v2, v1 = lire("evenements_v4_s*.json"), lire("evenements_v3_s*.json"), lire("evenements_v2_s*.json"), lire("evenements_s*.json")
     grille = {p.stem.rsplit("_s", 1)[0]: json.loads(p.read_text(encoding="utf-8")) for p in RESP.glob("g_*_s*.json")}
     base = json.loads((RESP / "reference_desaturation.json").read_text(encoding="utf-8")) if (RESP / "reference_desaturation.json").exists() else None
-    courant = v3 or v2 or v1
+    courant = v4 or v3 or v2 or v1
     if not courant:
         sys.exit("aucun entraînement dans models/resp")
     r0 = courant[0]
@@ -71,12 +71,17 @@ def main() -> int:
     if v2:
         L.append(ligne_evenements(f"v2, pendant le sommeil ({len(v2)} graines)", v2, S))
     if v3:
-        L.append(ligne_evenements(f"**v3, pendant le sommeil** ({len(v3)} graines)", v3, S))
-        L.append(ligne_evenements(f"v3, tous les événements ({len(v3)} graines)", v3, "validation"))
+        L.append(ligne_evenements(f"v3, pendant le sommeil ({len(v3)} graines)", v3, S))
+    if v4:
+        L.append(ligne_evenements(f"**v4, pendant le sommeil** ({len(v4)} graines)", v4, S))
+        L.append(ligne_evenements(f"v4, tous les événements ({len(v4)} graines)", v4, "validation"))
     L += ["", "v2 = v1 + un cinquième canal (la probabilité de sommeil prédite par le réseau de stades), une pondération des classes "
               "adoucie (racine carrée) et un gain aléatoire sur les capteurs à l'entraînement.", "",
           "v3 = v2, mais le sommeil prédit vient du nouveau réseau de stades, qui lit la nuit entière (encodeur + GRU) au lieu "
-          "d'une époque à la fois. Rien d'autre ne change : l'écart v2 → v3 mesure ce que rapporte un meilleur hypnogramme.", ""]
+          "d'une époque à la fois. Rien d'autre ne change : l'écart v2 → v3 mesure ce que rapporte un meilleur hypnogramme.", "",
+          "v4 = v3, mais le réseau de stades lit aussi les yeux et le menton (horizon 1.3) : l'accord éveil / sommeil passe de 92 % "
+          "à 94 %. **Le score par événement ne bouge pas** : ce n'est plus le sommeil prédit qui limite la détection. C'est cohérent "
+          "avec l'analyse des manqués (`docs/ANALYSE_MANQUES.md`) : seuls 16 % des événements manqués tombaient dans un éveil prédit à tort.", ""]
 
     L += ["## Ce qui a été essayé, et ce que ça a donné", "",
           "Diagnostic de la v1 sur la validation : **47 % des fausses propositions commençaient pendant l'éveil**, 44 % étaient à "
@@ -101,7 +106,7 @@ def main() -> int:
 
     L += ["## Par personne : l'index", "",
           "| Estimateur | Contre | Spearman | Erreur absolue médiane (/h) | Biais (/h) |", "|---|---|---|---|---|"]
-    for nom, runs, cle in (("Réseau v3, de bout en bout", v3, S), ("Réseau v2, de bout en bout", v2, S), ("Réseau v1 (sommeil du technicien)", v1, "validation")):
+    for nom, runs, cle in (("Réseau v4, de bout en bout", v4, S), ("Réseau v3, de bout en bout", v3, S), ("Réseau v2, de bout en bout", v2, S), ("Réseau v1 (sommeil du technicien)", v1, "validation")):
         if not runs:
             continue
         L.append(f"| {nom} | index annoté | {pm(runs, lambda r: r[cle]['par_personne']['spearman'])} | "
@@ -124,8 +129,9 @@ def main() -> int:
           "au second par construction.",
           "- **La référence par désaturation est le chiffre à battre pour l'index clinique** : compter les chutes de saturation "
           "suffit presque. Ce que le réseau apporte, c'est la **position** de chaque événement : c'est ce qui prend du temps à un lecteur.",
-          "- **Le prochain gain est dans le réseau de stades**, pas ici : mieux séparer éveil et sommeil rapprocherait de la borne de 0,77.",
-          "- Au-delà, la limite probable est l'annotation elle-même : marquer une hypopnée sans critère de désaturation est une "
+          "- **Améliorer le réseau de stades ne suffit plus** : l'hypothèse a été testée (v4) et le score ne bouge pas. Ce qui reste, "
+          "ce sont surtout des hypopnées courtes et sans désaturation (`docs/ANALYSE_MANQUES.md`).",
+          "- La limite probable est l'annotation elle-même : marquer une hypopnée sans critère de désaturation est une "
           "décision où deux techniciens ne sont pas toujours d'accord. Hypothèse non vérifiée ici, faute de double scoring.",
           "- Figure : `data/figures/evenements_index.png`.", ""]
     OUT.write_text("\n".join(L), encoding="utf-8")

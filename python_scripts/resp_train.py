@@ -100,7 +100,7 @@ def main() -> int:
     parser.add_argument("--blocs", type=int, default=6, help="nombre de blocs dilatés (dilatations 1, 2, 4, ... )")
     parser.add_argument("--poids", choices=["equilibre", "racine", "aucun"], default="equilibre")
     parser.add_argument("--fraction", type=float, default=1.0, help="fraction des nuits d'entraînement (courbe d'apprentissage)")
-    parser.add_argument("--sommeil", choices=["cnn", "seq"], default="cnn", help="réseau de stades qui fournit le sommeil prédit")
+    parser.add_argument("--sommeil", choices=["cnn", "seq", "multi"], default="cnn", help="réseau de stades qui fournit le sommeil prédit")
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     cov = covariables()

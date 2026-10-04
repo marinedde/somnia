@@ -1,0 +1,233 @@
+{
+  "nom": "evenements_v4_s1",
+  "graine": 1,
+  "date": "2026-10-04T19:14",
+  "appareil": "mps",
+  "n_nuits_train": 191,
+  "n_nuits_val": 40,
+  "parametres": 143907,
+  "seuil_evenement": 0.7,
+  "config": {
+    "sommeil": "multi",
+    "canal_sommeil": true,
+    "largeur": 64,
+    "blocs": 6,
+    "poids": "racine",
+    "fraction": 1.0
+  },
+  "validation_pendant_le_sommeil": {
+    "par_seconde": {
+      "f1_evenement": 0.6424440045029308,
+      "f1_macro_3_classes": 0.669756702975666,
+      "part_reference": 0.18549725137431283,
+      "part_predite": 0.1578110944527736
+    },
+    "par_evenement": {
+      "recouvrement": {
+        "precision": 0.7403367322741286,
+        "rappel": 0.7374512814456123,
+        "f1": 0.7388911898704219,
+        "vp": 6244,
+        "fp": 2190,
+        "fn": 2223
+      },
+      "iou_0.3": {
+        "precision": 0.7278871235475457,
+        "rappel": 0.7250501948742175,
+        "f1": 0.7264658895923318,
+        "vp": 6139,
+        "fp": 2295,
+        "fn": 2328
+      },
+      "rappel_apnees": 0.9441517386722866,
+      "rappel_hypopnees": 0.7126895450917797,
+      "n_apnees_ref": 949,
+      "n_hypopnees_ref": 7518
+    },
+    "par_personne": {
+      "n": 40,
+      "spearman": 0.8091932457786118,
+      "erreur_absolue_mediane": 5.721847154027095,
+      "biais": -1.6317545772605455,
+      "limites_accord_95": [
+        -20.097374296161746,
+        16.833865141640658
+      ]
+    },
+    "contre_clinique": {
+      "ahi_a0h3a": {
+        "spearman": 0.853470919324578,
+        "erreur_absolue_mediane": 14.454898852515559,
+        "biais": 14.741651618537054
+      },
+      "ahi_a0h4": {
+        "spearman": 0.7662288930581614,
+        "erreur_absolue_mediane": 23.468256999526744,
+        "biais": 23.33531739501705
+      }
+    }
+  },
+  "meilleure_epoque": 6,
+  "historique": [
+    {
+      "epoque": 1,
+      "perte_train": 0.5713730155475705,
+      "f1_selection": 0.681965881397238,
+      "f1_tous_evenements": 0.6510753320014103,
+      "f1_seconde": 0.5866403910345477,
+      "spearman_index": 0.80093808630394,
+      "duree_s": 17.4
+    },
+    {
+      "epoque": 2,
+      "perte_train": 0.5025528629470768,
+      "f1_selection": 0.7239753355096119,
+      "f1_tous_evenements": 0.6961033460398137,
+      "f1_seconde": 0.6297958134846119,
+      "spearman_index": 0.7947467166979364,
+      "duree_s": 16.8
+    },
+    {
+      "epoque": 3,
+      "perte_train": 0.4835650043223494,
+      "f1_selection": 0.7329430431690102,
+      "f1_tous_evenements": 0.7097742904194517,
+      "f1_seconde": 0.6399401523763891,
+      "spearman_index": 0.8215759849906193,
+      "duree_s": 17.0
+    },
+    {
+      "epoque": 4,
+      "perte_train": 0.46863417776967925,
+      "f1_selection": 0.6877416728851503,
+      "f1_tous_evenements": 0.6541450777202074,
+      "f1_seconde": 0.5934218271235484,
+      "spearman_index": 0.7842401500938088,
+      "duree_s": 16.7
+    },
+    {
+      "epoque": 5,
+      "perte_train": 0.4556417974400397,
+      "f1_selection": 0.7273959938366718,
+      "f1_tous_evenements": 0.699780861943024,
+      "f1_seconde": 0.6348760040619572,
+      "spearman_index": 0.8159474671669794,
+      "duree_s": 16.9
+    },
+    {
+      "epoque": 6,
+      "perte_train": 0.445290373101139,
+      "f1_selection": 0.7388911898704219,
+      "f1_tous_evenements": 0.7076637824474661,
+      "f1_seconde": 0.6424440045029308,
+      "spearman_index": 0.8091932457786118,
+      "duree_s": 16.8
+    },
+    {
+      "epoque": 7,
+      "perte_train": 0.4359868926221547,
+      "f1_selection": 0.7342202782334001,
+      "f1_tous_evenements": 0.7028885832187072,
+      "f1_seconde": 0.6340212056832419,
+      "spearman_index": 0.8369606003752347,
+      "duree_s": 16.7
+    },
+    {
+      "epoque": 8,
+      "perte_train": 0.4277092456615927,
+      "f1_selection": 0.7135548215789133,
+      "f1_tous_evenements": 0.6798863636363636,
+      "f1_seconde": 0.6178260407816483,
+      "spearman_index": 0.8133208255159475,
+      "duree_s": 16.7
+    },
+    {
+      "epoque": 9,
+      "perte_train": 0.4176931460826658,
+      "f1_selection": 0.7323260585711622,
+      "f1_tous_evenements": 0.7006000857265323,
+      "f1_seconde": 0.6338929260872641,
+      "spearman_index": 0.8298311444652908,
+      "duree_s": 16.7
+    },
+    {
+      "epoque": 10,
+      "perte_train": 0.41096157293993163,
+      "f1_selection": 0.7292776607607483,
+      "f1_tous_evenements": 0.695828011919966,
+      "f1_seconde": 0.6335990815109541,
+      "spearman_index": 0.8159474671669794,
+      "duree_s": 16.8
+    }
+  ],
+  "validation": {
+    "par_seconde": {
+      "f1_evenement": 0.6424440045029308,
+      "f1_macro_3_classes": 0.669756702975666,
+      "part_reference": 0.18549725137431283,
+      "part_predite": 0.1578110944527736
+    },
+    "par_evenement": {
+      "recouvrement": {
+        "precision": 0.745119305856833,
+        "rappel": 0.6737936445664967,
+        "f1": 0.7076637824474661,
+        "vp": 6870,
+        "fp": 2350,
+        "fn": 3326
+      },
+      "iou_0.3": {
+        "precision": 0.7285249457700651,
+        "rappel": 0.6587877599058455,
+        "f1": 0.6919035846724351,
+        "vp": 6717,
+        "fp": 2503,
+        "fn": 3479
+      },
+      "rappel_apnees": 0.7564841498559077,
+      "rappel_hypopnees": 0.6622388737511353,
+      "n_apnees_ref": 1388,
+      "n_hypopnees_ref": 8808
+    },
+    "par_personne": {
+      "n": 40,
+      "spearman": 0.8106941838649158,
+      "erreur_absolue_mediane": 5.418662963032009,
+      "biais": -2.06288981703512,
+      "limites_accord_95": [
+        -20.909034940781318,
+        16.783255306711077
+      ]
+    },
+    "contre_clinique": {
+      "ahi_a0h3a": {
+        "spearman": 0.8544090056285178,
+        "erreur_absolue_mediane": 13.79244824471711,
+        "biais": 14.31051637876248
+      },
+      "ahi_a0h4": {
+        "spearman": 0.7801125703564729,
+        "erreur_absolue_mediane": 22.06053969175595,
+        "biais": 22.90418215524248
+      }
+    }
+  },
+  "duree_min": 2.9,
+  "journal": [
+    "validation : 40 nuits, 334 h",
+    "entraînement : 191 nuits, 1594 h, chargées en 1 s",
+    "appareil mps | 143,907 paramètres | canaux 5 | largeur 64 | dilatations (1, 2, 4, 8, 16, 32) | poids racine",
+    "poids des classes (rien, apnée, hypopnée) : [1.0, 5.2, 2.3]",
+    "époque  1 | perte 0.5714 | val : F1 sommeil 0.682, F1 tous 0.651, Spearman index 0.801 | 17 s",
+    "époque  2 | perte 0.5026 | val : F1 sommeil 0.724, F1 tous 0.696, Spearman index 0.795 | 17 s",
+    "époque  3 | perte 0.4836 | val : F1 sommeil 0.733, F1 tous 0.710, Spearman index 0.822 | 17 s",
+    "époque  4 | perte 0.4686 | val : F1 sommeil 0.688, F1 tous 0.654, Spearman index 0.784 | 17 s",
+    "époque  5 | perte 0.4556 | val : F1 sommeil 0.727, F1 tous 0.700, Spearman index 0.816 | 17 s",
+    "époque  6 | perte 0.4453 | val : F1 sommeil 0.739, F1 tous 0.708, Spearman index 0.809 | 17 s",
+    "époque  7 | perte 0.4360 | val : F1 sommeil 0.734, F1 tous 0.703, Spearman index 0.837 | 17 s",
+    "époque  8 | perte 0.4277 | val : F1 sommeil 0.714, F1 tous 0.680, Spearman index 0.813 | 17 s",
+    "époque  9 | perte 0.4177 | val : F1 sommeil 0.732, F1 tous 0.701, Spearman index 0.830 | 17 s",
+    "époque 10 | perte 0.4110 | val : F1 sommeil 0.729, F1 tous 0.696, Spearman index 0.816 | 17 s",
+    "arrêt anticipé"
+  ]
+}

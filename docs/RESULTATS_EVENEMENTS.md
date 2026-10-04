@@ -18,12 +18,15 @@ Deux façons de mesurer :
 | v1, 4 canaux, tous les événements (3 graines) | 0.654 ± 0.014 | 0.745 ± 0.023 | 0.696 ± 0.002 | 0.674 ± 0.002 | 0.836 ± 0.014 | 0.736 ± 0.025 |
 | v1, pendant le sommeil (1 graine) | 0.660 | 0.764 | 0.708 | 0.684 | 0.865 | 0.757 |
 | v2, pendant le sommeil (3 graines) | 0.728 ± 0.013 | 0.725 ± 0.017 | 0.726 ± 0.003 | 0.712 ± 0.003 | 0.907 ± 0.007 | 0.704 ± 0.019 |
-| **v3, pendant le sommeil** (3 graines) | 0.716 ± 0.017 | 0.755 ± 0.019 | 0.734 ± 0.003 | 0.720 ± 0.004 | 0.940 ± 0.007 | 0.735 ± 0.021 |
-| v3, tous les événements (3 graines) | 0.724 ± 0.007 | 0.693 ± 0.012 | 0.708 ± 0.003 | 0.691 ± 0.003 | 0.760 ± 0.021 | 0.686 ± 0.015 |
+| v3, pendant le sommeil (3 graines) | 0.716 ± 0.017 | 0.755 ± 0.019 | 0.734 ± 0.003 | 0.720 ± 0.004 | 0.940 ± 0.007 | 0.735 ± 0.021 |
+| **v4, pendant le sommeil** (3 graines) | 0.734 ± 0.008 | 0.739 ± 0.009 | 0.736 ± 0.002 | 0.722 ± 0.004 | 0.938 ± 0.007 | 0.716 ± 0.009 |
+| v4, tous les événements (3 graines) | 0.735 ± 0.007 | 0.678 ± 0.004 | 0.705 ± 0.002 | 0.689 ± 0.003 | 0.766 ± 0.027 | 0.667 ± 0.004 |
 
 v2 = v1 + un cinquième canal (la probabilité de sommeil prédite par le réseau de stades), une pondération des classes adoucie (racine carrée) et un gain aléatoire sur les capteurs à l'entraînement.
 
 v3 = v2, mais le sommeil prédit vient du nouveau réseau de stades, qui lit la nuit entière (encodeur + GRU) au lieu d'une époque à la fois. Rien d'autre ne change : l'écart v2 → v3 mesure ce que rapporte un meilleur hypnogramme.
+
+v4 = v3, mais le réseau de stades lit aussi les yeux et le menton (horizon 1.3) : l'accord éveil / sommeil passe de 92 % à 94 %. **Le score par événement ne bouge pas** : ce n'est plus le sommeil prédit qui limite la détection. C'est cohérent avec l'analyse des manqués (`docs/ANALYSE_MANQUES.md`) : seuls 16 % des événements manqués tombaient dans un éveil prédit à tort.
 
 ## Ce qui a été essayé, et ce que ça a donné
 
@@ -48,6 +51,9 @@ Diagnostic de la v1 sur la validation : **47 % des fausses propositions commenç
 
 | Estimateur | Contre | Spearman | Erreur absolue médiane (/h) | Biais (/h) |
 |---|---|---|---|---|
+| Réseau v4, de bout en bout | index annoté | 0.809 ± 0.004 | 6.4 ± 0.5 | -1.3 ± 0.7 |
+| Réseau v4, de bout en bout | index clinique `ahi_a0h3a` | 0.856 ± 0.004 | 14.1 ± 0.5 | 15.1 ± 0.7 |
+| Réseau v4, de bout en bout | index clinique `ahi_a0h4` | 0.775 ± 0.012 | 23.4 ± 0.3 | 23.6 ± 0.7 |
 | Réseau v3, de bout en bout | index annoté | 0.822 ± 0.015 | 6.5 ± 0.7 | 0.8 ± 1.8 |
 | Réseau v3, de bout en bout | index clinique `ahi_a0h3a` | 0.840 ± 0.008 | 15.5 ± 1.6 | 17.1 ± 1.8 |
 | Réseau v3, de bout en bout | index clinique `ahi_a0h4` | 0.725 ± 0.020 | 24.2 ± 1.4 | 25.7 ± 1.8 |
@@ -66,6 +72,6 @@ Diagnostic de la v1 sur la validation : **47 % des fausses propositions commenç
 
 - **Deux index, deux questions.** L'index annoté compte toutes les hypopnées marquées par le technicien ; l'index clinique SHHS ne garde que celles suivies d'une désaturation. Le réseau apprend le premier ; la référence par désaturation colle au second par construction.
 - **La référence par désaturation est le chiffre à battre pour l'index clinique** : compter les chutes de saturation suffit presque. Ce que le réseau apporte, c'est la **position** de chaque événement : c'est ce qui prend du temps à un lecteur.
-- **Le prochain gain est dans le réseau de stades**, pas ici : mieux séparer éveil et sommeil rapprocherait de la borne de 0,77.
-- Au-delà, la limite probable est l'annotation elle-même : marquer une hypopnée sans critère de désaturation est une décision où deux techniciens ne sont pas toujours d'accord. Hypothèse non vérifiée ici, faute de double scoring.
+- **Améliorer le réseau de stades ne suffit plus** : l'hypothèse a été testée (v4) et le score ne bouge pas. Ce qui reste, ce sont surtout des hypopnées courtes et sans désaturation (`docs/ANALYSE_MANQUES.md`).
+- La limite probable est l'annotation elle-même : marquer une hypopnée sans critère de désaturation est une décision où deux techniciens ne sont pas toujours d'accord. Hypothèse non vérifiée ici, faute de double scoring.
 - Figure : `data/figures/evenements_index.png`.

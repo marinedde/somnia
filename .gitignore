@@ -63,3 +63,6 @@ notes_privees/
 # Détection d'événements : poids et détail par personne (identifiants) hors git, métriques JSON versionnées
 models/resp/*.pt
 models/resp/*_val_detail.npz
+
+# Stades multi-capteurs (horizon 1.3) : poids hors dépôt, rapports JSON versionnés
+models/multi/*.pt
