@@ -27,13 +27,13 @@ import torch
 from torch import nn
 from torch.utils.data import Dataset
 
-from somnia.resp import FS_RESP, apparier, index_par_heure, masque_vers_evenements, normaliser_fenetre, sommeil_par_seconde
+from somnia.resp import (  # noqa: F401  (proba_vers_masque et SEUIL_EVENEMENT réexportés)
+    FS_RESP, SEUIL_EVENEMENT, apparier, index_par_heure, masque_vers_evenements, normaliser_fenetre,
+    proba_vers_masque, sommeil_par_seconde,
+)
 
 RESP_DIR = Path(os.environ.get("SHHS_PROCESSED", Path.home() / "data" / "shhs" / "processed")).parent / "processed_resp"
 FENETRE_S, PAS_S = 300, 150
-# Seuil sur P(événement) = 1 − P(rien). Choisi sur la VALIDATION le 4 octobre 2026 par balayage de 0,5 à 0,9 :
-# 0,5 donne trop d'événements (précision 0,57, biais +7/h) ; 0,7 équilibre précision et rappel et annule le biais.
-SEUIL_EVENEMENT = 0.7
 N_CANAUX, N_CLASSES = 4, 3
 
 
@@ -152,13 +152,6 @@ def proba_nuit(modele: nn.Module, nuit: NuitResp, dev: torch.device, batch: int 
             n = min(FENETRE_S, nuit.n_sec - d)
             somme[d:d + n] += pi[:n]; compte[d:d + n] += 1
     return somme / np.maximum(compte, 1)[:, None]
-
-
-def proba_vers_masque(proba: np.ndarray, seuil: float = SEUIL_EVENEMENT) -> np.ndarray:
-    """Par seconde : 0 si P(rien) domine, sinon la classe d'événement la plus probable."""
-    evenement = (1.0 - proba[:, 0]) >= seuil
-    classe = np.where(proba[:, 1] >= proba[:, 2], 1, 2)
-    return np.where(evenement, classe, 0).astype(np.int8)
 
 
 def mesurer_nuits(nuits: list[NuitResp], masques_pred: list[np.ndarray]) -> dict:

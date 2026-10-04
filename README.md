@@ -169,6 +169,29 @@ sont lisibles : la dérivation frontale de Sleep-EDF (Fpz-Cz) voit plus d'ondes 
 dérivation centrale de SHHS, et le réseau prend du N2 pour du N3. Résumé : [docs/demo_nuit.json](docs/demo_nuit.json),
 code : `somnia/nuit.py`, `python_scripts/demo_nuit.py`.
 
+**La nuit complète : stades et événements dans une même sortie.** `analyser_nuit_complete`
+réunit l'hypnogramme, les événements respiratoires proposés avec leur confiance, l'index calculé
+sur le sommeil prédit, et une file de relecture commune. Mesuré sur les 40 nuits de validation
+SHHS (agrégats seulement ; le détail d'une nuit reste hors dépôt) :
+[docs/RESULTATS_NUIT.md](docs/RESULTATS_NUIT.md).
+
+| Par nuit de validation | |
+|---|---|
+| Événements du technicien déjà placés dans une proposition « sûre » | 57 % |
+| ... dans une proposition « à relire » | 24 % |
+| ... signalés comme « possibles » | 6 % |
+| ... signalés nulle part, à trouver par le lecteur | 13 % |
+| Précision des propositions sûres (confiance ≥ 0,85) / à relire | 83 % / 44 % |
+| Précision si on exige une confiance ≥ 0,95 | 96 %, pour 13 % des propositions |
+| Index de bout en bout contre l'index annoté | Spearman 0,83, erreur médiane 6 / h |
+| Signal à relire, stades et événements réunis | 63 % de la nuit |
+
+Lecture honnête : avec 276 événements par nuit en médiane, il y en a partout, et trier par
+incertitude **n'économise presque pas de signal** (63 % reste à regarder). Le gain possible est
+ailleurs : la majorité des événements est déjà placée, et la confiance les trie bien (de 66 %
+à 96 % de précision selon l'exigence). Valider un événement pré-marqué va plus vite que le
+chercher et le marquer ; de combien, seul un chronomètre avec un lecteur le dira.
+
 ### Le test SHHS, ouvert une seule fois
 
 Quarante personnes jamais vues, ni pour entraîner, ni pour choisir. Liste des modèles écrite

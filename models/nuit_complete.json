@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-04",
+  "n_nuits": 40,
+  "signal_a_relire_pct": {
+    "mediane": 63.05,
+    "q1": 54.65,
+    "q3": 70.075
+  },
+  "precision_par_niveau": {
+    "sur": 0.8250989590969066,
+    "a_relire": 0.4433480176211454
+  },
+  "effectifs_par_niveau": {
+    "sur": 6821,
+    "a_relire": 5675
+  },
+  "reference_ou": {
+    "sur": 0.57071400549235,
+    "a_relire": 0.24029030992546097,
+    "possible": 0.059925460965084346,
+    "manque": 0.12907022361710474
+  },
+  "index_bout_en_bout": {
+    "spearman": 0.827392120075047,
+    "erreur_absolue_mediane": 6.033826638477799,
+    "biais": 3.2959158028649007,
+    "spearman_ahi_a0h3a": 0.8393996247654786,
+    "spearman_ahi_a0h4": 0.7048780487804879
+  },
+  "compromis_confiance": [
+    {
+      "confiance_min": 0.7,
+      "part_des_proposes": 0.9789532650448144,
+      "precision": 0.6587917926918989,
+      "evenements_par_nuit": 305.825,
+      "rapport_aux_references": 0.7904080031384857
+    },
+    {
+      "confiance_min": 0.8,
+      "part_des_proposes": 0.7297535211267606,
+      "precision": 0.7472310560368461,
+      "evenements_par_nuit": 227.975,
+      "rapport_aux_references": 0.6683012946253433
+    },
+    {
+      "confiance_min": 0.85,
+      "part_des_proposes": 0.5486555697823303,
+      "precision": 0.8242415402567095,
+      "evenements_par_nuit": 171.4,
+      "rapport_aux_references": 0.5542369556688898
+    },
+    {
+      "confiance_min": 0.9,
+      "part_des_proposes": 0.3469110115236876,
+      "precision": 0.8980392156862745,
+      "evenements_par_nuit": 108.375,
+      "rapport_aux_references": 0.38181639858768146
+    },
+    {
+      "confiance_min": 0.95,
+      "part_des_proposes": 0.12852112676056338,
+      "precision": 0.9557907845579079,
+      "evenements_par_nuit": 40.15,
+      "rapport_aux_references": 0.15054923499411535
+    }
+  ]
+}

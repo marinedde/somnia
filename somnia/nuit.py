@@ -101,3 +101,117 @@ def analyser_nuit(epoques_volts: np.ndarray, predire_proba, temperature: float =
         "indices": indices_de_nuit(stades),
         "relecture": file_de_relecture(confiance, stades, seuil),
     }
+
+
+# ── Événements respiratoires dans la sortie par nuit ──────────────────────
+CONFIANCE_SURE = 0.85        # au-dessus : événement proposé comme sûr ; en dessous : à relire
+P_POSSIBLE = 0.40            # entre ce niveau et le seuil de décision : « événement possible », à regarder
+CONTEXTE_S = 30              # ce qu'un lecteur regarde autour d'un événement à relire
+
+_CODES = {v: k for k, v in STADES.items()}
+
+
+def _hhmmss(secondes: float) -> str:
+    s = int(secondes)
+    return f"{s // 3600:02d}:{s % 3600 // 60:02d}:{s % 60:02d}"
+
+
+def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: float | None = None,
+                        confiance_sure: float = CONFIANCE_SURE) -> dict:
+    """Probabilités à la seconde (n_sec, 3 : rien, apnée, hypopnée) -> événements proposés.
+
+    Chaque événement reçoit une confiance (moyenne de P(événement) sur sa durée). Trois niveaux :
+      - sûr          : confiance ≥ `confiance_sure`, à valider d'un coup d'œil ;
+      - à relire     : événement proposé mais confiance plus basse ;
+      - possible     : pas proposé, mais P(événement) entre 0,4 et le seuil pendant au moins 10 s :
+                       c'est là que se cachent les événements manqués.
+    """
+    from somnia.resp import CLASSES, SEUIL_EVENEMENT, masque_vers_evenements, proba_vers_masque
+
+    seuil = SEUIL_EVENEMENT if seuil is None else seuil
+    proba_sec = np.asarray(proba_sec, dtype=np.float64)
+    n = len(proba_sec)
+    sommeil_sec = np.asarray(sommeil_sec, dtype=bool)[:n]
+    if len(sommeil_sec) < n:
+        sommeil_sec = np.concatenate([sommeil_sec, np.zeros(n - len(sommeil_sec), dtype=bool)])
+    p_ev = 1.0 - proba_sec[:, 0]
+    masque = proba_vers_masque(proba_sec, seuil)
+    evenements = []
+    for e in masque_vers_evenements(masque):
+        conf = float(p_ev[e.debut:e.fin].mean())
+        evenements.append({
+            "debut_s": e.debut, "debut": _hhmmss(e.debut), "duree_s": e.duree, "type": CLASSES[e.classe],
+            "confiance": round(conf, 3), "a_relire": bool(conf < confiance_sure),
+            "pendant_le_sommeil": bool(sommeil_sec[e.debut]),
+        })
+    gris = ((p_ev >= P_POSSIBLE) & (masque == 0)).astype(np.int8)
+    possibles = [{"debut_s": e.debut, "debut": _hhmmss(e.debut), "duree_s": e.duree,
+                  "confiance": round(float(p_ev[e.debut:e.fin].mean()), 3)}
+                 for e in masque_vers_evenements(gris, trou_max=0)]
+    heures = float(sommeil_sec.sum()) / 3600
+    en_sommeil = [e for e in evenements if e["pendant_le_sommeil"]]
+    return {
+        "evenements": evenements,
+        "possibles": possibles,
+        "resume": {
+            "n_evenements": len(evenements),
+            "n_apnees": sum(e["type"] == "apnée" for e in evenements),
+            "n_hypopnees": sum(e["type"] == "hypopnée" for e in evenements),
+            "n_surs": sum(not e["a_relire"] for e in evenements),
+            "n_a_relire": sum(e["a_relire"] for e in evenements),
+            "n_possibles": len(possibles),
+            "heures_de_sommeil": round(heures, 2),
+            "index_par_heure": round(len(en_sommeil) / heures, 1) if heures > 0 else None,
+            "seuil_decision": seuil, "confiance_sure": confiance_sure,
+        },
+    }
+
+
+def file_commune(relecture_stades: dict, respiration: dict, n_sec: int, duree_epoque_s: int = DUREE_EPOQUE_S) -> dict:
+    """Une seule liste, dans l'ordre de la nuit, de tout ce qu'il faut regarder, et le temps de signal que ça représente.
+
+    Le temps de signal à relire est l'UNION des passages concernés (une époque douteuse et un événement
+    au même endroit ne comptent qu'une fois), avec 30 s de contexte autour des événements.
+    """
+    a_voir = np.zeros(n_sec, dtype=bool)
+    items = []
+    for s in relecture_stades["segments"]:
+        a, b = s["debut_epoque"] * duree_epoque_s, (s["fin_epoque"] + 1) * duree_epoque_s
+        a_voir[a:min(b, n_sec)] = True
+        items.append({"quoi": "stade", "debut_s": a, "debut": _hhmmss(a), "duree_s": b - a,
+                      "confiance": s["confiance_min"], "proposition": s["stades_proposes"]})
+    for e in respiration["evenements"]:
+        if e["a_relire"]:
+            a, b = max(0, e["debut_s"] - CONTEXTE_S), min(n_sec, e["debut_s"] + e["duree_s"] + CONTEXTE_S)
+            a_voir[a:b] = True
+            items.append({"quoi": "événement", "debut_s": e["debut_s"], "debut": e["debut"], "duree_s": e["duree_s"],
+                          "confiance": e["confiance"], "proposition": e["type"]})
+    for e in respiration["possibles"]:
+        a, b = max(0, e["debut_s"] - CONTEXTE_S), min(n_sec, e["debut_s"] + e["duree_s"] + CONTEXTE_S)
+        a_voir[a:b] = True
+        items.append({"quoi": "événement possible", "debut_s": e["debut_s"], "debut": e["debut"], "duree_s": e["duree_s"],
+                      "confiance": e["confiance"], "proposition": "non proposé"})
+    items.sort(key=lambda x: x["debut_s"])
+    return {
+        "items": items,
+        "n_items": len(items),
+        "signal_a_relire_min": round(float(a_voir.sum()) / 60, 1),
+        "signal_total_min": round(n_sec / 60, 1),
+        "part_a_relire_pct": round(float(a_voir.mean()) * 100, 1) if n_sec else 0.0,
+    }
+
+
+def analyser_nuit_complete(epoques_eeg: np.ndarray, predire_stades, proba_evenements_sec: np.ndarray,
+                           temperature: float = 1.0, seuil_stade: float = 0.6) -> dict:
+    """Hypnogramme + événements respiratoires + une file de relecture commune.
+
+    Le sommeil utilisé pour l'index est le sommeil PRÉDIT (pas celui du technicien) : c'est ce
+    dont disposerait un outil qui reçoit une nuit non scorée.
+    """
+    rapport = analyser_nuit(epoques_eeg, predire_stades, temperature, seuil_stade)
+    stades = np.array([_CODES[s] for s in rapport["hypnogramme"]])
+    n_sec = len(proba_evenements_sec)
+    sommeil_sec = np.repeat(np.isin(stades, [1, 2, 3, 4]), DUREE_EPOQUE_S)
+    rapport["respiration"] = analyser_evenements(proba_evenements_sec, sommeil_sec)
+    rapport["file_commune"] = file_commune(rapport["relecture"], rapport["respiration"], n_sec)
+    return rapport

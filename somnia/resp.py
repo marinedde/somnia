@@ -29,6 +29,9 @@ APNEES = ("obstructive apnea", "central apnea", "mixed apnea")
 HYPOPNEES = ("hypopnea",)
 DUREE_MIN_S = 10
 TROU_MAX_S = 3
+# Seuil sur P(événement) = 1 − P(rien). Choisi sur la VALIDATION le 4 octobre 2026 par balayage de 0,5 à 0,9 :
+# 0,5 donne trop d'événements (précision 0,57, biais +7/h) ; 0,7 équilibre précision et rappel et annule le biais.
+SEUIL_EVENEMENT = 0.7
 
 # Noms possibles des canaux (comparés sans casse ni espaces). Le flux s'appelle NEW AIR ou AIRFLOW.
 CANAUX_RESP = {
@@ -67,6 +70,13 @@ def etiquettes_par_seconde(ann: Annotations, n_secondes: int | None = None) -> n
 def sommeil_par_seconde(stades: np.ndarray, duree_epoque: float = 30) -> np.ndarray:
     """Booléen par seconde : vrai si l'époque est un stade de sommeil scoré."""
     return np.repeat(np.isin(stades, [1, 2, 3, 4]), int(duree_epoque))
+
+
+def proba_vers_masque(proba: np.ndarray, seuil: float = SEUIL_EVENEMENT) -> np.ndarray:
+    """Par seconde : 0 si P(événement) < seuil, sinon la classe d'événement la plus probable (1 apnée, 2 hypopnée)."""
+    evenement = (1.0 - proba[:, 0]) >= seuil
+    classe = np.where(proba[:, 1] >= proba[:, 2], 1, 2)
+    return np.where(evenement, classe, 0).astype(np.int8)
 
 
 # ── Masque <-> événements ─────────────────────────────────────────────────
