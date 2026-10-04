@@ -107,6 +107,9 @@ def analyser_nuit(epoques_volts: np.ndarray, predire_proba, temperature: float =
 CONFIANCE_SURE = 0.85        # au-dessus : événement proposé comme sûr ; en dessous : à relire
 P_POSSIBLE = 0.40            # entre ce niveau et le seuil de décision : « événement possible », à regarder
 CONTEXTE_S = 30              # ce qu'un lecteur regarde autour d'un événement à relire
+DUREE_POSSIBLE_S = 10        # durée minimale d'une zone « événement possible »
+TROU_POSSIBLE_S = 0          # trous comblés à l'intérieur d'une zone « possible »
+DESATURATIONS = (3.0, 4.0)   # points de saturation : critères des index cliniques (hypopnées à 3 % et à 4 %)
 
 _CODES = {v: k for k, v in STADES.items()}
 
@@ -117,7 +120,9 @@ def _hhmmss(secondes: float) -> str:
 
 
 def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: float | None = None,
-                        confiance_sure: float = CONFIANCE_SURE, sommeil_seulement: bool = False) -> dict:
+                        confiance_sure: float = CONFIANCE_SURE, sommeil_seulement: bool = False,
+                        sao2_1hz: np.ndarray | None = None, p_possible: float | None = None,
+                        duree_possible: int | None = None, trou_possible: int | None = None) -> dict:
     """Probabilités à la seconde (n_sec, 3 : rien, apnée, hypopnée) -> événements proposés.
 
     Chaque événement reçoit une confiance (moyenne de P(événement) sur sa durée). Trois niveaux :
@@ -125,8 +130,16 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
       - à relire     : événement proposé mais confiance plus basse ;
       - possible     : pas proposé, mais P(événement) entre 0,4 et le seuil pendant au moins 10 s :
                        c'est là que se cachent les événements manqués.
+
+    Avec `sao2_1hz` (saturation nettoyée, une valeur par seconde), chaque événement reçoit sa
+    désaturation associée, et le résumé donne les index CLINIQUES : toutes les apnées, plus les
+    hypopnées suivies d'une chute d'au moins 3 (ou 4) points. C'est la définition des index SHHS.
     """
-    from somnia.resp import CLASSES, SEUIL_EVENEMENT, masque_vers_evenements, proba_vers_masque
+    from somnia.resp import CLASSES, SEUIL_EVENEMENT, chute_de_saturation, masque_vers_evenements, proba_vers_masque
+
+    p_possible = P_POSSIBLE if p_possible is None else p_possible
+    duree_possible = DUREE_POSSIBLE_S if duree_possible is None else duree_possible
+    trou_possible = TROU_POSSIBLE_S if trou_possible is None else trou_possible
 
     seuil = SEUIL_EVENEMENT if seuil is None else seuil
     proba_sec = np.asarray(proba_sec, dtype=np.float64)
@@ -144,10 +157,12 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
             "confiance": round(conf, 3), "a_relire": bool(conf < confiance_sure),
             "pendant_le_sommeil": bool(sommeil_sec[e.debut]),
         })
-    gris = ((p_ev >= P_POSSIBLE) & (masque == 0)).astype(np.int8)
+        if sao2_1hz is not None:
+            evenements[-1]["desaturation"] = round(chute_de_saturation(sao2_1hz, e.debut, e.fin), 1)
+    gris = ((p_ev >= p_possible) & (masque == 0)).astype(np.int8)
     possibles = [{"debut_s": e.debut, "debut": _hhmmss(e.debut), "duree_s": e.duree,
                   "confiance": round(float(p_ev[e.debut:e.fin].mean()), 3)}
-                 for e in masque_vers_evenements(gris, trou_max=0)]
+                 for e in masque_vers_evenements(gris, duree_min=duree_possible, trou_max=trou_possible)]
     if sommeil_seulement:
         # 47 % des fausses propositions commençaient pendant l'éveil : un événement respiratoire se
         # marque pendant le sommeil. On ne garde que ce qui commence pendant le sommeil prédit.
@@ -155,6 +170,11 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
         possibles = [e for e in possibles if sommeil_sec[e["debut_s"]]]
     heures = float(sommeil_sec.sum()) / 3600
     en_sommeil = [e for e in evenements if e["pendant_le_sommeil"]]
+    cliniques = {}
+    if sao2_1hz is not None:
+        for k in DESATURATIONS:
+            n_k = sum(e["type"] == "apnée" or e["desaturation"] >= k for e in en_sommeil)
+            cliniques[f"index_clinique_{k:g}"] = round(n_k / heures, 1) if heures > 0 else None
     return {
         "evenements": evenements,
         "possibles": possibles,
@@ -167,7 +187,7 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
             "n_possibles": len(possibles),
             "heures_de_sommeil": round(heures, 2),
             "index_par_heure": round(len(en_sommeil) / heures, 1) if heures > 0 else None,
-            "seuil_decision": seuil, "confiance_sure": confiance_sure,
+            "seuil_decision": seuil, "confiance_sure": confiance_sure, **cliniques,
         },
     }
 
@@ -207,7 +227,7 @@ def file_commune(relecture_stades: dict, respiration: dict, n_sec: int, duree_ep
 
 
 def analyser_nuit_complete(epoques_eeg: np.ndarray, predire_stades, proba_evenements_sec: np.ndarray,
-                           temperature: float = 1.0, seuil_stade: float = 0.6) -> dict:
+                           temperature: float = 1.0, seuil_stade: float = 0.6, sao2_1hz: np.ndarray | None = None) -> dict:
     """Hypnogramme + événements respiratoires + une file de relecture commune.
 
     Le sommeil utilisé pour l'index est le sommeil PRÉDIT (pas celui du technicien) : c'est ce
@@ -217,6 +237,6 @@ def analyser_nuit_complete(epoques_eeg: np.ndarray, predire_stades, proba_evenem
     stades = np.array([_CODES[s] for s in rapport["hypnogramme"]])
     n_sec = len(proba_evenements_sec)
     sommeil_sec = np.repeat(np.isin(stades, [1, 2, 3, 4]), DUREE_EPOQUE_S)
-    rapport["respiration"] = analyser_evenements(proba_evenements_sec, sommeil_sec, sommeil_seulement=True)
+    rapport["respiration"] = analyser_evenements(proba_evenements_sec, sommeil_sec, sommeil_seulement=True, sao2_1hz=sao2_1hz)
     rapport["file_commune"] = file_commune(rapport["relecture"], rapport["respiration"], n_sec)
     return rapport

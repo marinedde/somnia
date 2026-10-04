@@ -50,8 +50,10 @@ Sommeil prédit par le réseau de stades, événements prédits par le réseau r
 | Contre | Spearman | Erreur absolue médiane | Biais |
 |---|---|---|---|
 | Index annoté (technicien) | 0.81 | 6.5 / h | -2.0 / h |
-| Index clinique `ahi_a0h3a` | 0.86 | — | — |
-| Index clinique `ahi_a0h4` | 0.77 | — | — |
+| Tous les événements proposés, contre l'index clinique `ahi_a0h3a` | 0.86 | — | — |
+| Tous les événements proposés, contre l'index clinique `ahi_a0h4` | 0.77 | — | — |
+| **Index clinique estimé** (apnées + hypopnées avec désaturation ≥ 3 points), contre `ahi_a0h3` | **0.96** | 2.3 / h | +1.5 / h |
+| **Index clinique estimé** (apnées + hypopnées avec désaturation ≥ 4 points), contre `ahi_a0h4` | **0.90** | 1.7 / h | +0.9 / h |
 
 Temps de sommeil : prédit 6.3 (5.8–6.9) h, technicien 6.0 (5.5–6.7) h.
 
@@ -59,4 +61,5 @@ Temps de sommeil : prédit 6.3 (5.8–6.9) h, technicien 6.0 (5.5–6.7) h.
 
 - Les événements « sûrs » sont ceux qu'un lecteur validerait d'un coup d'œil ; leur précision dit si on peut lui faire cette promesse.
 - La ligne « nulle part » est la plus importante : ce sont les événements que l'outil ne signale d'aucune façon, et que le lecteur ne verra que s'il relit toute la nuit.
+- L'index à donner au médecin est l'index clinique estimé : il applique la définition des index SHHS (hypopnées comptées seulement avec désaturation). Détail et comparaison au simple compte des désaturations : `docs/RESULTATS_CLINIQUE.md`.
 - L'index de bout en bout dépend des deux réseaux : une erreur sur le temps de sommeil se retrouve dans l'index.

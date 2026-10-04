@@ -213,6 +213,38 @@ pondération des classes adoucie. Six expériences comparées sur la validation 
 manqués ; parmi les apnées, 3 %. Dans six cas sur dix le réseau a réagi, mais moins de 10 s.
 Détail : [docs/ANALYSE_MANQUES.md](docs/ANALYSE_MANQUES.md).
 
+**L'index clinique.** Les index SHHS comptent toutes les apnées, mais les hypopnées seulement si
+elles sont suivies d'une désaturation. La sortie par nuit applique maintenant la même définition :
+chaque événement proposé reçoit sa désaturation associée. De bout en bout, sur 40 personnes
+([docs/RESULTATS_CLINIQUE.md](docs/RESULTATS_CLINIQUE.md)) :
+
+| Estimateur, contre l'index clinique à 3 % (`ahi_a0h3`) | Spearman | Erreur médiane | Même classe de sévérité |
+|---|---|---|---|
+| **Réseau : apnées + hypopnées avec désaturation ≥ 3 points** | **0,96** | 2,3 / h | **85 %** |
+| Réseau : tous les événements proposés | 0,82 | 19,3 / h | 22 % |
+| Référence simple : désaturations par heure | 0,91 | 2,0 / h | 75 % |
+
+Compter tous les événements proposés surestimait l'index de près de 20 par heure : une erreur de
+définition, pas de détection. L'avantage sur le simple compte des désaturations n'est pas établi
+sur 40 personnes (intervalle de la différence : −0,01 à +0,14).
+
+### Ce qui est établi, et ce qui ne l'est pas (octobre 2026)
+
+Intervalles à 95 % par bootstrap sur les 40 personnes de validation, moyenne de trois
+entraînements, différences calculées sur les mêmes personnes :
+[docs/INTERVALLES.md](docs/INTERVALLES.md).
+
+| Comparaison | Différence [intervalle à 95 %] | Établie ? |
+|---|---|---|
+| Stades, kappa : EEG + yeux + menton contre EEG seul | +0,023 [+0,008 ; +0,039] | oui |
+| Accord éveil / sommeil, mêmes modèles | +0,023 [+0,009 ; +0,041] | oui |
+| F1 du N1, mêmes modèles | −0,002 [−0,019 ; +0,016] | non |
+| Événements, F1 : v4 contre v3 | +0,002 [−0,005 ; +0,009] | non |
+| Index clinique, Spearman : réseau contre désaturations par heure | +0,05 [−0,01 ; +0,14] | non |
+
+Avec 40 personnes, un kappa ou un F1 n'est connu qu'à ± 0,04. Le N1 et les hypopnées, les deux
+points faibles, sont aussi ceux où les scoreurs humains s'accordent le moins dans la littérature.
+
 Deux lectures. Pour **estimer l'index clinique**, compter les désaturations suffit presque : c'est
 une référence simple, et elle est très forte. Ce que le réseau apporte, c'est la **position de
 chaque événement** : trois événements sur quatre sont déjà placés, à valider plutôt qu'à chercher.

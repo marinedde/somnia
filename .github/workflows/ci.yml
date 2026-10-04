@@ -36,6 +36,9 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-cov httpx
+          # PyTorch en version CPU : les tests des réseaux (données synthétiques) tournent aussi en CI.
+          # Il n'entre pas dans requirements.txt : l'API déployée n'en a pas besoin.
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
 
       - name: Create dummy models for tests
         run: |

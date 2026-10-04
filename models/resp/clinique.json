@@ -1,0 +1,216 @@
+{
+  "date": "2026-10-04",
+  "n_nuits": 40,
+  "grille": [
+    {
+      "p_min": 0.4,
+      "duree_min_s": 10,
+      "trou_s": 0,
+      "manques_tous": 0.18329987008385495,
+      "manques_avec_desaturation": 0.08626018544534982,
+      "possibles_par_nuit": 75.0,
+      "signal_a_relire_pct": 38.2
+    },
+    {
+      "p_min": 0.4,
+      "duree_min_s": 10,
+      "trou_s": 3,
+      "manques_tous": 0.12105822605409236,
+      "manques_avec_desaturation": 0.05647653835347007,
+      "possibles_par_nuit": 124.5,
+      "signal_a_relire_pct": 44.95
+    },
+    {
+      "p_min": 0.4,
+      "duree_min_s": 5,
+      "trou_s": 0,
+      "manques_tous": 0.12719971654659265,
+      "manques_avec_desaturation": 0.05816240516999157,
+      "possibles_par_nuit": 210.0,
+      "signal_a_relire_pct": 46.05
+    },
+    {
+      "p_min": 0.4,
+      "duree_min_s": 5,
+      "trou_s": 3,
+      "manques_tous": 0.09283099090586985,
+      "manques_avec_desaturation": 0.04608035965158752,
+      "possibles_par_nuit": 236.5,
+      "signal_a_relire_pct": 51.0
+    },
+    {
+      "p_min": 0.3,
+      "duree_min_s": 10,
+      "trou_s": 0,
+      "manques_tous": 0.1358214243533719,
+      "manques_avec_desaturation": 0.0640629390278168,
+      "possibles_par_nuit": 133.0,
+      "signal_a_relire_pct": 45.8
+    },
+    {
+      "p_min": 0.3,
+      "duree_min_s": 10,
+      "trou_s": 3,
+      "manques_tous": 0.08692571158615803,
+      "manques_avec_desaturation": 0.04495644844057319,
+      "possibles_par_nuit": 178.0,
+      "signal_a_relire_pct": 50.8
+    },
+    {
+      "p_min": 0.3,
+      "duree_min_s": 5,
+      "trou_s": 0,
+      "manques_tous": 0.08787055627731191,
+      "manques_avec_desaturation": 0.04242764821579095,
+      "possibles_par_nuit": 300.0,
+      "signal_a_relire_pct": 53.4
+    },
+    {
+      "p_min": 0.3,
+      "duree_min_s": 5,
+      "trou_s": 3,
+      "manques_tous": 0.06826502893586867,
+      "manques_avec_desaturation": 0.03765102556898005,
+      "possibles_par_nuit": 314.5,
+      "signal_a_relire_pct": 56.900000000000006
+    },
+    {
+      "p_min": 0.2,
+      "duree_min_s": 10,
+      "trou_s": 0,
+      "manques_tous": 0.09164993504192748,
+      "manques_avec_desaturation": 0.04692329305984827,
+      "possibles_par_nuit": 200.0,
+      "signal_a_relire_pct": 51.6
+    },
+    {
+      "p_min": 0.2,
+      "duree_min_s": 10,
+      "trou_s": 3,
+      "manques_tous": 0.060351954647454825,
+      "manques_avec_desaturation": 0.038212981174487216,
+      "possibles_par_nuit": 231.5,
+      "signal_a_relire_pct": 57.05
+    },
+    {
+      "p_min": 0.2,
+      "duree_min_s": 5,
+      "trou_s": 0,
+      "manques_tous": 0.059761426715483644,
+      "manques_avec_desaturation": 0.03540320314695139,
+      "possibles_par_nuit": 402.5,
+      "signal_a_relire_pct": 59.7
+    },
+    {
+      "p_min": 0.2,
+      "duree_min_s": 5,
+      "trou_s": 3,
+      "manques_tous": 0.04972245187197354,
+      "manques_avec_desaturation": 0.03399831413318348,
+      "possibles_par_nuit": 376.5,
+      "signal_a_relire_pct": 62.5
+    }
+  ],
+  "retenu": {
+    "p_min": 0.4,
+    "duree_min_s": 10,
+    "trou_s": 0,
+    "manques_tous": 0.18329987008385495,
+    "manques_avec_desaturation": 0.08626018544534982,
+    "possibles_par_nuit": 75.0,
+    "signal_a_relire_pct": 38.2
+  },
+  "ou_tombent": {
+    "Tous": [
+      0.18329987008385495,
+      0.07464273060115743,
+      0.20278729183890398,
+      0.5392701074760836
+    ],
+    "Avec désaturation ≥ 3 points": [
+      0.08626018544534982,
+      0.03568418094970497,
+      0.1298117448721551,
+      0.7482438887327901
+    ],
+    "Avec désaturation ≥ 4 points": [
+      0.06325143753267119,
+      0.02247778358599059,
+      0.09095661265028751,
+      0.8233141662310507
+    ],
+    "Sans désaturation (< 3 points)": [
+      0.2536674816625917,
+      0.10289323553382233,
+      0.25570497147514265,
+      0.3877343113284434
+    ],
+    "Apnées": [
+      0.04847207586933614,
+      0.014752370916754479,
+      0.044257112750263436,
+      0.8925184404636459
+    ]
+  },
+  "effectifs": {
+    "Tous": 8467,
+    "Avec désaturation ≥ 3 points": 3559,
+    "Avec désaturation ≥ 4 points": 1913,
+    "Sans désaturation (< 3 points)": 4908,
+    "Apnées": 949
+  },
+  "index": {
+    "ahi_a0h3": {
+      "Réseau : apnées + hypopnées avec désaturation ≥ 3": {
+        "n": 40,
+        "spearman": 0.9576883427079398,
+        "erreur_absolue_mediane": 2.3045286094,
+        "biais": 1.5499657199574997,
+        "meme_classe_de_severite": 0.85,
+        "a_une_classe_pres": 1.0
+      },
+      "Réseau : tous les événements proposés": {
+        "n": 40,
+        "spearman": 0.8210131332082553,
+        "erreur_absolue_mediane": 19.26992048465,
+        "biais": 17.9624657199575,
+        "meme_classe_de_severite": 0.225,
+        "a_une_classe_pres": 0.7
+      },
+      "Référence simple : désaturations ≥ 3 points / h": {
+        "n": 40,
+        "spearman": 0.9114446529080676,
+        "erreur_absolue_mediane": 2.0202529107942055,
+        "biais": -0.2991436764592576,
+        "meme_classe_de_severite": 0.75,
+        "a_une_classe_pres": 0.975
+      }
+    },
+    "ahi_a0h4": {
+      "Réseau : apnées + hypopnées avec désaturation ≥ 4": {
+        "n": 40,
+        "spearman": 0.9044759671504102,
+        "erreur_absolue_mediane": 1.74782608695,
+        "biais": 0.9079877751424996,
+        "meme_classe_de_severite": 0.825,
+        "a_une_classe_pres": 1.0
+      },
+      "Réseau : tous les événements proposés": {
+        "n": 40,
+        "spearman": 0.7664165103189494,
+        "erreur_absolue_mediane": 23.447368421,
+        "biais": 22.9254877751425,
+        "meme_classe_de_severite": 0.075,
+        "a_une_classe_pres": 0.5
+      },
+      "Référence simple : désaturations ≥ 4 points / h": {
+        "n": 40,
+        "spearman": 0.9128007890336391,
+        "erreur_absolue_mediane": 1.9476433858637476,
+        "biais": -2.708108791005738,
+        "meme_classe_de_severite": 0.725,
+        "a_une_classe_pres": 1.0
+      }
+    }
+  }
+}

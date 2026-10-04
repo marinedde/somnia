@@ -212,6 +212,20 @@ def index_de_desaturation(sao2_1hz: np.ndarray, sommeil: np.ndarray, chute: floa
     return compte / heures if heures > 0 else float("nan")
 
 
+def chute_de_saturation(sao2_1hz: np.ndarray, debut: int, fin: int, avant_s: int = 30, apres_s: int = 45) -> float:
+    """Désaturation associée à un événement [debut, fin) en secondes : maximum des `avant_s` secondes
+    qui précèdent le début, moins le minimum entre le début et `apres_s` secondes après la fin.
+
+    La saturation chute avec retard (temps de circulation, moyennage de l'oxymètre) : on regarde donc
+    après la fin de l'événement. Règle simple, pas celle du technicien ; 0 si la fenêtre sort de la nuit.
+    """
+    x = np.asarray(sao2_1hz, dtype=np.float64)
+    a, b = max(0, debut - avant_s), min(len(x), fin + apres_s)
+    if debut >= len(x) or b - debut < 5 or debut - a < 1:
+        return 0.0
+    return float(max(0.0, x[a:debut + 1].max() - x[debut:b].min()))
+
+
 # ── Lecture des canaux ────────────────────────────────────────────────────
 def _normaliser_nom(nom: str) -> str:
     return nom.replace(" ", "").lower()

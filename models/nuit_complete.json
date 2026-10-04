@@ -63,5 +63,17 @@
       "evenements_par_nuit": 32.775,
       "rapport_aux_references": 0.15141136175741113
     }
-  ]
+  ],
+  "index_clinique_3": {
+    "contre": "ahi_a0h3",
+    "spearman": 0.9576883427079398,
+    "erreur_absolue_mediane": 2.3045286094,
+    "biais": 1.5499657199574997
+  },
+  "index_clinique_4": {
+    "contre": "ahi_a0h4",
+    "spearman": 0.9044759671504102,
+    "erreur_absolue_mediane": 1.74782608695,
+    "biais": 0.9079877751424996
+  }
 }

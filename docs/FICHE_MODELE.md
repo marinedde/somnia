@@ -48,7 +48,7 @@ fibrillation auriculaire, maladies neurologiques, enregistrements de laboratoire
 | Stades | réseau convolutif | exactitude / kappa | 0,73 / 0,64 |
 | Stades | réseau convolutif + lecture de la nuit (séquence) | exactitude / kappa | 0,78 / 0,71 (validation ; test non rouvert) |
 | Stades | idem, avec EEG + yeux + menton | exactitude / kappa | 0,80 / 0,73 ; accord éveil / sommeil 94 % (validation ; variante choisie sur la validation) |
-| Événements respiratoires | réseau sur flux, ceintures, saturation | F1 par événement, de bout en bout | 0,74 ; propositions sûres justes à 91 % ; 18 % d'événements non signalés (9 % parmi ceux avec désaturation, 3 % parmi les apnées) |
+| Événements respiratoires | réseau sur flux, ceintures, saturation | F1 par événement, de bout en bout | 0,74 ; propositions sûres justes à 91 % ; 18 % d'événements non signalés (9 % parmi ceux avec désaturation) ; index clinique estimé contre `ahi_a0h3` : Spearman 0,96 [0,90 ; 0,98], même classe de sévérité 85 % |
 | Stades | réseau convolutif, externe sur une nuit Sleep-EDF | exactitude / kappa | 0,65 / 0,54 |
 | Stades | Random Forest, externe sur Sleep-EDF | exactitude / kappa | 0,55 / 0,40 |
 | Apnée | Random Forest | AUC-ROC / aire précision-rappel | 0,65 / 0,56 |

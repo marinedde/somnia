@@ -65,3 +65,27 @@ def test_le_decoupage_par_epoque_est_plus_optimiste_que_par_personne():
     par_personne = validation_croisee_par_personne(X, y, pers, "ecg", n_plis=4, graine=0)["moyenne"]["auc_roc"]
     par_epoque = decoupage_aleatoire_par_epoque(X, y, "ecg", graine=0)["metriques"]["auc_roc"]
     assert par_epoque >= par_personne - 0.02
+
+
+# ── Bootstrap par personne ────────────────────────────────────────────────
+def test_bootstrap_encadre_l_estimation_et_se_reproduit():
+    import numpy as np
+    from somnia.evaluation import bootstrap_par_personne
+    v = np.random.default_rng(0).normal(0.7, 0.1, 40)
+    r = bootstrap_par_personne(lambda i: v[i].mean(), 40, n_tirages=500)
+    assert r["bas"] < r["estimation"] < r["haut"] and abs(r["estimation"] - v.mean()) < 1e-12
+    assert 0.03 < r["haut"] - r["bas"] < 0.10                    # ≈ 4 erreurs-types de 0,1 / √40
+    assert r == bootstrap_par_personne(lambda i: v[i].mean(), 40, n_tirages=500)
+
+
+def test_bootstrap_apparie_plus_fin_que_deux_intervalles():
+    """Deux modèles mesurés sur les mêmes personnes : la différence appariée est bien plus précise."""
+    import numpy as np
+    from somnia.evaluation import bootstrap_par_personne
+    rng = np.random.default_rng(1)
+    difficulte = rng.normal(0.7, 0.1, 40)                        # certaines nuits sont dures pour tout le monde
+    a, b = difficulte + rng.normal(0, 0.005, 40), difficulte + 0.02 + rng.normal(0, 0.005, 40)
+    d = bootstrap_par_personne(lambda i: b[i].mean() - a[i].mean(), 40, n_tirages=500)
+    seul = bootstrap_par_personne(lambda i: a[i].mean(), 40, n_tirages=500)
+    assert d["bas"] > 0 and d["part_positive"] == 1.0
+    assert d["haut"] - d["bas"] < 0.25 * (seul["haut"] - seul["bas"])

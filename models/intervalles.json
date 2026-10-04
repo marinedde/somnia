@@ -1,0 +1,344 @@
+{
+  "date": "2026-10-04",
+  "n_personnes": 40,
+  "stades": {
+    "Kappa": {
+      "eeg": {
+        "estimation": 0.7077953762531687,
+        "bas": 0.6536425005969342,
+        "haut": 0.748542976409378,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      },
+      "multi": {
+        "estimation": 0.7306106132321856,
+        "bas": 0.6870784595296076,
+        "haut": 0.7682367911266045,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      },
+      "difference": {
+        "estimation": 0.022815236979016884,
+        "bas": 0.00789788496536781,
+        "haut": 0.038760610314066926,
+        "part_positive": 0.999,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      }
+    },
+    "Exactitude": {
+      "eeg": {
+        "estimation": 0.7824754289521906,
+        "bas": 0.7422274616749761,
+        "haut": 0.8133500858950236,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      },
+      "multi": {
+        "estimation": 0.7993753123438281,
+        "bas": 0.7664914236087864,
+        "haut": 0.827726270030382,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      },
+      "difference": {
+        "estimation": 0.016899883391637505,
+        "bas": 0.005582514170963155,
+        "haut": 0.029288883696819278,
+        "part_positive": 0.998,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      }
+    },
+    "Accord éveil / sommeil": {
+      "eeg": {
+        "estimation": 0.9203564884224553,
+        "bas": 0.8854508840197132,
+        "haut": 0.9459220373490584,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      },
+      "multi": {
+        "estimation": 0.9428702315508913,
+        "bas": 0.9171175146689994,
+        "haut": 0.9595861846997533,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      },
+      "difference": {
+        "estimation": 0.022513743128436015,
+        "bas": 0.008787144963405413,
+        "haut": 0.04118098246046121,
+        "part_positive": 0.999,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      }
+    },
+    "F1 du N1": {
+      "eeg": {
+        "estimation": 0.41580355946774444,
+        "bas": 0.3657032110897455,
+        "haut": 0.46296258615991426,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      },
+      "multi": {
+        "estimation": 0.4140394356789104,
+        "bas": 0.36445168228430413,
+        "haut": 0.4612053688035802,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      },
+      "difference": {
+        "estimation": -0.00176412378883406,
+        "bas": -0.019107156007125592,
+        "haut": 0.016289435771174334,
+        "part_positive": 0.434,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      }
+    },
+    "F1 du REM": {
+      "eeg": {
+        "estimation": 0.8383926524291528,
+        "bas": 0.7948661613715813,
+        "haut": 0.8749754303245532,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      },
+      "multi": {
+        "estimation": 0.8501179935209292,
+        "bas": 0.7896291445947496,
+        "haut": 0.893100787875422,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      },
+      "difference": {
+        "estimation": 0.011725341091776365,
+        "bas": -0.021162615149521016,
+        "haut": 0.03996714891921423,
+        "part_positive": 0.782,
+        "n_personnes": 40,
+        "n_tirages": 1000
+      }
+    }
+  },
+  "evenements": {
+    "F1 par événement": {
+      "v3": {
+        "estimation": 0.734470463137381,
+        "bas": 0.6947036982806165,
+        "haut": 0.7687024651084875,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "v4": {
+        "estimation": 0.7363764550531787,
+        "bas": 0.6958366856017624,
+        "haut": 0.7707060233168017,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "difference": {
+        "estimation": 0.0019059919157977667,
+        "bas": -0.005123719034707166,
+        "haut": 0.009392905489590042,
+        "part_positive": 0.698,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      }
+    },
+    "Précision": {
+      "v3": {
+        "estimation": 0.7156563888293573,
+        "bas": 0.6699639637715362,
+        "haut": 0.7557014337697027,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "v4": {
+        "estimation": 0.7338478052923962,
+        "bas": 0.6893978851335112,
+        "haut": 0.7733031721227923,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "difference": {
+        "estimation": 0.0181914164630389,
+        "bas": 0.007469998742983886,
+        "haut": 0.027888659720482756,
+        "part_positive": 0.999,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      }
+    },
+    "Rappel": {
+      "v3": {
+        "estimation": 0.755206487933546,
+        "bas": 0.6938746775640983,
+        "haut": 0.8180751839711966,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "v4": {
+        "estimation": 0.7391047596551318,
+        "bas": 0.6762622799601955,
+        "haut": 0.8058326870318503,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "difference": {
+        "estimation": -0.016101728278414162,
+        "bas": -0.028317900416042235,
+        "haut": -0.001621167821270607,
+        "part_positive": 0.0135,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      }
+    },
+    "Rappel des événements avec désaturation ≥ 3": {
+      "v3": {
+        "estimation": 0.863819424932097,
+        "bas": 0.804571023670539,
+        "haut": 0.9094548902339665,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "v4": {
+        "estimation": 0.8714994848740284,
+        "bas": 0.8183620813224801,
+        "haut": 0.9132836073749988,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "difference": {
+        "estimation": 0.007680059941931439,
+        "bas": -0.008526582009457552,
+        "haut": 0.029713906152181196,
+        "part_positive": 0.777,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      }
+    }
+  },
+  "index": {
+    "ahi_a0h3": {
+      "reseau_spearman": {
+        "estimation": 0.9576883427079398,
+        "bas": 0.8985163513533758,
+        "haut": 0.978911742342125,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "odi_spearman": {
+        "estimation": 0.9114446529080676,
+        "bas": 0.8040307568581706,
+        "haut": 0.9623926017724007,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "difference_spearman": {
+        "estimation": 0.046243689799872145,
+        "bas": -0.008821460050055002,
+        "haut": 0.13843991550787912,
+        "part_positive": 0.942,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "reseau_erreur": {
+        "estimation": 2.3045286094,
+        "bas": 1.0869121564000004,
+        "haut": 3.0665546609500005,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "odi_erreur": {
+        "estimation": 2.0202529107942055,
+        "bas": 1.3145815641926744,
+        "haut": 4.2562544623965275,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "difference_erreur": {
+        "estimation": 0.2842756986057946,
+        "bas": -1.753190533533657,
+        "haut": 1.0794167407067747,
+        "part_positive": 0.575,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      }
+    },
+    "ahi_a0h4": {
+      "reseau_spearman": {
+        "estimation": 0.9044759671504102,
+        "bas": 0.8014265277672227,
+        "haut": 0.9577127525795291,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "odi_spearman": {
+        "estimation": 0.9128007890336391,
+        "bas": 0.8324077033221929,
+        "haut": 0.9535744039669277,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "difference_spearman": {
+        "estimation": -0.008324821883228917,
+        "bas": -0.09090961683002267,
+        "haut": 0.07386935217321469,
+        "part_positive": 0.4245,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "reseau_erreur": {
+        "estimation": 1.74782608695,
+        "bas": 0.85086360175,
+        "haut": 2.7058394161000003,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "odi_erreur": {
+        "estimation": 1.9476433858637476,
+        "bas": 0.9084910145490154,
+        "haut": 3.664097842193798,
+        "part_positive": 1.0,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      },
+      "difference_erreur": {
+        "estimation": -0.19981729891374767,
+        "bas": -1.7640978421937983,
+        "haut": 0.8574045745880847,
+        "part_positive": 0.328,
+        "n_personnes": 40,
+        "n_tirages": 2000
+      }
+    }
+  }
+}

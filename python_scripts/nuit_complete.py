@@ -37,7 +37,7 @@ from somnia.deep.model import CNN1D  # noqa: E402
 from somnia.deep.resp_net import ReseauEvenements, charger_nuits, proba_nuit  # noqa: E402
 from somnia.deep.train import appareil  # noqa: E402
 from somnia.nuit import analyser_nuit_complete  # noqa: E402
-from somnia.resp import index_par_heure, masque_vers_evenements, sommeil_par_seconde  # noqa: E402
+from somnia.resp import FS_RESP, index_par_heure, masque_vers_evenements, sommeil_par_seconde  # noqa: E402
 from somnia.shhs_prepare import charger_nuit  # noqa: E402
 
 OUT_MD = ROOT / "docs" / "RESULTATS_NUIT.md"
@@ -78,7 +78,7 @@ def main() -> int:
         with np.load(MULTI_DIR / f"{n.ident}.npz", allow_pickle=False) as d:
             eeg = d["signaux"]                                                      # µV, (n_epoques, 5 capteurs, 3000)
         proba = proba_nuit(ev_net, n, dev, canal_sommeil=True)
-        r = analyser_nuit_complete(eeg, predire_stades, proba, temperature=T)
+        r = analyser_nuit_complete(eeg, predire_stades, proba, temperature=T, sao2_1hz=n.signaux[3, ::FS_RESP][: n.n_sec])
         res, fc = r["respiration"]["resume"], r["file_commune"]
 
         # 2. la confiance trie-t-elle ? un événement proposé est « juste » s'il recouvre un événement de référence
@@ -103,6 +103,7 @@ def main() -> int:
         # 4. index de bout en bout vs référence (sommeil et événements du technicien)
         lignes.append({
             "personne": n.personne, "index_ref": index_par_heure(ref_tous, sommeil_ref), "index_bout_en_bout": res["index_par_heure"] or 0.0,
+            "index_clinique_3": res["index_clinique_3"] or 0.0, "index_clinique_4": res["index_clinique_4"] or 0.0,
             "n_ref": len(ref), "n_proposes": res["n_evenements"], "n_surs": res["n_surs"], "n_a_relire": res["n_a_relire"],
             "n_possibles": res["n_possibles"], "part_stades_a_relire": r["relecture"]["part_a_relire_pct"],
             "signal_a_relire_min": fc["signal_a_relire_min"], "signal_total_min": fc["signal_total_min"], "part_a_relire": fc["part_a_relire_pct"],
@@ -135,6 +136,12 @@ def main() -> int:
         {"confiance_min": s, "part_des_proposes": float((conf >= s).mean()), "precision": float(juste[conf >= s].mean()) if (conf >= s).any() else None,
          "evenements_par_nuit": float((conf >= s).sum() / len(lignes)), "rapport_aux_references": float(juste[conf >= s].sum() / n_ref_total)}
         for s in (0.70, 0.80, 0.85, 0.90, 0.95)]
+    for cle, col in (("ahi_a0h3", "index_clinique_3"), ("ahi_a0h4", "index_clinique_4")):
+        cli = np.array([float(cov[l["personne"]][cle]) if l["personne"] in cov and cov[l["personne"]].get(cle) else np.nan for l in lignes])
+        e = np.array([l[col] for l in lignes]); ok = np.isfinite(cli)
+        if ok.sum() > 3:
+            agg[col] = {"contre": cle, "spearman": float(spearmanr(e[ok], cli[ok]).correlation),
+                        "erreur_absolue_mediane": float(np.median(np.abs(e[ok] - cli[ok]))), "biais": float(np.mean(e[ok] - cli[ok]))}
     for cle in ("ahi_a0h3a", "ahi_a0h4"):
         cli = np.array([float(cov[l["personne"]][cle]) if l["personne"] in cov and cov[l["personne"]][cle] else np.nan for l in lignes])
         ok = np.isfinite(cli)
@@ -182,13 +189,20 @@ def main() -> int:
          f"| Index annoté (technicien) | {ib['spearman']:.2f} | {ib['erreur_absolue_mediane']:.1f} / h | {ib['biais']:+.1f} / h |"]
     for cle in ("ahi_a0h3a", "ahi_a0h4"):
         if f"spearman_{cle}" in ib:
-            L.append(f"| Index clinique `{cle}` | {ib[f'spearman_{cle}']:.2f} | — | — |")
+            L.append(f"| Tous les événements proposés, contre l'index clinique `{cle}` | {ib[f'spearman_{cle}']:.2f} | — | — |")
+    for col, nom in (("index_clinique_3", "3"), ("index_clinique_4", "4")):
+        if col in agg:
+            c = agg[col]
+            L.append(f"| **Index clinique estimé** (apnées + hypopnées avec désaturation ≥ {nom} points), contre `{c['contre']}` | "
+                     f"**{c['spearman']:.2f}** | {c['erreur_absolue_mediane']:.1f} / h | {c['biais']:+.1f} / h |")
     L += ["", f"Temps de sommeil : prédit {med_iqr([l['heures_sommeil_pred'] for l in lignes], '{:.1f}')} h, "
               f"technicien {med_iqr([l['heures_sommeil_ref'] for l in lignes], '{:.1f}')} h.", "",
           "## Lecture", "",
           "- Les événements « sûrs » sont ceux qu'un lecteur validerait d'un coup d'œil ; leur précision dit si on peut lui faire cette promesse.",
           "- La ligne « nulle part » est la plus importante : ce sont les événements que l'outil ne signale d'aucune façon, "
           "et que le lecteur ne verra que s'il relit toute la nuit.",
+          "- L'index à donner au médecin est l'index clinique estimé : il applique la définition des index SHHS (hypopnées "
+          "comptées seulement avec désaturation). Détail et comparaison au simple compte des désaturations : `docs/RESULTATS_CLINIQUE.md`.",
           "- L'index de bout en bout dépend des deux réseaux : une erreur sur le temps de sommeil se retrouve dans l'index.", ""]
     OUT_MD.write_text("\n".join(L), encoding="utf-8")
     print(OUT_MD.read_text(encoding="utf-8"))

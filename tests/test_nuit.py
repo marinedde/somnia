@@ -99,3 +99,36 @@ def test_analyser_nuit_complete():
     assert r["respiration"]["resume"]["n_evenements"] == 2 and r["respiration"]["resume"]["index_par_heure"] == 2.1
     assert r["file_commune"]["n_items"] == 2                            # un segment de stades douteux + un événement à relire
     assert 0 < r["file_commune"]["part_a_relire_pct"] < 20 and "NON VALIDÉ" in r["statut"]
+
+
+# ── Désaturation associée et index cliniques (horizon 1.4) ────────────────
+def test_chute_de_saturation_regarde_apres_l_evenement():
+    from somnia.resp import chute_de_saturation
+    sao2 = np.full(600, 96.0)
+    sao2[130:150] = 91.0                                   # la chute arrive après la fin de l'événement (100-120)
+    assert chute_de_saturation(sao2, 100, 120) == 5.0
+    assert chute_de_saturation(sao2, 300, 320) == 0.0      # rien autour
+    assert chute_de_saturation(sao2, 598, 610) == 0.0      # fenêtre hors de la nuit : 0, pas d'erreur
+
+
+def test_index_cliniques_apnees_toujours_hypopnees_si_desaturation():
+    proba = np.zeros((3600, 3)); proba[:, 0] = 1.0
+    for a, c in ((100, 1), (500, 2), (900, 2)):            # une apnée, deux hypopnées de 20 s
+        proba[a:a + 20] = 0.0; proba[a:a + 20, c] = 1.0
+    sao2 = np.full(3600, 96.0)
+    sao2[525:540] = 92.5                                   # première hypopnée : chute de 3,5 points
+    r = analyser_evenements(proba, np.ones(3600, dtype=bool), sao2_1hz=sao2)
+    assert [e["desaturation"] for e in r["evenements"]] == [0.0, 3.5, 0.0]
+    res = r["resume"]
+    assert res["index_par_heure"] == 3.0                   # les trois événements
+    assert res["index_clinique_3"] == 2.0                  # apnée + hypopnée avec chute ≥ 3
+    assert res["index_clinique_4"] == 1.0                  # apnée seule : 3,5 < 4
+    assert "index_clinique_3" not in analyser_evenements(proba, np.ones(3600, dtype=bool))["resume"]
+
+
+def test_zones_possibles_reglables():
+    proba = np.zeros((3600, 3)); proba[:, 0] = 1.0
+    proba[200:206, 0], proba[200:206, 2] = 0.5, 0.5         # 6 s à P = 0,5 : trop bref pour la règle des 10 s
+    sommeil = np.ones(3600, dtype=bool)
+    assert analyser_evenements(proba, sommeil)["possibles"] == []
+    assert len(analyser_evenements(proba, sommeil, duree_possible=5)["possibles"]) == 1

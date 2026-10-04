@@ -139,3 +139,28 @@ def decoupage_aleatoire_par_epoque(X, y, tache: str, graine: int = 42, part_test
     proba = modele.predict_proba(Xte)[:, 1] if tache == "ecg" else None
     return {"methode": "train_test_split sur les époques (fuite)", "metriques": _metriques(tache, yte, pred, proba),
             "y_test": yte, "proba": proba}
+
+
+# ── Intervalles de confiance par bootstrap sur les personnes (horizon 1.6) ─
+def bootstrap_par_personne(statistique, n_personnes: int, n_tirages: int = 2000, graine: int = 42, niveau: float = 0.95) -> dict:
+    """Intervalle de confiance d'une statistique en retirant des PERSONNES avec remise.
+
+    `statistique(indices)` reçoit un tableau d'indices de personnes (avec répétitions) et rend un
+    nombre. On retire les personnes, pas les époques : les époques d'une même nuit se ressemblent,
+    les traiter comme indépendantes donnerait des intervalles trop étroits (même raison que le
+    découpage par personne). Pour comparer deux modèles, passer une statistique qui rend la
+    DIFFÉRENCE calculée sur les mêmes personnes : c'est un bootstrap apparié.
+
+    Rend l'estimation sur toutes les personnes, les bornes par percentiles, et la part des tirages
+    strictement positifs (utile pour une différence). Ce que l'intervalle ne couvre pas : la
+    variation d'un entraînement à l'autre (graines).
+    """
+    import numpy as np
+
+    rng = np.random.default_rng(graine)
+    estimation = float(statistique(np.arange(n_personnes)))
+    tirages = np.array([statistique(rng.integers(0, n_personnes, n_personnes)) for _ in range(n_tirages)], dtype=float)
+    tirages = tirages[np.isfinite(tirages)]
+    a = (1 - niveau) / 2
+    return {"estimation": estimation, "bas": float(np.quantile(tirages, a)), "haut": float(np.quantile(tirages, 1 - a)),
+            "part_positive": float((tirages > 0).mean()), "n_personnes": n_personnes, "n_tirages": int(len(tirages))}
