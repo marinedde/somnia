@@ -73,6 +73,10 @@ def main() -> int:
             X = preparer_signaux(signaux, net.canaux)
             return predire_nuit_multi(net, NuitMulti("nuit", "personne", X, np.zeros(len(X), dtype=np.int64)), torch.device("cpu"))
         return predire_stades
+    # Micro-éveils (horizon 2.1) : proposés dans la sortie, pas dans la file de relecture.
+    from somnia.deep.eveils import NuitEveils, ReseauEveils, proba_eveils, signaux_continus
+    eveils_net = ReseauEveils(); eveils_net.load_state_dict(torch.load(ROOT / "models/eveils/eveils_s42.pt", map_location="cpu")); eveils_net.to(dev)
+    eveils = []
     positions = []
     qual = {"refus_stades": 0, "refus_index": 0, "repli_eeg": 0, "ecartes": 0, "resp_inexploitable_pct": []}
 
@@ -95,7 +99,10 @@ def main() -> int:
         q = qualite_nuit(eeg, NOMS_CANAUX, n.signaux, n.n_sec, np.load(chemin_q) if chemin_q.exists() else None, FS_RESP)
         repli = q["rapport"]["modele_stades"] == "eeg"
         r = analyser_nuit_complete(eeg, predire_avec(repli_net if repli else stades_net), proba, temperature=T_repli if repli else T,
-                                   sao2_1hz=n.signaux[3, ::FS_RESP][: n.n_sec], qualite=q, dorsal_sec=dos)
+                                   sao2_1hz=n.signaux[3, ::FS_RESP][: n.n_sec], qualite=q, dorsal_sec=dos,
+                                   proba_eveils_sec=proba_eveils(eveils_net, NuitEveils(n.ident, n.personne, signaux_continus(eeg),
+                                                                                         np.zeros(len(eeg) * 30, dtype=np.int8), n.stades), dev))
+        eveils.append(r["micro_eveils"]["resume"])
         qual["refus_stades"] += q["rapport"]["refus"]["stades"]; qual["refus_index"] += q["rapport"]["refus"]["index"]; qual["repli_eeg"] += repli
         qual["ecartes"] += r["respiration"]["resume"]["n_ecartes_signal_inexploitable"]
         qual["resp_inexploitable_pct"].append(q["rapport"]["respiration_inexploitable_pct"])
@@ -143,6 +150,8 @@ def main() -> int:
         })
         if k == args.nuit_locale:                                                     # détail d'une nuit : local, hors git
             LOCAL.mkdir(parents=True, exist_ok=True)
+            from somnia.export import vers_csv, vers_edf_plus, vers_xml_nsrr          # exports de la même nuit : locaux aussi
+            vers_edf_plus(r, LOCAL / "nuit_complete_exemple.edf"); vers_xml_nsrr(r, LOCAL / "nuit_complete_exemple-nsrr.xml"); vers_csv(r, LOCAL / "nuit_complete_exemple.csv")
             (LOCAL / "nuit_complete_exemple.json").write_text(json.dumps(
                 {**{c: r[c] for c in ("statut", "indices")}, "respiration": r["respiration"]["resume"],
                  "file_commune": {c: fc[c] for c in ("n_items", "signal_a_relire_min", "signal_total_min", "part_a_relire_pct")},
@@ -248,6 +257,8 @@ def main() -> int:
           f"| Nuits où l'outil refuse de rendre les indices de sommeil | {ql['refus_stades']} sur {agg['n_nuits']} |",
           f"| Nuits où les stades sont calculés avec l'EEG seul (yeux ou menton inexploitables) | {ql['repli_eeg']} sur {agg['n_nuits']} |", "",
           "Règles et mesures : `docs/RESULTATS_QUALITE.md`. L'index ci-dessus n'est mesuré que sur les nuits où l'outil le rend."]
+    agg["micro_eveils"] = {"par_nuit_mediane": float(np.median([e["n_micro_eveils"] for e in eveils])),
+                           "index_median": float(np.median([e["index_par_heure"] for e in eveils if e["index_par_heure"] is not None]))}
     po = agg["position"]
     L += ["", "## 6. Position du corps", "",
           "L'index clinique (apnées + hypopnées avec désaturation ≥ 3 points) est rendu séparément sur le dos et hors du dos, quand il y a au moins "
@@ -257,6 +268,9 @@ def main() -> int:
           f"| Index sur le dos, estimé contre technicien ({po['dorsal']['n']} personnes) | Spearman {po['dorsal']['spearman']:.2f}, erreur médiane {po['dorsal']['erreur_absolue_mediane']:.1f} / h |",
           f"| Index hors du dos ({po['non_dorsal']['n']} personnes) | Spearman {po['non_dorsal']['spearman']:.2f}, erreur médiane {po['non_dorsal']['erreur_absolue_mediane']:.1f} / h |",
           f"| Apnée positionnelle (index sur le dos au moins double, et ≥ 5) : technicien / estimé / accord | {po['positionnel']['technicien']} / {po['positionnel']['estime']} / {po['positionnel']['accord']:.0%} sur {po['positionnel']['n']} personnes |"]
+    L += ["", "## 7. Micro-éveils", "",
+          f"Proposés pendant le sommeil prédit : {agg['micro_eveils']['par_nuit_mediane']:.0f} par nuit en médiane, soit {agg['micro_eveils']['index_median']:.0f} par heure. "
+          "Ils sont listés avec leur confiance mais ne sont pas ajoutés à la file de relecture. Mesures : `docs/RESULTATS_EVEILS.md`."]
     L += ["", f"Temps de sommeil : prédit et analysable {med_iqr([l['heures_sommeil_pred'] for l in lignes], '{:.1f}')} h, "
               f"technicien {med_iqr([l['heures_sommeil_ref'] for l in lignes], '{:.1f}')} h.", "",
           "## Lecture", "",

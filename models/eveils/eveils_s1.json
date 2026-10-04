@@ -1,0 +1,187 @@
+{
+  "nom": "eveils_s1",
+  "graine": 1,
+  "date": "2026-10-04T21:20",
+  "n_nuits_train": 192,
+  "n_nuits_val": 40,
+  "meilleure_epoque": 10,
+  "historique": [
+    {
+      "epoque": 1,
+      "perte_train": 0.2541606992069218,
+      "f1": 0.6271470096009865,
+      "precision": 0.5120092046598591,
+      "rappel": 0.8090909090909091
+    },
+    {
+      "epoque": 2,
+      "perte_train": 0.21033127951539224,
+      "f1": 0.64527661095719,
+      "precision": 0.5317425246722639,
+      "rappel": 0.8204545454545454
+    },
+    {
+      "epoque": 3,
+      "perte_train": 0.19496382794653375,
+      "f1": 0.6623532673999446,
+      "precision": 0.5581866334319987,
+      "rappel": 0.8143181818181818
+    },
+    {
+      "epoque": 4,
+      "perte_train": 0.18519233389654094,
+      "f1": 0.6798936387809368,
+      "precision": 0.6180736333209371,
+      "rappel": 0.7554545454545455
+    },
+    {
+      "epoque": 5,
+      "perte_train": 0.1808732334834834,
+      "f1": 0.6790478144879951,
+      "precision": 0.6189674523007856,
+      "rappel": 0.7520454545454546
+    },
+    {
+      "epoque": 6,
+      "perte_train": 0.17581701884046197,
+      "f1": 0.6795008222888652,
+      "precision": 0.5915445511200943,
+      "rappel": 0.7981818181818182
+    },
+    {
+      "epoque": 7,
+      "perte_train": 0.17437476026308205,
+      "f1": 0.6756118302938675,
+      "precision": 0.5781982856218664,
+      "rappel": 0.8125
+    },
+    {
+      "epoque": 8,
+      "perte_train": 0.17139213664664163,
+      "f1": 0.6831060825838894,
+      "precision": 0.5945127082982663,
+      "rappel": 0.8027272727272727
+    },
+    {
+      "epoque": 9,
+      "perte_train": 0.166554008031057,
+      "f1": 0.6758633459864828,
+      "precision": 0.5702234025933448,
+      "rappel": 0.8295454545454546
+    },
+    {
+      "epoque": 10,
+      "perte_train": 0.1645865938315789,
+      "f1": 0.6839327599687255,
+      "precision": 0.5999657064471879,
+      "rappel": 0.7952272727272728
+    },
+    {
+      "epoque": 11,
+      "perte_train": 0.1620867530711823,
+      "f1": 0.6585256352698213,
+      "precision": 0.5443075552916729,
+      "rappel": 0.8334090909090909
+    },
+    {
+      "epoque": 12,
+      "perte_train": 0.1582072417355246,
+      "f1": 0.6796896906252922,
+      "precision": 0.5772344816637561,
+      "rappel": 0.8263636363636364
+    },
+    {
+      "epoque": 13,
+      "perte_train": 0.16118288218147225,
+      "f1": 0.6747998475028593,
+      "precision": 0.5810899540380827,
+      "rappel": 0.8045454545454546
+    },
+    {
+      "epoque": 14,
+      "perte_train": 0.1553469882036249,
+      "f1": 0.6635455118393806,
+      "precision": 0.5494259728641717,
+      "rappel": 0.8375
+    }
+  ],
+  "validation_bout_en_bout": {
+    "precision": 0.5999657064471879,
+    "rappel": 0.7952272727272728,
+    "f1": 0.6839327599687255,
+    "n_reference": 4400,
+    "n_proposes": 5832,
+    "index": {
+      "spearman": 0.7615384615384617,
+      "erreur_absolue_mediane": 4.865895892474655,
+      "biais": 4.643562747776942,
+      "mediane_reference": 17.192320315064
+    }
+  },
+  "validation_sommeil_du_technicien": {
+    "precision": 0.6879350348027842,
+    "rappel": 0.8086363636363636,
+    "f1": 0.7434183033848725,
+    "n_reference": 4400,
+    "n_proposes": 5172,
+    "index": {
+      "spearman": 0.7442776735459664,
+      "erreur_absolue_mediane": 3.8029862492621813,
+      "biais": 3.0120094169280107,
+      "mediane_reference": 17.192320315064
+    }
+  },
+  "par_seuil": {
+    "0.3": {
+      "precision": 0.5036544850498339,
+      "rappel": 0.8613636363636363,
+      "f1": 0.6356394129979036
+    },
+    "0.4": {
+      "precision": 0.5526156637435742,
+      "rappel": 0.8306818181818182,
+      "f1": 0.6637007445069911
+    },
+    "0.5": {
+      "precision": 0.5999657064471879,
+      "rappel": 0.7952272727272728,
+      "f1": 0.6839327599687255
+    },
+    "0.6": {
+      "precision": 0.6460487804878049,
+      "rappel": 0.7525,
+      "f1": 0.6952230971128608
+    },
+    "0.7": {
+      "precision": 0.6933030646992054,
+      "rappel": 0.6940909090909091,
+      "f1": 0.6936967632027257
+    },
+    "0.8": {
+      "precision": 0.7468914064658746,
+      "rappel": 0.6143181818181818,
+      "f1": 0.6741488963711186
+    }
+  },
+  "duree_min": 2.9,
+  "journal": [
+    "[eveils_s1] entraînement : 192 nuits, 4.9% des secondes en micro-éveil, chargées en 15 s",
+    "appareil mps | 147,330 paramètres",
+    "validation : 40 nuits avec sommeil prédit",
+    "époque  1 | perte 0.2542 | val : F1 0.627 (précision 0.512, rappel 0.809), index Spearman 0.685 | 12 s",
+    "époque  2 | perte 0.2103 | val : F1 0.645 (précision 0.532, rappel 0.820), index Spearman 0.644 | 11 s",
+    "époque  3 | perte 0.1950 | val : F1 0.662 (précision 0.558, rappel 0.814), index Spearman 0.687 | 11 s",
+    "époque  4 | perte 0.1852 | val : F1 0.680 (précision 0.618, rappel 0.755), index Spearman 0.685 | 11 s",
+    "époque  5 | perte 0.1809 | val : F1 0.679 (précision 0.619, rappel 0.752), index Spearman 0.674 | 11 s",
+    "époque  6 | perte 0.1758 | val : F1 0.680 (précision 0.592, rappel 0.798), index Spearman 0.713 | 10 s",
+    "époque  7 | perte 0.1744 | val : F1 0.676 (précision 0.578, rappel 0.812), index Spearman 0.736 | 11 s",
+    "époque  8 | perte 0.1714 | val : F1 0.683 (précision 0.595, rappel 0.803), index Spearman 0.728 | 11 s",
+    "époque  9 | perte 0.1666 | val : F1 0.676 (précision 0.570, rappel 0.830), index Spearman 0.744 | 11 s",
+    "époque 10 | perte 0.1646 | val : F1 0.684 (précision 0.600, rappel 0.795), index Spearman 0.762 | 11 s",
+    "époque 11 | perte 0.1621 | val : F1 0.659 (précision 0.544, rappel 0.833), index Spearman 0.688 | 11 s",
+    "époque 12 | perte 0.1582 | val : F1 0.680 (précision 0.577, rappel 0.826), index Spearman 0.728 | 11 s",
+    "époque 13 | perte 0.1612 | val : F1 0.675 (précision 0.581, rappel 0.805), index Spearman 0.656 | 11 s",
+    "époque 14 | perte 0.1553 | val : F1 0.664 (précision 0.549, rappel 0.838), index Spearman 0.704 | 11 s",
+    "arrêt anticipé"
+  ]
+}

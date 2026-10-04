@@ -252,6 +252,27 @@ ailleurs. Et un capteur débranché fait plus de mal que son absence, d'où une 
 le modèle EEG seul. Cette cohorte, déjà triée, contient peu de vraies pannes : le module reste à
 éprouver sur des nuits venues d'ailleurs.
 
+### Ce que la sortie par nuit dit de plus : désaturations, position, micro-éveils, exports (octobre 2026)
+
+| Brique | Ce qu'elle fait | Mesure sur la validation (40 personnes) |
+|---|---|---|
+| Règle de désaturation | Lie chaque hypopnée à une chute de saturation | Avec les événements du technicien, redonne `ahi_a0h3` : Spearman 0,98, erreur médiane 0,8 / h. Les marques de désaturation du fichier d'annotation font moins bien (0,92 ; 1,7 / h) |
+| Position du corps | Index sur le dos et hors du dos, apnée positionnelle | Sur le dos : Spearman 0,87 (17 personnes) ; hors du dos : 0,95 (38 personnes) |
+| Micro-éveils | Réseau sur EEG et menton, une décision par seconde | F1 par événement 0,69 ± 0,00 de bout en bout (précision 0,61, rappel 0,79) ; 0,75 avec le sommeil du technicien |
+| Type d'apnée | Obstructive ou centrale, d'après les ceintures | **Résultat négatif** : aire sous la courbe 0,83, mais une « centrale » annoncée n'est juste qu'une fois sur trois. Non branché |
+| Exports | EDF+ annotations seules, XML NSRR, CSV | Aller-retour testé avec le lecteur du projet et avec MNE |
+
+Le code de la position dorsale dans SHHS n'est pas supposé : il est identifié en comparant chaque code à la
+variable `supinep` (Spearman 0,99). Les apnées centrales sont trop rares dans SHHS (une sur quinze) et les
+ceintures trop pauvres pour typer chaque apnée : elles restent « apnée », à typer par le lecteur. Détails :
+[désaturations](docs/RESULTATS_DESATURATION.md), [micro-éveils](docs/RESULTATS_EVEILS.md),
+[type d'apnée](docs/RESULTATS_TYPE_APNEE.md), [nuit complète](docs/RESULTATS_NUIT.md).
+
+**La suite est écrite d'avance.** 300 nouvelles nuits SHHS sont en cours de téléchargement. Leur usage est fixé
+avant qu'elles soient regardées : moitié pour agrandir la validation et confirmer, sans rien régler, ce qui a été
+choisi sur 40 personnes ; moitié pour un test neuf, ouvert une fois sur une liste gelée.
+[docs/PROTOCOLE_V2.md](docs/PROTOCOLE_V2.md).
+
 ### Ce qui est établi, et ce qui ne l'est pas (octobre 2026)
 
 Intervalles à 95 % par bootstrap sur les 40 personnes de validation, moyenne de trois

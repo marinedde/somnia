@@ -78,6 +78,10 @@ L'index clinique (apnées + hypopnées avec désaturation ≥ 3 points) est rend
 | Index hors du dos (38 personnes) | Spearman 0.95, erreur médiane 1.7 / h |
 | Apnée positionnelle (index sur le dos au moins double, et ≥ 5) : technicien / estimé / accord | 3 / 1 / 88% sur 16 personnes |
 
+## 7. Micro-éveils
+
+Proposés pendant le sommeil prédit : 135 par nuit en médiane, soit 20 par heure. Ils sont listés avec leur confiance mais ne sont pas ajoutés à la file de relecture. Mesures : `docs/RESULTATS_EVEILS.md`.
+
 Temps de sommeil : prédit et analysable 6.1 (5.3–6.7) h, technicien 6.0 (5.5–6.7) h.
 
 ## Lecture

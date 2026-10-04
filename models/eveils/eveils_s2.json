@@ -1,0 +1,155 @@
+{
+  "nom": "eveils_s2",
+  "graine": 2,
+  "date": "2026-10-04T21:22",
+  "n_nuits_train": 192,
+  "n_nuits_val": 40,
+  "meilleure_epoque": 6,
+  "historique": [
+    {
+      "epoque": 1,
+      "perte_train": 0.27620202263610233,
+      "f1": 0.6511583381198546,
+      "precision": 0.5625206748263315,
+      "rappel": 0.7729545454545454
+    },
+    {
+      "epoque": 2,
+      "perte_train": 0.20890905729805428,
+      "f1": 0.6545989157401451,
+      "precision": 0.5494369890482801,
+      "rappel": 0.8095454545454546
+    },
+    {
+      "epoque": 3,
+      "perte_train": 0.1930487296750976,
+      "f1": 0.672526957337084,
+      "precision": 0.6943368828654405,
+      "rappel": 0.6520454545454546
+    },
+    {
+      "epoque": 4,
+      "perte_train": 0.18815746783382362,
+      "f1": 0.6618361918737963,
+      "precision": 0.554820851914501,
+      "rappel": 0.82
+    },
+    {
+      "epoque": 5,
+      "perte_train": 0.18098047777182527,
+      "f1": 0.6597559856893863,
+      "precision": 0.5531456698969389,
+      "rappel": 0.8172727272727273
+    },
+    {
+      "epoque": 6,
+      "perte_train": 0.17732015838329163,
+      "f1": 0.692967409948542,
+      "precision": 0.6231174015605153,
+      "rappel": 0.7804545454545454
+    },
+    {
+      "epoque": 7,
+      "perte_train": 0.17585525602723162,
+      "f1": 0.687144259077527,
+      "precision": 0.6046632124352331,
+      "rappel": 0.7956818181818182
+    },
+    {
+      "epoque": 8,
+      "perte_train": 0.16916461794947585,
+      "f1": 0.6627753718697045,
+      "precision": 0.5657344905175185,
+      "rappel": 0.8
+    },
+    {
+      "epoque": 9,
+      "perte_train": 0.1668701570791503,
+      "f1": 0.6844712052053997,
+      "precision": 0.597591995930134,
+      "rappel": 0.8009090909090909
+    },
+    {
+      "epoque": 10,
+      "perte_train": 0.16439333408036166,
+      "f1": 0.6845534687619779,
+      "precision": 0.5917826375082836,
+      "rappel": 0.8118181818181818
+    }
+  ],
+  "validation_bout_en_bout": {
+    "precision": 0.6231174015605153,
+    "rappel": 0.7804545454545454,
+    "f1": 0.692967409948542,
+    "n_reference": 4400,
+    "n_proposes": 5511,
+    "index": {
+      "spearman": 0.7369606003752346,
+      "erreur_absolue_mediane": 4.134904798892045,
+      "biais": 3.3070276301034305,
+      "mediane_reference": 17.192320315064
+    }
+  },
+  "validation_sommeil_du_technicien": {
+    "precision": 0.7166050143855323,
+    "rappel": 0.7925,
+    "f1": 0.7526440751133174,
+    "n_reference": 4400,
+    "n_proposes": 4866,
+    "index": {
+      "spearman": 0.7105065666041277,
+      "erreur_absolue_mediane": 3.5973475117987928,
+      "biais": 1.747541056398159,
+      "mediane_reference": 17.192320315064
+    }
+  },
+  "par_seuil": {
+    "0.3": {
+      "precision": 0.523130677847659,
+      "rappel": 0.8506818181818182,
+      "f1": 0.6478580700995241
+    },
+    "0.4": {
+      "precision": 0.5741007194244604,
+      "rappel": 0.8161363636363637,
+      "f1": 0.6740497419052088
+    },
+    "0.5": {
+      "precision": 0.6231174015605153,
+      "rappel": 0.7804545454545454,
+      "f1": 0.692967409948542
+    },
+    "0.6": {
+      "precision": 0.6702328508495909,
+      "rappel": 0.7261363636363637,
+      "f1": 0.6970655612523181
+    },
+    "0.7": {
+      "precision": 0.7171767028627838,
+      "rappel": 0.6604545454545454,
+      "f1": 0.6876478939895883
+    },
+    "0.8": {
+      "precision": 0.7680890538033395,
+      "rappel": 0.5645454545454546,
+      "f1": 0.6507728582656537
+    }
+  },
+  "duree_min": 2.2,
+  "journal": [
+    "[eveils_s2] entraînement : 192 nuits, 4.9% des secondes en micro-éveil, chargées en 15 s",
+    "appareil mps | 147,330 paramètres",
+    "validation : 40 nuits avec sommeil prédit",
+    "époque  1 | perte 0.2762 | val : F1 0.651 (précision 0.563, rappel 0.773), index Spearman 0.652 | 13 s",
+    "époque  2 | perte 0.2089 | val : F1 0.655 (précision 0.549, rappel 0.810), index Spearman 0.686 | 11 s",
+    "époque  3 | perte 0.1930 | val : F1 0.673 (précision 0.694, rappel 0.652), index Spearman 0.740 | 11 s",
+    "époque  4 | perte 0.1882 | val : F1 0.662 (précision 0.555, rappel 0.820), index Spearman 0.677 | 11 s",
+    "époque  5 | perte 0.1810 | val : F1 0.660 (précision 0.553, rappel 0.817), index Spearman 0.678 | 11 s",
+    "époque  6 | perte 0.1773 | val : F1 0.693 (précision 0.623, rappel 0.780), index Spearman 0.737 | 11 s",
+    "époque  7 | perte 0.1759 | val : F1 0.687 (précision 0.605, rappel 0.796), index Spearman 0.723 | 11 s",
+    "époque  8 | perte 0.1692 | val : F1 0.663 (précision 0.566, rappel 0.800), index Spearman 0.591 | 11 s",
+    "époque  9 | perte 0.1669 | val : F1 0.684 (précision 0.598, rappel 0.801), index Spearman 0.692 | 11 s",
+    "époque 10 | perte 0.1644 | val : F1 0.685 (précision 0.592, rappel 0.812), index Spearman 0.708 | 11 s",
+    "arrêt anticipé"
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "nom": "eveils_s42",
+  "graine": 42,
+  "date": "2026-10-04T21:17",
+  "n_nuits_train": 192,
+  "n_nuits_val": 40,
+  "meilleure_epoque": 4,
+  "historique": [
+    {
+      "epoque": 1,
+      "perte_train": 0.2567842955183652,
+      "f1": 0.6728482600632705,
+      "precision": 0.6469477658904972,
+      "rappel": 0.7009090909090909
+    },
+    {
+      "epoque": 2,
+      "perte_train": 0.20461170016270544,
+      "f1": 0.6512256669069935,
+      "precision": 0.5395758661887694,
+      "rappel": 0.8211363636363637
+    },
+    {
+      "epoque": 3,
+      "perte_train": 0.19248941558309726,
+      "f1": 0.6447414702778755,
+      "precision": 0.5258175559380379,
+      "rappel": 0.8331818181818181
+    },
+    {
+      "epoque": 4,
+      "perte_train": 0.1856019150465727,
+      "f1": 0.6892542101042501,
+      "precision": 0.616571018651363,
+      "rappel": 0.7813636363636364
+    },
+    {
+      "epoque": 5,
+      "perte_train": 0.18200194229268365,
+      "f1": 0.584126017806864,
+      "precision": 0.4390801967738245,
+      "rappel": 0.8722727272727273
+    },
+    {
+      "epoque": 6,
+      "perte_train": 0.17548673621689279,
+      "f1": 0.6775705404112865,
+      "precision": 0.584971098265896,
+      "rappel": 0.805
+    },
+    {
+      "epoque": 7,
+      "perte_train": 0.17221705759358075,
+      "f1": 0.681932854647778,
+      "precision": 0.5949881476464612,
+      "rappel": 0.7986363636363636
+    },
+    {
+      "epoque": 8,
+      "perte_train": 0.1697015719384783,
+      "f1": 0.6597425654682646,
+      "precision": 0.5412964311726147,
+      "rappel": 0.8445454545454546
+    }
+  ],
+  "validation_bout_en_bout": {
+    "precision": 0.616571018651363,
+    "rappel": 0.7813636363636364,
+    "f1": 0.6892542101042501,
+    "n_reference": 4400,
+    "n_proposes": 5576,
+    "index": {
+      "spearman": 0.7116322701688557,
+      "erreur_absolue_mediane": 5.053407394963024,
+      "biais": 3.5762134272038453,
+      "mediane_reference": 17.192320315064
+    }
+  },
+  "validation_sommeil_du_technicien": {
+    "precision": 0.705369807497467,
+    "rappel": 0.7911363636363636,
+    "f1": 0.7457953936797,
+    "n_reference": 4400,
+    "n_proposes": 4935,
+    "index": {
+      "spearman": 0.678986866791745,
+      "erreur_absolue_mediane": 3.930204898279049,
+      "biais": 2.0667997930102127,
+      "mediane_reference": 17.192320315064
+    }
+  },
+  "par_seuil": {
+    "0.3": {
+      "precision": 0.5083971516861481,
+      "rappel": 0.86,
+      "f1": 0.6390272734948915
+    },
+    "0.4": {
+      "precision": 0.5642745709828393,
+      "rappel": 0.8220454545454545,
+      "f1": 0.669195189639223
+    },
+    "0.5": {
+      "precision": 0.616571018651363,
+      "rappel": 0.7813636363636364,
+      "f1": 0.6892542101042501
+    },
+    "0.6": {
+      "precision": 0.6616370400992145,
+      "rappel": 0.7275,
+      "f1": 0.6930071444035506
+    },
+    "0.7": {
+      "precision": 0.7129924149743088,
+      "rappel": 0.6622727272727272,
+      "f1": 0.6866973017556262
+    },
+    "0.8": {
+      "precision": 0.7625386996904024,
+      "rappel": 0.5597727272727273,
+      "f1": 0.6456094364351245
+    }
+  },
+  "duree_min": 3.0,
+  "journal": [
+    "[eveils_s42] entraînement : 192 nuits, 4.9% des secondes en micro-éveil, chargées en 36 s",
+    "appareil mps | 147,330 paramètres",
+    "validation : 40 nuits avec sommeil prédit",
+    "époque  1 | perte 0.2568 | val : F1 0.673 (précision 0.647, rappel 0.701), index Spearman 0.702 | 20 s",
+    "époque  2 | perte 0.2046 | val : F1 0.651 (précision 0.540, rappel 0.821), index Spearman 0.698 | 17 s",
+    "époque  3 | perte 0.1925 | val : F1 0.645 (précision 0.526, rappel 0.833), index Spearman 0.676 | 26 s",
+    "époque  4 | perte 0.1856 | val : F1 0.689 (précision 0.617, rappel 0.781), index Spearman 0.712 | 23 s",
+    "époque  5 | perte 0.1820 | val : F1 0.584 (précision 0.439, rappel 0.872), index Spearman 0.529 | 14 s",
+    "époque  6 | perte 0.1755 | val : F1 0.678 (précision 0.585, rappel 0.805), index Spearman 0.700 | 13 s",
+    "époque  7 | perte 0.1722 | val : F1 0.682 (précision 0.595, rappel 0.799), index Spearman 0.674 | 11 s",
+    "époque  8 | perte 0.1697 | val : F1 0.660 (précision 0.541, rappel 0.845), index Spearman 0.687 | 11 s",
+    "arrêt anticipé"
+  ]
+}

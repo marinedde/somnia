@@ -191,3 +191,12 @@ def test_desaturations_par_heure_dans_le_resume():
     sao2 = np.full(3600, 96.0); sao2[500:520] = 92.5; sao2[2000:2030] = 90.0
     res = analyser_evenements(proba, np.ones(3600, dtype=bool), sao2_1hz=sao2)["resume"]
     assert res["desaturations_par_heure_3"] == 2.0 and res["desaturations_par_heure_4"] == 1.0
+
+
+def test_micro_eveils_dans_la_sortie():
+    from somnia.nuit import analyser_micro_eveils
+    p = np.zeros(7200); p[100:108] = 0.9; p[500:502] = 0.9; p[5000:5010] = 0.8
+    sommeil = np.ones(7200, dtype=bool); sommeil[4000:] = False            # le troisième tombe pendant l'éveil prédit
+    r = analyser_micro_eveils(p, sommeil)
+    assert [(e["debut_s"], e["duree_s"]) for e in r["evenements"]] == [(100, 8)]
+    assert r["resume"]["n_micro_eveils"] == 1 and r["resume"]["index_par_heure"] == round(1 / (4000 / 3600), 1)

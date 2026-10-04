@@ -280,9 +280,28 @@ def file_commune(relecture_stades: dict, respiration: dict, n_sec: int, duree_ep
     }
 
 
+def analyser_micro_eveils(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: float = 0.5, duree_min: int = 3, trou_max: int = 1) -> dict:
+    """P(micro-éveil) par seconde -> micro-éveils proposés pendant le sommeil prédit, et leur index par heure.
+
+    Un micro-éveil dure au moins 3 s (règle de scorage). La confiance est la moyenne de P sur sa durée.
+    """
+    from somnia.resp import masque_vers_evenements
+
+    proba_sec = np.asarray(proba_sec, dtype=np.float64)
+    n = len(proba_sec)
+    sommeil_sec = np.asarray(sommeil_sec, dtype=bool)[:n]
+    sommeil_sec = np.concatenate([sommeil_sec, np.zeros(n - len(sommeil_sec), dtype=bool)])
+    evs = [{"debut_s": e.debut, "debut": _hhmmss(e.debut), "duree_s": e.duree, "confiance": round(float(proba_sec[e.debut:e.fin].mean()), 3)}
+           for e in masque_vers_evenements((proba_sec >= seuil).astype(np.int8), duree_min=duree_min, trou_max=trou_max) if sommeil_sec[e.debut]]
+    heures = float(sommeil_sec.sum()) / 3600
+    return {"evenements": evs, "resume": {"n_micro_eveils": len(evs), "index_par_heure": round(len(evs) / heures, 1) if heures > 0 else None,
+                                          "seuil_decision": seuil}}
+
+
 def analyser_nuit_complete(epoques_eeg: np.ndarray, predire_stades, proba_evenements_sec: np.ndarray,
                            temperature: float = 1.0, seuil_stade: float = 0.6, sao2_1hz: np.ndarray | None = None,
-                           qualite: dict | None = None, dorsal_sec: np.ndarray | None = None) -> dict:
+                           qualite: dict | None = None, dorsal_sec: np.ndarray | None = None,
+                           proba_eveils_sec: np.ndarray | None = None) -> dict:
     """Hypnogramme + événements respiratoires + une file de relecture commune.
 
     Le sommeil utilisé pour l'index est le sommeil PRÉDIT (pas celui du technicien) : c'est ce
@@ -301,6 +320,9 @@ def analyser_nuit_complete(epoques_eeg: np.ndarray, predire_stades, proba_evenem
                                                  inexploitable_sec=q.get("resp_inexploitable"), dorsal_sec=dorsal_sec)
     rapport["file_commune"] = file_commune(rapport["relecture"], rapport["respiration"], n_sec,
                                            resp_inexploitable=q.get("resp_inexploitable"), sommeil_sec=sommeil_sec)
+    if proba_eveils_sec is not None:
+        # proposés, mais pas ajoutés à la file de relecture : leur précision ne le justifie pas encore (docs/RESULTATS_EVEILS.md)
+        rapport["micro_eveils"] = analyser_micro_eveils(proba_eveils_sec, np.repeat(np.isin(stades, [1, 2, 3, 4]), DUREE_EPOQUE_S))
     if "rapport" in q:
         rapport["qualite"] = q["rapport"]
         if q["rapport"]["refus"]["stades"]:
