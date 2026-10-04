@@ -34,6 +34,25 @@
     "ecartes": 127,
     "resp_inexploitable_pct_mediane": 8.149999999999999
   },
+  "position": {
+    "sommeil_dorsal_pct_mediane": 7.05,
+    "dorsal": {
+      "n": 17,
+      "spearman": 0.8681791944508764,
+      "erreur_absolue_mediane": 2.7083472454090156
+    },
+    "non_dorsal": {
+      "n": 38,
+      "spearman": 0.9546424482199457,
+      "erreur_absolue_mediane": 1.6994792035819173
+    },
+    "positionnel": {
+      "n": 16,
+      "technicien": 3,
+      "estime": 1,
+      "accord": 0.875
+    }
+  },
   "compromis_confiance": [
     {
       "confiance_min": 0.7,

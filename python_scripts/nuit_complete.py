@@ -38,7 +38,7 @@ from somnia.deep.resp_net import ReseauEvenements, charger_nuits, proba_nuit  # 
 from somnia.deep.train import appareil  # noqa: E402
 from somnia.nuit import analyser_nuit_complete  # noqa: E402
 from somnia.qualite import qualite_nuit  # noqa: E402
-from somnia.resp import FS_RESP, index_par_heure, masque_vers_evenements, sommeil_par_seconde  # noqa: E402
+from somnia.resp import POSITION_DOS_SHHS, chute_de_saturation, FS_RESP, index_par_heure, masque_vers_evenements, sommeil_par_seconde  # noqa: E402
 from somnia.shhs_prepare import charger_nuit  # noqa: E402
 
 OUT_MD = ROOT / "docs" / "RESULTATS_NUIT.md"
@@ -73,6 +73,7 @@ def main() -> int:
             X = preparer_signaux(signaux, net.canaux)
             return predire_nuit_multi(net, NuitMulti("nuit", "personne", X, np.zeros(len(X), dtype=np.int64)), torch.device("cpu"))
         return predire_stades
+    positions = []
     qual = {"refus_stades": 0, "refus_index": 0, "repli_eeg": 0, "ecartes": 0, "resp_inexploitable_pct": []}
 
     cov = {}
@@ -88,11 +89,13 @@ def main() -> int:
         with np.load(MULTI_DIR / f"{n.ident}.npz", allow_pickle=False) as d:
             eeg = d["signaux"]                                                      # µV, (n_epoques, 5 capteurs, 3000)
         proba = proba_nuit(ev_net, n, dev, canal_sommeil=True)
+        pos = np.load(RESP_DIR / f"{n.ident}_position.npy")[: n.n_sec]
+        dos = np.concatenate([pos == POSITION_DOS_SHHS, np.zeros(n.n_sec - len(pos), dtype=bool)])
         chemin_q = RESP_DIR / f"{n.ident}_sao2_invalide.npy"
         q = qualite_nuit(eeg, NOMS_CANAUX, n.signaux, n.n_sec, np.load(chemin_q) if chemin_q.exists() else None, FS_RESP)
         repli = q["rapport"]["modele_stades"] == "eeg"
         r = analyser_nuit_complete(eeg, predire_avec(repli_net if repli else stades_net), proba, temperature=T_repli if repli else T,
-                                   sao2_1hz=n.signaux[3, ::FS_RESP][: n.n_sec], qualite=q)
+                                   sao2_1hz=n.signaux[3, ::FS_RESP][: n.n_sec], qualite=q, dorsal_sec=dos)
         qual["refus_stades"] += q["rapport"]["refus"]["stades"]; qual["refus_index"] += q["rapport"]["refus"]["index"]; qual["repli_eeg"] += repli
         qual["ecartes"] += r["respiration"]["resume"]["n_ecartes_signal_inexploitable"]
         qual["resp_inexploitable_pct"].append(q["rapport"]["respiration_inexploitable_pct"])
@@ -117,6 +120,17 @@ def main() -> int:
         for e in ref:
             m = int(couv[e.debut:e.fin].max()) if e.fin > e.debut else 0
             ou_sont_les_ref[{3: "sur", 2: "a_relire", 1: "possible", 0: "manque"}[m]] += 1
+        # 5. position : index clinique sur le dos et hors du dos, estimé contre technicien (même règle de désaturation)
+        sao2_ref = n.signaux[3, ::FS_RESP][: n.n_sec]
+        compte_ref = [e for e in ref if e.classe == 1 or chute_de_saturation(sao2_ref, e.debut, e.fin) >= 3]
+        pos_ref = {}
+        for nom, zone in (("dorsal", dos), ("non_dorsal", ~dos)):
+            h = float((sommeil_ref & zone).sum()) / 3600
+            pos_ref[nom] = sum(1 for e in compte_ref if dos[e.debut] == (nom == "dorsal")) / h if h >= 0.5 else None
+        positions.append({"ref": pos_ref, "est": {"dorsal": res.get("index_dorsal"), "non_dorsal": res.get("index_non_dorsal")},
+                          "dorsal_pct": res.get("sommeil_dorsal_pct"), "positionnel_est": res.get("positionnel"),
+                          "positionnel_ref": (pos_ref["dorsal"] >= 2 * pos_ref["non_dorsal"] and pos_ref["dorsal"] >= 5)
+                          if pos_ref["dorsal"] is not None and pos_ref["non_dorsal"] is not None else None})
         # 4. index de bout en bout vs référence (sommeil et événements du technicien)
         lignes.append({
             "personne": n.personne, "index_ref": index_par_heure(ref_tous, sommeil_ref), "index_bout_en_bout": res["index_par_heure"] if res["index_par_heure"] is not None else np.nan,
@@ -151,6 +165,15 @@ def main() -> int:
     }
     agg["qualite"] = {**{k: v for k, v in qual.items() if k != "resp_inexploitable_pct"},
                       "resp_inexploitable_pct_mediane": float(np.median(qual["resp_inexploitable_pct"]))}
+    def accord_position(nom):
+        v = [(x["est"][nom], x["ref"][nom]) for x in positions if x["est"][nom] is not None and x["ref"][nom] is not None]
+        e, r = np.array([a for a, _ in v]), np.array([b for _, b in v])
+        return {"n": len(v), "spearman": float(spearmanr(e, r).correlation), "erreur_absolue_mediane": float(np.median(np.abs(e - r)))}
+    deux = [x for x in positions if x["positionnel_est"] is not None and x["positionnel_ref"] is not None]
+    agg["position"] = {"sommeil_dorsal_pct_mediane": float(np.median([x["dorsal_pct"] for x in positions])),
+                       "dorsal": accord_position("dorsal"), "non_dorsal": accord_position("non_dorsal"),
+                       "positionnel": {"n": len(deux), "technicien": int(sum(x["positionnel_ref"] for x in deux)), "estime": int(sum(x["positionnel_est"] for x in deux)),
+                                       "accord": float(np.mean([x["positionnel_est"] == x["positionnel_ref"] for x in deux])) if deux else None}}
     conf, juste = np.array([c for c, _ in paires]), np.array([j for _, j in paires])
     n_ref_total = sum(l["n_ref"] for l in lignes)
     agg["compromis_confiance"] = [
@@ -225,6 +248,15 @@ def main() -> int:
           f"| Nuits où l'outil refuse de rendre les indices de sommeil | {ql['refus_stades']} sur {agg['n_nuits']} |",
           f"| Nuits où les stades sont calculés avec l'EEG seul (yeux ou menton inexploitables) | {ql['repli_eeg']} sur {agg['n_nuits']} |", "",
           "Règles et mesures : `docs/RESULTATS_QUALITE.md`. L'index ci-dessus n'est mesuré que sur les nuits où l'outil le rend."]
+    po = agg["position"]
+    L += ["", "## 6. Position du corps", "",
+          "L'index clinique (apnées + hypopnées avec désaturation ≥ 3 points) est rendu séparément sur le dos et hors du dos, quand il y a au moins "
+          "30 minutes de sommeil dans la position. Référence : mêmes calculs sur les événements et le sommeil du technicien.", "",
+          "| | |", "|---|---|",
+          f"| Part du sommeil sur le dos, médiane | {po['sommeil_dorsal_pct_mediane']:.0f} % |",
+          f"| Index sur le dos, estimé contre technicien ({po['dorsal']['n']} personnes) | Spearman {po['dorsal']['spearman']:.2f}, erreur médiane {po['dorsal']['erreur_absolue_mediane']:.1f} / h |",
+          f"| Index hors du dos ({po['non_dorsal']['n']} personnes) | Spearman {po['non_dorsal']['spearman']:.2f}, erreur médiane {po['non_dorsal']['erreur_absolue_mediane']:.1f} / h |",
+          f"| Apnée positionnelle (index sur le dos au moins double, et ≥ 5) : technicien / estimé / accord | {po['positionnel']['technicien']} / {po['positionnel']['estime']} / {po['positionnel']['accord']:.0%} sur {po['positionnel']['n']} personnes |"]
     L += ["", f"Temps de sommeil : prédit et analysable {med_iqr([l['heures_sommeil_pred'] for l in lignes], '{:.1f}')} h, "
               f"technicien {med_iqr([l['heures_sommeil_ref'] for l in lignes], '{:.1f}')} h.", "",
           "## Lecture", "",

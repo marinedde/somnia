@@ -106,3 +106,14 @@ def test_normaliser_fenetre():
     assert abs(z[0].mean()) < 1e-3 and abs(z[0].std() - 1) < 1e-2
     assert np.allclose(z[3], -1.0)                   # 90 % -> −1
     assert np.isfinite(normaliser_fenetre(np.zeros((4, 3000)))).all()
+
+
+def test_desaturations_debut_fin_profondeur():
+    from somnia.resp import desaturations, index_de_desaturation
+    sao2 = np.full(3600, 96.0)
+    sao2[500:520] = 92.0; sao2[2000:2030] = 90.0; sao2[3000:3010] = 94.5       # deux chutes, et une de 1,5 point
+    d = desaturations(sao2, chute=3.0)
+    assert [(a, b, p) for a, b, p in d] == [(500, 520, 4.0), (2000, 2030, 6.0)]
+    assert len(desaturations(sao2, chute=5.0)) == 1 and desaturations(np.array([])) == []
+    sommeil = np.ones(3600, dtype=bool); sommeil[1800:] = False                 # seule la première est pendant le sommeil
+    assert index_de_desaturation(sao2, sommeil, 3.0) == 2.0                      # 1 chute en 0,5 h

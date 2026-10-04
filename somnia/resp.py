@@ -183,31 +183,43 @@ def nettoyer_sao2(sao2: np.ndarray) -> np.ndarray:
     return x
 
 
+def desaturations(sao2_1hz: np.ndarray, chute: float = 3.0, fenetre_s: int = 120) -> list[tuple[int, int, float]]:
+    """Chutes de saturation : liste de (début, fin, profondeur) en secondes et en points.
+
+    Une chute commence quand la saturation passe `chute` points sous le maximum des `fenetre_s`
+    secondes précédentes ; elle se termine quand elle remonte à moins d'un point de ce maximum.
+    La profondeur est l'écart maximal atteint entre-temps.
+    """
+    x = nettoyer_sao2(sao2_1hz)
+    n = len(x)
+    if n == 0:
+        return []
+    from numpy.lib.stride_tricks import sliding_window_view
+    pad = np.concatenate([np.full(fenetre_s - 1, x[0]), x])
+    ecart = sliding_window_view(pad, fenetre_s).max(axis=1) - x            # maximum glissant sur la fenêtre précédente
+    out, debut, fond = [], None, 0.0
+    for t in range(n):
+        if debut is None and ecart[t] >= chute:
+            debut, fond = t, float(ecart[t])
+        elif debut is not None:
+            fond = max(fond, float(ecart[t]))
+            if ecart[t] < 1.0:
+                out.append((debut, t, fond)); debut = None
+    if debut is not None:
+        out.append((debut, n, fond))
+    return out
+
+
 def index_de_desaturation(sao2_1hz: np.ndarray, sommeil: np.ndarray, chute: float = 3.0,
                           fenetre_s: int = 120) -> float:
     """ODI : nombre de chutes de saturation d'au moins `chute` points par heure de sommeil.
 
     Référence classique et forte pour estimer l'index d'apnées : chaque événement qui compte
-    cliniquement est suivi d'une désaturation. Une chute est comptée quand la saturation passe
-    `chute` points sous le maximum des `fenetre_s` secondes précédentes ; elle se termine quand
-    la saturation remonte à moins d'un point de ce maximum.
+    cliniquement est suivi d'une désaturation. Voir `desaturations` pour la règle.
     """
-    x = nettoyer_sao2(sao2_1hz)
-    n = min(len(x), len(sommeil))
-    x, sommeil = x[:n], sommeil[:n]
-    # maximum glissant sur la fenêtre précédente
-    from numpy.lib.stride_tricks import sliding_window_view
-    pad = np.concatenate([np.full(fenetre_s - 1, x[0]), x])
-    base = sliding_window_view(pad, fenetre_s).max(axis=1)
-    en_chute, compte = False, 0
-    for t in range(n):
-        d = base[t] - x[t]
-        if not en_chute and d >= chute:
-            en_chute = True
-            if sommeil[t]:
-                compte += 1
-        elif en_chute and d < 1.0:
-            en_chute = False
+    n = min(len(sao2_1hz), len(sommeil))
+    sommeil = np.asarray(sommeil)[:n]
+    compte = sum(1 for d, _, _ in desaturations(np.asarray(sao2_1hz)[:n], chute, fenetre_s) if sommeil[d])
     heures = float(sommeil.sum()) / 3600
     return compte / heures if heures > 0 else float("nan")
 
@@ -261,3 +273,51 @@ def normaliser_fenetre(x: np.ndarray) -> np.ndarray:
         out[i] = (x[i] - m) / (s + 1e-6)
     out[3] = np.clip((x[3] - 95.0) / 5.0, -6, 1)
     return out
+
+
+# ── Position du corps ─────────────────────────────────────────────────────
+# Canal POSITION de SHHS (1 Hz, valeurs 0 à 3). Le code du décubitus dorsal n'est pas supposé : il a été
+# identifié en comparant, nuit par nuit, la part du sommeil passée dans chaque code à la variable SHHS
+# `supinep` (part du sommeil sur le dos). Code 2 : Spearman 0,99 et écart médian nul, sur 191 nuits
+# d'entraînement puis sur les 40 de validation. Les trois autres codes ne sont pas distingués ici.
+POSITION_DOS_SHHS = 2
+
+
+# ── Type d'apnée : obstructive ou centrale (horizon 2) ────────────────────
+NOMS_EFFORT = ("log_thorax", "log_abdomen", "log_flux", "opposition")
+
+
+def effort_respiratoire(signaux_10hz: np.ndarray, debut: int, fin: int, avant_s: int = 60, fs: int = FS_RESP) -> np.ndarray | None:
+    """Ce qu'un lecteur regarde pour typer une apnée : les ceintures bougent-elles encore ?
+
+    Apnée obstructive : la gorge est fermée mais le patient continue de faire l'effort de respirer,
+    les ceintures bougent, souvent en opposition (thorax et abdomen à contre-temps). Apnée
+    centrale : la commande s'arrête, les ceintures sont plates.
+
+    `signaux_10hz` : (≥ 3, n) flux, thorax, abdomen. Rend [log du rapport d'amplitude du thorax
+    pendant / avant, idem abdomen, idem flux, opposition (− corrélation thorax–abdomen pendant
+    l'événement)] ; None si la fenêtre sort de la nuit ou si la référence est plate.
+    """
+    a, b, a0 = debut * fs, fin * fs, (debut - avant_s) * fs
+    if a0 < 0 or b > signaux_10hz.shape[1] or b - a < 5 * fs:
+        return None
+    out = []
+    for c in (1, 2, 0):
+        ref, pendant = float(signaux_10hz[c, a0:a].std()), float(signaux_10hz[c, a:b].std())
+        if ref <= 1e-9:
+            return None
+        out.append(np.log(max(pendant, 1e-9) / ref))
+    th, ab = signaux_10hz[1, a:b], signaux_10hz[2, a:b]
+    corr = float(np.corrcoef(th, ab)[0, 1]) if th.std() > 1e-9 and ab.std() > 1e-9 else 0.0
+    out.append(-corr)
+    out = np.array(out, dtype=np.float64)
+    return out if np.isfinite(out).all() else None          # signal non fini (capteur en défaut) : pas de typage
+
+
+def proba_centrale(traits: np.ndarray | None, modele: dict) -> float | None:
+    """Régression logistique lue dans un petit fichier JSON (moyennes, écarts-types, coefficients, biais).
+    Rend P(apnée centrale), ou None si les traits manquent."""
+    if traits is None:
+        return None
+    z = (np.asarray(traits) - np.array(modele["moyennes"])) / np.array(modele["ecarts_types"])
+    return float(1.0 / (1.0 + np.exp(-(float(np.dot(z, modele["coefficients"])) + modele["biais"]))))

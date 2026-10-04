@@ -165,3 +165,29 @@ def test_nuit_refusee_pas_d_index_et_motif_dans_le_statut():
     assert "QUALITÉ DU SIGNAL" in r["statut"] and r["indices"] is not None
     item = [i for i in r["file_commune"]["items"] if i["quoi"] == "signal respiratoire inexploitable"]
     assert len(item) == 1 and item[0]["duree_s"] == 300
+
+
+# ── Position et désaturations dans la sortie (horizon 2) ──────────────────
+def test_index_par_position_et_apnee_positionnelle():
+    proba = np.zeros((7200, 3)); proba[:, 0] = 1.0
+    for a in (100, 400, 700, 1000, 1300, 1600, 4000):      # 6 apnées la première heure (sur le dos), 1 la seconde
+        proba[a:a + 20] = 0.0; proba[a:a + 20, 1] = 1.0
+    dos = np.zeros(7200, dtype=bool); dos[:3600] = True
+    r = analyser_evenements(proba, np.ones(7200, dtype=bool), sao2_1hz=np.full(7200, 96.0), dorsal_sec=dos)
+    res = r["resume"]
+    assert (res["index_dorsal"], res["index_non_dorsal"], res["sommeil_dorsal_pct"]) == (6.0, 1.0, 50.0)
+    assert res["positionnel"] is True and r["evenements"][0]["position"] == "dos" and r["evenements"][-1]["position"] == "autre"
+
+
+def test_pas_d_index_par_position_sans_assez_de_sommeil():
+    proba = np.zeros((7200, 3)); proba[:, 0] = 1.0
+    dos = np.zeros(7200, dtype=bool); dos[:600] = True     # 10 minutes sur le dos : trop peu pour un taux
+    res = analyser_evenements(proba, np.ones(7200, dtype=bool), dorsal_sec=dos)["resume"]
+    assert res["index_dorsal"] is None and res["index_non_dorsal"] == 0.0 and res["positionnel"] is None
+
+
+def test_desaturations_par_heure_dans_le_resume():
+    proba = np.zeros((3600, 3)); proba[:, 0] = 1.0
+    sao2 = np.full(3600, 96.0); sao2[500:520] = 92.5; sao2[2000:2030] = 90.0
+    res = analyser_evenements(proba, np.ones(3600, dtype=bool), sao2_1hz=sao2)["resume"]
+    assert res["desaturations_par_heure_3"] == 2.0 and res["desaturations_par_heure_4"] == 1.0

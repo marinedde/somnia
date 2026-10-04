@@ -1,0 +1,101 @@
+{
+  "traits": [
+    "log_thorax",
+    "log_abdomen",
+    "log_flux",
+    "opposition"
+  ],
+  "moyennes": [
+    -0.715870612360928,
+    -0.736175226883788,
+    -0.5263568316347842,
+    -0.2920293016317523
+  ],
+  "ecarts_types": [
+    0.7138344269614039,
+    0.9740798491432505,
+    1.1045536372906128,
+    0.5153140509624354
+  ],
+  "coefficients": [
+    -0.5048732897245227,
+    -0.7426944309952195,
+    -0.15069384339374445,
+    -0.1580284354165157
+  ],
+  "biais": -0.30378481832957005,
+  "seuil": 0.4820084482114985,
+  "date": "2026-10-04",
+  "n_train": {
+    "obstructives": 5896,
+    "centrales": 839
+  },
+  "validation": {
+    "auc_train": 0.7611189299466478,
+    "auc_val": 0.73475764354959,
+    "n_val": {
+      "obstructives": 1341,
+      "centrales": 100
+    },
+    "sensibilite_centrale": 0.75,
+    "specificite": 0.5950782997762863,
+    "valeur_predictive_centrale": 0.12135922330097088,
+    "auc_par_trait": {
+      "log_thorax": 0.7887546607009694,
+      "log_abdomen": 0.6542281879194631,
+      "log_flux": 0.6460924683072333,
+      "opposition": 0.5032960477255779
+    },
+    "bout_en_bout": {
+      "spearman": 0.5167487811871673,
+      "erreur_absolue_mediane": 0.350318011585114,
+      "biais": 1.4228132214445703,
+      "n_centrales_technicien": 85,
+      "n_centrales_estimees": 424,
+      "personnes_au_dessus_de_5_par_heure": {
+        "technicien": 0,
+        "estime": 5,
+        "les_deux": 0
+      }
+    },
+    "reseau": {
+      "graines": {
+        "42": {
+          "auc_val": 0.8425354213273676,
+          "sensibilite_centrale": 0.53,
+          "specificite": 0.9142431021625652,
+          "valeur_predictive_centrale": 0.31547619047619047
+        },
+        "1": {
+          "auc_val": 0.8618195376584638,
+          "sensibilite_centrale": 0.44,
+          "specificite": 0.9552572706935123,
+          "valeur_predictive_centrale": 0.4230769230769231
+        },
+        "2": {
+          "auc_val": 0.7963385533184191,
+          "sensibilite_centrale": 0.56,
+          "specificite": 0.8516032811334825,
+          "valeur_predictive_centrale": 0.2196078431372549
+        }
+      },
+      "bout_en_bout_s42": {
+        "spearman": 0.5204967685240572,
+        "erreur_absolue_mediane": 0.14083169951501393,
+        "biais": 0.36673172358907374,
+        "n_centrales_technicien": 85,
+        "n_centrales_estimees": 168,
+        "personnes_au_dessus_de_5_par_heure": {
+          "technicien": 0,
+          "estime": 2,
+          "les_deux": 0
+        }
+      },
+      "journal": [
+        "réseau, graine 42 : meilleur AUC de validation 0.843 (13 époques)",
+        "réseau, graine 1 : meilleur AUC de validation 0.862 (26 époques)",
+        "réseau, graine 2 : meilleur AUC de validation 0.796 (8 époques)"
+      ]
+    }
+  }
+}

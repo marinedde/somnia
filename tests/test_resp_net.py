@@ -77,3 +77,26 @@ def test_mesures_parfaites_et_degradees():
     decale = n.y.copy(); decale[:] = 0; decale[110:150] = 2; decale[400:425] = 1          # 2 trouvés sur 3, bornes approximatives
     m = mesurer_nuits([n], [decale])
     assert m["par_evenement"]["recouvrement"]["vp"] == 2 and m["par_evenement"]["recouvrement"]["fn"] == 1
+
+
+# ── Type d'apnée (horizon 2) ──────────────────────────────────────────────
+def test_fenetre_apnee_forme_et_bords():
+    from somnia.deep.type_net import N_POINTS, ReseauType, fenetre_apnee, proba_centrale_reseau
+    s = np.random.default_rng(0).normal(size=(4, 6000)).astype(np.float32)          # 10 minutes à 10 Hz
+    x = fenetre_apnee(s, 100)
+    assert x.shape == (3, N_POINTS) and abs(x.mean()) < 1e-4 and abs(x.std() - 1) < 1e-2
+    assert fenetre_apnee(s, 10) is None and fenetre_apnee(s, 590) is None           # sort de la nuit
+    s[1, 700:1600] = 0.0
+    assert fenetre_apnee(s, 100) is None                                            # ceinture plate : pas de typage
+    p = proba_centrale_reseau(ReseauType(), np.stack([x, x]), torch.device("cpu"))
+    assert p.shape == (2,) and ((p >= 0) & (p <= 1)).all()
+
+
+def test_effort_respiratoire_distingue_ceintures_plates():
+    from somnia.resp import effort_respiratoire
+    t = np.arange(3000) / 10
+    s = np.stack([np.sin(2 * np.pi * 0.25 * t)] * 3).astype(np.float32)             # respiration régulière sur 3 canaux
+    s[:, 1000:1200] *= 0.05                                                         # 20 s où tout s'aplatit : centrale
+    traits = effort_respiratoire(s, 100, 120)
+    assert traits[0] < -2 and traits[1] < -2                                        # thorax et abdomen : amplitude / 20
+    assert effort_respiratoire(s, 10, 30) is None                                   # pas assez de signal avant

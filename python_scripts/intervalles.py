@@ -158,15 +158,19 @@ def main() -> int:
           "- **La largeur des intervalles est la leçon principale** : avec 40 personnes, un kappa est connu à ± 0,04 et un F1 par événement à ± 0,04. "
           "Tout écart plus petit entre deux réglages ne se lit que par une comparaison appariée, et encore.", "",
           "## Repère : l'accord entre scoreurs humains", "",
-          "Un modèle ne peut pas être plus d'accord avec un technicien que deux techniciens entre eux. Chiffres publiés, **cités de mémoire : "
-          "à vérifier à la source avant toute publication**. SHHS a été scoré selon les règles de Rechtschaffen et Kales, pas selon celles de l'AASM : "
-          "la comparaison est indicative.", "",
+          "Un modèle ne peut pas être plus d'accord avec un technicien que deux techniciens entre eux. Chiffres publiés, vérifiés le "
+          "4 octobre 2026 sur les résumés des articles. SHHS a été scoré selon les règles de Rechtschaffen et Kales (R&K), pas selon celles de l'AASM : "
+          "le repère le plus proche est donc la ligne R&K.", "",
           "| Mesure | Entre scoreurs humains (littérature) | Somnia, validation |", "|---|---|---|",
-          f"| Stades, accord global | environ 83 % (Rosenberg et Van Hout, 2013, programme inter-scoreurs de l'AASM) | {stades['Exactitude']['multi']['estimation']:.0%} |",
-          f"| Stades, kappa | environ 0,76 (Danker-Hopfe et al., 2009) | {k['multi']['estimation']:.2f} |",
-          "| N1 | accord d'environ 63 %, le plus bas de tous les stades (Rosenberg et Van Hout, 2013) | F1 0,41 (mesure différente) |",
-          "| REM | accord d'environ 90 % | F1 0,85 (mesure différente) |",
-          "| Hypopnées | accord d'environ 65 %, contre environ 77 % pour les apnées obstructives (Rosenberg et Van Hout, 2014) | rappel 0,72 ; apnées 0,94 |", "",
+          f"| Stades, règles R&K : accord global / kappa | 80,6 % / 0,68 (Danker-Hopfe et al., 2009) | {stades['Exactitude']['multi']['estimation']:.1%} / {k['multi']['estimation']:.2f} |",
+          "| Stades, règles AASM : accord global / kappa | 82,0 % / 0,76 (Danker-Hopfe et al., 2009) ; 82,6 % (Rosenberg et Van Hout, 2013) | — |",
+          "| N1 | accord de 63,0 %, le plus bas de tous les stades (Rosenberg et Van Hout, 2013) | F1 0,41 (mesure différente) |",
+          "| N3 | accord de 67,4 % (Rosenberg et Van Hout, 2013) | F1 0,74 (mesure différente) |",
+          "| Événements respiratoires | hypopnées 65,4 %, apnées obstructives 77,1 % (Rosenberg et Van Hout, 2014) | rappel 0,72 ; apnées 0,94 (mesure différente) |", "",
+          "Sources : [Danker-Hopfe et al., 2009](https://pubmed.ncbi.nlm.nih.gov/19250176) ; "
+          "[Rosenberg et Van Hout, 2013](https://link.springer.com/article/10.5664/jcsm.2350) ; "
+          "[Rosenberg et Van Hout, 2014](https://pubmed.ncbi.nlm.nih.gov/24733993/). Ces études mesurent l'accord entre humains sur d'autres nuits, "
+          "avec d'autres mesures : elles situent un ordre de grandeur, elles ne prouvent pas que Somnia atteint le niveau d'un scoreur.", "",
           "Lecture : le N1 et les hypopnées sont les deux endroits où Somnia est faible, et ce sont aussi les deux endroits où les humains "
           "s'accordent le moins. Une partie du plafond est dans l'étiquette, pas dans le modèle. Pour le mesurer vraiment, il faudrait "
           "des nuits scorées deux fois, ce que SHHS ne fournit pas.", "",

@@ -113,6 +113,7 @@ P_POSSIBLE = 0.40            # entre ce niveau et le seuil de décision : « év
 CONTEXTE_S = 30              # ce qu'un lecteur regarde autour d'un événement à relire
 DUREE_POSSIBLE_S = 10        # durée minimale d'une zone « événement possible »
 TROU_POSSIBLE_S = 0          # trous comblés à l'intérieur d'une zone « possible »
+SOMMEIL_MIN_POSITION_H = 0.5 # en dessous, pas d'index par position : trop peu de sommeil pour un taux
 DESATURATIONS = (3.0, 4.0)   # points de saturation : critères des index cliniques (hypopnées à 3 % et à 4 %)
 
 _CODES = {v: k for k, v in STADES.items()}
@@ -127,7 +128,7 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
                         confiance_sure: float = CONFIANCE_SURE, sommeil_seulement: bool = False,
                         sao2_1hz: np.ndarray | None = None, p_possible: float | None = None,
                         duree_possible: int | None = None, trou_possible: int | None = None,
-                        inexploitable_sec: np.ndarray | None = None) -> dict:
+                        inexploitable_sec: np.ndarray | None = None, dorsal_sec: np.ndarray | None = None) -> dict:
     """Probabilités à la seconde (n_sec, 3 : rien, apnée, hypopnée) -> événements proposés.
 
     Chaque événement reçoit une confiance (moyenne de P(événement) sur sa durée). Trois niveaux :
@@ -143,6 +144,11 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
     Avec `inexploitable_sec` (booléen par seconde, voir somnia.qualite) : rien n'est proposé là où la
     respiration est inexploitable, et ce temps sort du dénominateur de l'index. Un index calculé sur
     six heures dont deux sans capteur serait sous-estimé d'un tiers.
+
+    Avec `dorsal_sec` (booléen par seconde : le patient est sur le dos) : chaque événement reçoit sa
+    position, et le résumé donne l'index sur le dos et hors du dos. Une apnée « positionnelle »
+    (index au moins double sur le dos) ne se traite pas comme les autres. L'index par position n'est
+    rendu que s'il repose sur au moins 30 minutes de sommeil dans cette position.
     """
     from somnia.resp import CLASSES, SEUIL_EVENEMENT, chute_de_saturation, masque_vers_evenements, proba_vers_masque
 
@@ -188,8 +194,26 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
         possibles = [e for e in possibles if sommeil_sec[e["debut_s"]]]
     heures = float(sommeil_sec.sum()) / 3600
     en_sommeil = [e for e in evenements if e["pendant_le_sommeil"]]
+    position = {}
+    if dorsal_sec is not None:
+        dos = np.asarray(dorsal_sec, dtype=bool)[:n]
+        dos = np.concatenate([dos, np.zeros(n - len(dos), dtype=bool)])
+        for e in evenements:
+            e["position"] = "dos" if dos[e["debut_s"]] else "autre"
+        compte = (lambda e: e["type"] == "apnée" or e["desaturation"] >= DESATURATIONS[0]) if sao2_1hz is not None else (lambda e: True)
+        for nom, zone in (("dorsal", dos), ("non_dorsal", ~dos)):
+            h = float((sommeil_sec & zone).sum()) / 3600
+            k = sum(compte(e) for e in en_sommeil if (e["position"] == "dos") == (nom == "dorsal"))
+            position[f"index_{nom}"] = round(k / h, 1) if h >= SOMMEIL_MIN_POSITION_H else None
+        position["sommeil_dorsal_pct"] = round(100 * float((sommeil_sec & dos).sum()) / max(float(sommeil_sec.sum()), 1.0), 1)
+        a, b = position["index_dorsal"], position["index_non_dorsal"]
+        position["positionnel"] = bool(a >= 2 * b and a >= 5) if a is not None and b is not None else None
     cliniques = {}
     if sao2_1hz is not None:
+        from somnia.resp import desaturations as _desaturations
+        for k in DESATURATIONS:
+            n_d = sum(1 for d, _, _ in _desaturations(np.asarray(sao2_1hz)[:n], k) if sommeil_sec[d])
+            cliniques[f"desaturations_par_heure_{k:g}"] = round(n_d / heures, 1) if heures > 0 else None
         for k in DESATURATIONS:
             n_k = sum(e["type"] == "apnée" or e["desaturation"] >= k for e in en_sommeil)
             cliniques[f"index_clinique_{k:g}"] = round(n_k / heures, 1) if heures > 0 else None
@@ -206,7 +230,7 @@ def analyser_evenements(proba_sec: np.ndarray, sommeil_sec: np.ndarray, seuil: f
             "heures_de_sommeil": round(heures, 2),
             "index_par_heure": round(len(en_sommeil) / heures, 1) if heures > 0 else None,
             "seuil_decision": seuil, "confiance_sure": confiance_sure, **cliniques,
-            "n_ecartes_signal_inexploitable": n_ecartes,
+            "n_ecartes_signal_inexploitable": n_ecartes, **position,
         },
     }
 
@@ -258,7 +282,7 @@ def file_commune(relecture_stades: dict, respiration: dict, n_sec: int, duree_ep
 
 def analyser_nuit_complete(epoques_eeg: np.ndarray, predire_stades, proba_evenements_sec: np.ndarray,
                            temperature: float = 1.0, seuil_stade: float = 0.6, sao2_1hz: np.ndarray | None = None,
-                           qualite: dict | None = None) -> dict:
+                           qualite: dict | None = None, dorsal_sec: np.ndarray | None = None) -> dict:
     """Hypnogramme + événements respiratoires + une file de relecture commune.
 
     Le sommeil utilisé pour l'index est le sommeil PRÉDIT (pas celui du technicien) : c'est ce
@@ -274,7 +298,7 @@ def analyser_nuit_complete(epoques_eeg: np.ndarray, predire_stades, proba_evenem
     n_sec = len(proba_evenements_sec)
     sommeil_sec = np.repeat(np.isin(stades, [1, 2, 3, 4]), DUREE_EPOQUE_S)
     rapport["respiration"] = analyser_evenements(proba_evenements_sec, sommeil_sec, sommeil_seulement=True, sao2_1hz=sao2_1hz,
-                                                 inexploitable_sec=q.get("resp_inexploitable"))
+                                                 inexploitable_sec=q.get("resp_inexploitable"), dorsal_sec=dorsal_sec)
     rapport["file_commune"] = file_commune(rapport["relecture"], rapport["respiration"], n_sec,
                                            resp_inexploitable=q.get("resp_inexploitable"), sommeil_sec=sommeil_sec)
     if "rapport" in q:
@@ -282,7 +306,7 @@ def analyser_nuit_complete(epoques_eeg: np.ndarray, predire_stades, proba_evenem
         if q["rapport"]["refus"]["stades"]:
             rapport["indices"] = None
         if q["rapport"]["refus"]["index"]:
-            for cle in [c for c in rapport["respiration"]["resume"] if c.startswith("index_")]:
+            for cle in [c for c in rapport["respiration"]["resume"] if c.startswith("index_") or c == "positionnel"]:
                 rapport["respiration"]["resume"][cle] = None
         if q["rapport"]["motifs"]:
             rapport["statut"] += " | QUALITÉ DU SIGNAL : " + " ; ".join(q["rapport"]["motifs"])

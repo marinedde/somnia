@@ -67,6 +67,17 @@ Sommeil prédit par le réseau de stades, événements prédits par le réseau r
 
 Règles et mesures : `docs/RESULTATS_QUALITE.md`. L'index ci-dessus n'est mesuré que sur les nuits où l'outil le rend.
 
+## 6. Position du corps
+
+L'index clinique (apnées + hypopnées avec désaturation ≥ 3 points) est rendu séparément sur le dos et hors du dos, quand il y a au moins 30 minutes de sommeil dans la position. Référence : mêmes calculs sur les événements et le sommeil du technicien.
+
+| | |
+|---|---|
+| Part du sommeil sur le dos, médiane | 7 % |
+| Index sur le dos, estimé contre technicien (17 personnes) | Spearman 0.87, erreur médiane 2.7 / h |
+| Index hors du dos (38 personnes) | Spearman 0.95, erreur médiane 1.7 / h |
+| Apnée positionnelle (index sur le dos au moins double, et ≥ 5) : technicien / estimé / accord | 3 / 1 / 88% sur 16 personnes |
+
 Temps de sommeil : prédit et analysable 6.1 (5.3–6.7) h, technicien 6.0 (5.5–6.7) h.
 
 ## Lecture
