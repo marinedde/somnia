@@ -55,24 +55,22 @@ def main() -> int:
     parser.add_argument("--nuit-locale", type=int, default=0, help="indice de la nuit dont on garde le détail en local")
     args = parser.parse_args()
     dev = appareil()
-    stades_net = CNN1D(5); stades_net.load_state_dict(torch.load(ROOT / "models/cnn/eeg_f1_s42.pt", map_location="cpu")); stades_net.eval()
-    T = json.loads((ROOT / "models/cnn/eeg_f1_s42.json").read_text(encoding="utf-8"))["calibration"]["temperature"]
-    ev_net = ReseauEvenements(canaux=5); ev_net.load_state_dict(torch.load(ROOT / "models/resp/evenements_v2_s42.pt", map_location="cpu")); ev_net.to(dev)
+    # Stades : encodeur + lecture de la nuit (horizon 1.2). Événements : v3, qui reçoit le sommeil prédit par ce modèle.
+    from somnia.deep.seq import NuitEEG, ReseauSequence, predire_nuit
+    stades_net = ReseauSequence(); stades_net.load_state_dict(torch.load(ROOT / "models/cnn/eeg_seq_s42.pt", map_location="cpu")); stades_net.eval()
+    T = json.loads((ROOT / "models/cnn/eeg_seq_s42.json").read_text(encoding="utf-8"))["calibration"]["temperature"]
+    ev_net = ReseauEvenements(canaux=5); ev_net.load_state_dict(torch.load(ROOT / "models/resp/evenements_v3_s42.pt", map_location="cpu")); ev_net.to(dev)
 
     def predire_stades(eeg_uv):
-        with torch.no_grad():
-            out = []
-            for i in range(0, len(eeg_uv), 512):
-                x = torch.from_numpy(eeg_uv[i:i + 512].astype(np.float32)).unsqueeze(1)
-                out.append(stades_net(normaliser_lot(x)).numpy())
-            return np.concatenate(out)
+        nuit = NuitEEG("nuit", "personne", eeg_uv.astype(np.float16), np.zeros(len(eeg_uv), dtype=np.int64))
+        return predire_nuit(stades_net, nuit, torch.device("cpu"))
 
     cov = {}
     if (PROCESSED / "covariables.csv").exists():
         with open(PROCESSED / "covariables.csv", encoding="utf-8") as f:
             cov = {f"shhs-{r['nsrrid']}": r for r in csv.DictReader(f)}
 
-    nuits = charger_nuits(personnes_du_split("val"))
+    nuits = charger_nuits(personnes_du_split("val"), sommeil="seq")
     lignes, niveaux = [], {"sur": [0, 0], "a_relire": [0, 0]}          # [justes, total]
     paires = []                                                        # (confiance, juste) de chaque événement proposé
     ou_sont_les_ref = {"sur": 0, "a_relire": 0, "possible": 0, "manque": 0}

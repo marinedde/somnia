@@ -40,10 +40,10 @@ def ligne_evenements(nom, runs, cle):
 
 
 def main() -> int:
-    v2, v1 = lire("evenements_v2_s*.json"), lire("evenements_s*.json")
+    v3, v2, v1 = lire("evenements_v3_s*.json"), lire("evenements_v2_s*.json"), lire("evenements_s*.json")
     grille = {p.stem.rsplit("_s", 1)[0]: json.loads(p.read_text(encoding="utf-8")) for p in RESP.glob("g_*_s*.json")}
     base = json.loads((RESP / "reference_desaturation.json").read_text(encoding="utf-8")) if (RESP / "reference_desaturation.json").exists() else None
-    courant = v2 or v1
+    courant = v3 or v2 or v1
     if not courant:
         sys.exit("aucun entraînement dans models/resp")
     r0 = courant[0]
@@ -69,10 +69,14 @@ def main() -> int:
     if "g_ref" in grille and grille["g_ref"].get(S):
         L.append(ligne_evenements("v1, pendant le sommeil (1 graine)", [grille["g_ref"]], S))
     if v2:
-        L.append(ligne_evenements(f"**v2, pendant le sommeil** ({len(v2)} graines)", v2, S))
-        L.append(ligne_evenements(f"v2, tous les événements ({len(v2)} graines)", v2, "validation"))
+        L.append(ligne_evenements(f"v2, pendant le sommeil ({len(v2)} graines)", v2, S))
+    if v3:
+        L.append(ligne_evenements(f"**v3, pendant le sommeil** ({len(v3)} graines)", v3, S))
+        L.append(ligne_evenements(f"v3, tous les événements ({len(v3)} graines)", v3, "validation"))
     L += ["", "v2 = v1 + un cinquième canal (la probabilité de sommeil prédite par le réseau de stades), une pondération des classes "
-              "adoucie (racine carrée) et un gain aléatoire sur les capteurs à l'entraînement.", ""]
+              "adoucie (racine carrée) et un gain aléatoire sur les capteurs à l'entraînement.", "",
+          "v3 = v2, mais le sommeil prédit vient du nouveau réseau de stades, qui lit la nuit entière (encodeur + GRU) au lieu "
+          "d'une époque à la fois. Rien d'autre ne change : l'écart v2 → v3 mesure ce que rapporte un meilleur hypnogramme.", ""]
 
     L += ["## Ce qui a été essayé, et ce que ça a donné", "",
           "Diagnostic de la v1 sur la validation : **47 % des fausses propositions commençaient pendant l'éveil**, 44 % étaient à "
@@ -97,7 +101,7 @@ def main() -> int:
 
     L += ["## Par personne : l'index", "",
           "| Estimateur | Contre | Spearman | Erreur absolue médiane (/h) | Biais (/h) |", "|---|---|---|---|---|"]
-    for nom, runs, cle in ((f"Réseau v2, de bout en bout", v2, S), ("Réseau v1 (sommeil du technicien)", v1, "validation")):
+    for nom, runs, cle in (("Réseau v3, de bout en bout", v3, S), ("Réseau v2, de bout en bout", v2, S), ("Réseau v1 (sommeil du technicien)", v1, "validation")):
         if not runs:
             continue
         L.append(f"| {nom} | index annoté | {pm(runs, lambda r: r[cle]['par_personne']['spearman'])} | "

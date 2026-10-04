@@ -17,10 +17,13 @@ Deux façons de mesurer :
 |---|---|---|---|---|---|---|
 | v1, 4 canaux, tous les événements (3 graines) | 0.654 ± 0.014 | 0.745 ± 0.023 | 0.696 ± 0.002 | 0.674 ± 0.002 | 0.836 ± 0.014 | 0.736 ± 0.025 |
 | v1, pendant le sommeil (1 graine) | 0.660 | 0.764 | 0.708 | 0.684 | 0.865 | 0.757 |
-| **v2, pendant le sommeil** (3 graines) | 0.728 ± 0.013 | 0.725 ± 0.017 | 0.726 ± 0.003 | 0.712 ± 0.003 | 0.907 ± 0.007 | 0.704 ± 0.019 |
-| v2, tous les événements (3 graines) | 0.724 ± 0.015 | 0.691 ± 0.015 | 0.707 ± 0.002 | 0.689 ± 0.003 | 0.778 ± 0.015 | 0.680 ± 0.018 |
+| v2, pendant le sommeil (3 graines) | 0.728 ± 0.013 | 0.725 ± 0.017 | 0.726 ± 0.003 | 0.712 ± 0.003 | 0.907 ± 0.007 | 0.704 ± 0.019 |
+| **v3, pendant le sommeil** (3 graines) | 0.716 ± 0.017 | 0.755 ± 0.019 | 0.734 ± 0.003 | 0.720 ± 0.004 | 0.940 ± 0.007 | 0.735 ± 0.021 |
+| v3, tous les événements (3 graines) | 0.724 ± 0.007 | 0.693 ± 0.012 | 0.708 ± 0.003 | 0.691 ± 0.003 | 0.760 ± 0.021 | 0.686 ± 0.015 |
 
 v2 = v1 + un cinquième canal (la probabilité de sommeil prédite par le réseau de stades), une pondération des classes adoucie (racine carrée) et un gain aléatoire sur les capteurs à l'entraînement.
+
+v3 = v2, mais le sommeil prédit vient du nouveau réseau de stades, qui lit la nuit entière (encodeur + GRU) au lieu d'une époque à la fois. Rien d'autre ne change : l'écart v2 → v3 mesure ce que rapporte un meilleur hypnogramme.
 
 ## Ce qui a été essayé, et ce que ça a donné
 
@@ -45,6 +48,9 @@ Diagnostic de la v1 sur la validation : **47 % des fausses propositions commenç
 
 | Estimateur | Contre | Spearman | Erreur absolue médiane (/h) | Biais (/h) |
 |---|---|---|---|---|
+| Réseau v3, de bout en bout | index annoté | 0.822 ± 0.015 | 6.5 ± 0.7 | 0.8 ± 1.8 |
+| Réseau v3, de bout en bout | index clinique `ahi_a0h3a` | 0.840 ± 0.008 | 15.5 ± 1.6 | 17.1 ± 1.8 |
+| Réseau v3, de bout en bout | index clinique `ahi_a0h4` | 0.725 ± 0.020 | 24.2 ± 1.4 | 25.7 ± 1.8 |
 | Réseau v2, de bout en bout | index annoté | 0.834 ± 0.011 | 5.8 ± 0.3 | -0.7 ± 1.3 |
 | Réseau v2, de bout en bout | index clinique `ahi_a0h3a` | 0.863 ± 0.009 | 13.9 ± 1.2 | 15.7 ± 1.3 |
 | Réseau v2, de bout en bout | index clinique `ahi_a0h4` | 0.757 ± 0.018 | 23.3 ± 2.1 | 24.3 ± 1.3 |

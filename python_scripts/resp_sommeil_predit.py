@@ -32,20 +32,35 @@ from somnia.shhs_prepare import charger_nuit  # noqa: E402
 
 
 def main() -> int:
-    modele = CNN1D(5); modele.load_state_dict(torch.load(ROOT / "models/cnn/eeg_f1_s42.pt", map_location="cpu")); modele.eval()
-    T = json.loads((ROOT / "models/cnn/eeg_f1_s42.json").read_text(encoding="utf-8"))["calibration"]["temperature"]
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--modele", choices=["cnn", "seq"], default="cnn",
+                        help="cnn : réseau par époque ; seq : encodeur + lecture de la nuit (horizon 1.2)")
+    args = parser.parse_args()
+    nom = "eeg_f1_s42" if args.modele == "cnn" else "eeg_seq_s42"
+    suffixe = "_psommeil.npy" if args.modele == "cnn" else "_psommeil_seq.npy"
+    T = json.loads((ROOT / f"models/cnn/{nom}.json").read_text(encoding="utf-8"))["calibration"]["temperature"]
+    if args.modele == "cnn":
+        modele = CNN1D(5)
+    else:
+        from somnia.deep.seq import NuitEEG, ReseauSequence, predire_nuit
+        modele = ReseauSequence()
+    modele.load_state_dict(torch.load(ROOT / f"models/cnn/{nom}.pt", map_location="cpu")); modele.eval()
     nuits = nuits_retenues()
     for i, (pers, ident) in enumerate(sorted(nuits.items()), 1):
         eeg = charger_nuit(PROCESSED / f"{ident}.npz")["eeg"]
         with torch.no_grad():
-            lg = np.concatenate([modele(normaliser_lot(torch.from_numpy(eeg[k:k + 512]).unsqueeze(1))).numpy() / T
-                                 for k in range(0, len(eeg), 512)])
+            if args.modele == "cnn":
+                lg = np.concatenate([modele(normaliser_lot(torch.from_numpy(eeg[k:k + 512]).unsqueeze(1))).numpy() / T
+                                     for k in range(0, len(eeg), 512)])
+            else:
+                lg = predire_nuit(modele, NuitEEG(ident, pers, eeg.astype(np.float16), np.zeros(len(eeg), dtype=np.int64)), torch.device("cpu")) / T
         z = lg - lg.max(axis=1, keepdims=True); p = np.exp(z) / np.exp(z).sum(axis=1, keepdims=True)
         p_sommeil = 1.0 - p[:, 0]                                    # par époque
-        np.save(RESP_DIR / f"{ident}_psommeil.npy", np.repeat(p_sommeil, 30).astype(np.float16))
+        np.save(RESP_DIR / f"{ident}{suffixe}", np.repeat(p_sommeil, 30).astype(np.float16))
         if i % 50 == 0 or i == len(nuits):
             print(f"  {i}/{len(nuits)} nuits", flush=True)
-    print(f"→ {RESP_DIR}/*_psommeil.npy")
+    print(f"→ {RESP_DIR}/*{suffixe}")
     return 0
 
 

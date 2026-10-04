@@ -129,6 +129,27 @@ Conclusion, en cinq lignes :
    0,25 ± 0,12 de zéro contre 0,37 ± 0,08 pré-entraîné) ; à 10 % et 100 %, écart nul (0,58 contre 0,58,
    0,64 contre 0,64). Moyennes ± écart-type dans [docs/RESULTATS_CNN.md](docs/RESULTATS_CNN.md).
 
+### Lire la nuit entière : le modèle de séquence (octobre 2026)
+
+Un technicien ne score pas une époque seule : il regarde ce qui précède et ce qui suit. Le même
+encodeur par époque est donc surmonté d'une couche qui lit la suite des époques de la nuit dans
+les deux sens (GRU bidirectionnel, 95 000 paramètres en tout, entraîné sur des tranches de
+16 minutes, appliqué à la nuit entière). Validation, trois graines ; le test des stades, déjà
+ouvert une fois, n'est pas rouvert pour ce modèle.
+
+| Stades, validation SHHS | Une époque à la fois | **Avec la nuit en contexte** |
+|---|---|---|
+| Exactitude | 0,73 | **0,78 ± 0,01** |
+| Kappa | 0,64 | **0,71 ± 0,01** |
+| F1 du N1 | 0,28 | **0,42** |
+| F1 du REM | 0,72 | **0,84** |
+| Kappa par nuit, médiane (quartiles) | — | 0,71 (0,65–0,81) |
+| Accord éveil / sommeil | 91 % | 92 à 93 % |
+| Erreur de calibration (ECE) après température | 0,05 | 0,02 |
+
+C'est le plus gros gain du projet à données constantes (+0,07 de kappa), obtenu sans une nuit
+de plus. Le N1 reste le stade le plus difficile, comme pour les scoreurs humains.
+
 ### Détection d'événements respiratoires (octobre 2026)
 
 Ce qui prend du temps à un lecteur de polysomnographie, ce sont les événements respiratoires :
@@ -141,11 +162,11 @@ validation seulement. Détail : [docs/RESULTATS_EVENEMENTS.md](docs/RESULTATS_EV
 
 | Mesure (validation, 40 personnes, 3 graines, de bout en bout) | Résultat |
 |---|---|
-| Événements retrouvés (rappel) | 0,73 ± 0,02 ; apnées 0,91, hypopnées 0,70 |
-| Événements proposés qui sont justes (précision) | 0,73 ± 0,01 |
-| F1 par événement, tout recouvrement / bornes exigeantes (IoU ≥ 0,3) | 0,73 / 0,71 |
-| Index par personne contre l'index annoté | Spearman 0,83 ; erreur médiane 6 événements / h ; biais nul |
-| Index par personne contre l'index clinique à 3 % | Spearman 0,86 |
+| Événements retrouvés (rappel) | 0,76 ± 0,02 ; apnées 0,94, hypopnées 0,74 |
+| Événements proposés qui sont justes (précision) | 0,72 ± 0,02 |
+| F1 par événement, tout recouvrement / bornes exigeantes (IoU ≥ 0,3) | 0,73 / 0,72 |
+| Index par personne contre l'index annoté | Spearman 0,82 ; erreur médiane 6 événements / h ; biais nul |
+| Index par personne contre l'index clinique à 3 % | Spearman 0,84 |
 | Référence simple : désaturations ≥ 4 % par heure, contre l'index clinique à 4 % | Spearman 0,92 ; erreur médiane 1,9 / h |
 
 « De bout en bout » : la référence est l'ensemble des événements que le technicien a marqués
@@ -161,7 +182,8 @@ pondération des classes adoucie. Six expériences comparées sur la validation 
 - la courbe d'apprentissage est plate : un quart des nuits donne presque le même score, donc
   plus de nuits du même type n'aideraient pas ;
 - avec le sommeil du technicien à la place du sommeil prédit, le même réseau atteindrait 0,77 :
-  le prochain gain est dans le réseau de stades, pas dans celui des événements.
+  le prochain gain était dans le réseau de stades. La version 3 reçoit le sommeil prédit par le
+  modèle de séquence : F1 0,726 → 0,734, rappel des apnées 0,91 → 0,94.
 
 Deux lectures. Pour **estimer l'index clinique**, compter les désaturations suffit presque : c'est
 une référence simple, et elle est très forte. Ce que le réseau apporte, c'est la **position de
@@ -193,23 +215,22 @@ SHHS (agrégats seulement ; le détail d'une nuit reste hors dépôt) :
 
 | Par nuit de validation (événements du technicien pendant le sommeil) | |
 |---|---|
-| Déjà placés dans une proposition « sûre » | 52 % |
+| Déjà placés dans une proposition « sûre » | 54 % |
 | ... dans une proposition « à relire » | 21 % |
 | ... signalés comme « possibles » | 7 % |
-| ... signalés nulle part, à trouver par le lecteur | 21 % |
-| Précision des propositions sûres (confiance ≥ 0,85) / à relire | **91 %** / 57 % |
-| Précision si on exige une confiance ≥ 0,90 / ≥ 0,95 | 96 % / 98 % |
-| Index de bout en bout contre l'index annoté | Spearman 0,82, erreur médiane 5 / h, biais nul |
-| Signal à relire, stades et événements réunis | 50 % de la nuit |
+| ... signalés nulle part, à trouver par le lecteur | 18 % |
+| Précision des propositions sûres (confiance ≥ 0,85) / à relire | **91 %** / 59 % |
+| Précision si on exige une confiance ≥ 0,90 / ≥ 0,95 | 95 % / 97 % |
+| Époques dont le stade est à relire | 15 % |
+| Index de bout en bout contre l'index annoté | Spearman 0,82, erreur médiane 6 / h, biais nul |
+| Signal à relire, stades et événements réunis | **37 % de la nuit** (195 min sur 510) |
 
-Lecture honnête. Avec plus de 200 événements par nuit, trier par incertitude **économise peu de
-signal** : la moitié de la nuit reste à regarder. Le gain possible est dans le pré-marquage :
-une proposition « sûre » est juste neuf fois sur dix, et la confiance trie bien (de 78 % à 98 %
-selon l'exigence). En contrepartie, un événement sur cinq n'est signalé nulle part, souvent
-parce que le réseau de stades a cru le patient éveillé : c'est le prix de la précision, et la
-raison pour laquelle le prochain chantier est la séparation éveil / sommeil. Valider un
-événement pré-marqué va plus vite que le chercher et le marquer ; de combien, seul un
-chronomètre avec un lecteur le dira.
+Lecture honnête. Trois versions successives ont fait passer la part de signal à relire de 63 %
+à 50 % puis 37 % : d'abord en ne proposant que pendant le sommeil prédit, puis en lisant la nuit
+entière pour les stades. Une proposition « sûre » est juste neuf fois sur dix et la confiance
+trie bien (de 78 % à 97 % selon l'exigence). Il reste qu'un événement sur six n'est signalé
+nulle part, et que tout ceci est une durée de signal : valider un événement pré-marqué va plus
+vite que le chercher et le marquer, mais de combien, seul un chronomètre avec un lecteur le dira.
 
 ### Le test SHHS, ouvert une seule fois
 

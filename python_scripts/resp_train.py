@@ -100,6 +100,7 @@ def main() -> int:
     parser.add_argument("--blocs", type=int, default=6, help="nombre de blocs dilatés (dilatations 1, 2, 4, ... )")
     parser.add_argument("--poids", choices=["equilibre", "racine", "aucun"], default="equilibre")
     parser.add_argument("--fraction", type=float, default=1.0, help="fraction des nuits d'entraînement (courbe d'apprentissage)")
+    parser.add_argument("--sommeil", choices=["cnn", "seq"], default="cnn", help="réseau de stades qui fournit le sommeil prédit")
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     cov = covariables()
@@ -109,7 +110,7 @@ def main() -> int:
         print(msg, flush=True); lignes.append(msg)
 
     t0 = time.time()
-    val = charger_nuits(personnes_du_split("val"))
+    val = charger_nuits(personnes_du_split("val"), sommeil=args.sommeil)
     journal(f"validation : {len(val)} nuits, {sum(n.n_sec for n in val) / 3600:.0f} h")
 
     if args.baseline:
@@ -122,7 +123,7 @@ def main() -> int:
     fixer_graines(args.seed)
     dev = appareil()
     from somnia.deep.data import sous_ensemble_de_personnes
-    train = charger_nuits(sous_ensemble_de_personnes(personnes_du_split("train"), args.fraction, args.seed))
+    train = charger_nuits(sous_ensemble_de_personnes(personnes_du_split("train"), args.fraction, args.seed), sommeil=args.sommeil)
     journal(f"entraînement : {len(train)} nuits, {sum(n.n_sec for n in train) / 3600:.0f} h, chargées en {time.time() - t0:.0f} s")
     canaux = 5 if args.canal_sommeil else 4
     dilatations = tuple(2 ** (i % 6) for i in range(args.blocs))
@@ -207,7 +208,7 @@ def main() -> int:
     rapport = {"nom": nom, "graine": args.seed, "date": datetime.now().isoformat(timespec="minutes"), "appareil": dev.type,
                "n_nuits_train": len(train), "n_nuits_val": len(val), "parametres": n_parametres(modele),
                "seuil_evenement": SEUIL_EVENEMENT,
-               "config": {"canal_sommeil": args.canal_sommeil, "largeur": args.largeur, "blocs": args.blocs, "poids": args.poids,
+               "config": {"sommeil": args.sommeil, "canal_sommeil": args.canal_sommeil, "largeur": args.largeur, "blocs": args.blocs, "poids": args.poids,
                           "fraction": args.fraction},
                "validation_pendant_le_sommeil": ms,
                "meilleure_epoque": meilleure_epoque, "historique": historique, "validation": m,

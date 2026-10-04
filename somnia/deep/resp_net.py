@@ -58,7 +58,8 @@ def nuits_retenues(dossier: Path = RESP_DIR) -> dict[str, str]:
         return {r["personne"]: r["enregistrement"] for r in csv.DictReader(f) if r["exclue"] != "True"}
 
 
-def charger_nuits(personnes: list[str], dossier: Path = RESP_DIR) -> list[NuitResp]:
+def charger_nuits(personnes: list[str], dossier: Path = RESP_DIR, sommeil: str = "cnn") -> list[NuitResp]:
+    """`sommeil` : quel réseau de stades fournit le sommeil prédit ("cnn" par époque, "seq" lecture de la nuit)."""
     dispo = nuits_retenues(dossier)
     nuits = []
     for p in sorted(personnes):
@@ -66,7 +67,7 @@ def charger_nuits(personnes: list[str], dossier: Path = RESP_DIR) -> list[NuitRe
             continue
         with np.load(dossier / f"{dispo[p]}.npz", allow_pickle=False) as d:
             nuit = NuitResp(dispo[p], p, d["signaux"].astype(np.float32), d["y"].astype(np.int8), d["stades"].astype(np.int8))
-        chemin = dossier / f"{dispo[p]}_psommeil.npy"
+        chemin = dossier / (f"{dispo[p]}_psommeil.npy" if sommeil == "cnn" else f"{dispo[p]}_psommeil_{sommeil}.npy")
         if chemin.exists():
             ps = np.load(chemin).astype(np.float32)[: nuit.n_sec]
             nuit.p_sommeil = np.concatenate([ps, np.zeros(nuit.n_sec - len(ps), dtype=np.float32)]) if len(ps) < nuit.n_sec else ps

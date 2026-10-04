@@ -1,0 +1,202 @@
+{
+  "nom": "eeg_seq_s2",
+  "tache": "eeg",
+  "fraction": 1.0,
+  "graine": 2,
+  "variante": "CNN + séquence sur la nuit (bi-GRU)",
+  "date": "2026-10-04T17:23",
+  "appareil": "mps",
+  "n_personnes_train": 192,
+  "n_exemples_train": 192298,
+  "n_personnes_val": 40,
+  "n_exemples_val": 40020,
+  "meilleure_epoque": 2,
+  "historique": [
+    {
+      "epoque": 1,
+      "perte_train": 0.6666543326624061,
+      "perte_val": NaN,
+      "score_val": 0.6633709930355853,
+      "duree_s": 19.7,
+      "accuracy": 0.7439030484757622,
+      "f1_macro": 0.6920978943499909,
+      "f1_weighted": 0.7561038909933733,
+      "kappa": 0.6633709930355853,
+      "f1_Wake": 0.8385590698951801,
+      "f1_N1": 0.36460481099656356,
+      "f1_N2": 0.730844793713163,
+      "f1_N3": 0.7010158472165786,
+      "f1_REM": 0.8254649499284692,
+      "accord_eveil_sommeil": 0.9118690654672663
+    },
+    {
+      "epoque": 2,
+      "perte_train": 0.5989073838876642,
+      "perte_val": NaN,
+      "score_val": 0.6985341197597075,
+      "duree_s": 18.4,
+      "accuracy": 0.7749625187406297,
+      "f1_macro": 0.717438935918372,
+      "f1_weighted": 0.7813730199462989,
+      "kappa": 0.6985341197597075,
+      "f1_Wake": 0.8514157303370786,
+      "f1_N1": 0.41893339044763334,
+      "f1_N2": 0.7730685395979656,
+      "f1_N3": 0.7180124223602484,
+      "f1_REM": 0.8257645968489342,
+      "accord_eveil_sommeil": 0.9173913043478261
+    },
+    {
+      "epoque": 3,
+      "perte_train": 0.5749420030042529,
+      "perte_val": NaN,
+      "score_val": 0.6646560078498176,
+      "duree_s": 21.2,
+      "accuracy": 0.7453523238380809,
+      "f1_macro": 0.6959598787177973,
+      "f1_weighted": 0.7568209833411295,
+      "kappa": 0.6646560078498176,
+      "f1_Wake": 0.8426711154363038,
+      "f1_N1": 0.3879465896788163,
+      "f1_N2": 0.7297034341104826,
+      "f1_N3": 0.6896284829721362,
+      "f1_REM": 0.8298497713912476,
+      "accord_eveil_sommeil": 0.915167416291854
+    },
+    {
+      "epoque": 4,
+      "perte_train": 0.5601595250241782,
+      "perte_val": NaN,
+      "score_val": 0.6651042267489077,
+      "duree_s": 18.4,
+      "accuracy": 0.744127936031984,
+      "f1_macro": 0.6932295921271929,
+      "f1_weighted": 0.7504328533191609,
+      "kappa": 0.6651042267489077,
+      "f1_Wake": 0.8620689655172413,
+      "f1_N1": 0.3932694189004109,
+      "f1_N2": 0.7060281690140845,
+      "f1_N3": 0.682089665079005,
+      "f1_REM": 0.8226917421252226,
+      "accord_eveil_sommeil": 0.9236381809095452
+    },
+    {
+      "epoque": 5,
+      "perte_train": 0.5496386126007723,
+      "perte_val": NaN,
+      "score_val": 0.6915410022463346,
+      "duree_s": 18.2,
+      "accuracy": 0.7679410294852573,
+      "f1_macro": 0.7096659326196256,
+      "f1_weighted": 0.7759064393101432,
+      "kappa": 0.6915410022463346,
+      "f1_Wake": 0.8696809690730798,
+      "f1_N1": 0.375,
+      "f1_N2": 0.7479200739529261,
+      "f1_N3": 0.7223304409420932,
+      "f1_REM": 0.8333981791300288,
+      "accord_eveil_sommeil": 0.9266116941529235
+    },
+    {
+      "epoque": 6,
+      "perte_train": 0.5500351371972457,
+      "perte_val": NaN,
+      "score_val": 0.6942646647397204,
+      "duree_s": 17.9,
+      "accuracy": 0.7721639180409795,
+      "f1_macro": 0.7146538614393674,
+      "f1_weighted": 0.7810308301409099,
+      "kappa": 0.6942646647397204,
+      "f1_Wake": 0.8554434506763008,
+      "f1_N1": 0.393792071802543,
+      "f1_N2": 0.7679829535690965,
+      "f1_N3": 0.727450024378352,
+      "f1_REM": 0.8286008067705449,
+      "accord_eveil_sommeil": 0.918015992003998
+    }
+  ],
+  "validation": {
+    "accuracy": 0.7749625187406297,
+    "f1_macro": 0.717438935918372,
+    "f1_weighted": 0.7813730199462989,
+    "kappa": 0.6985341197597075,
+    "f1_Wake": 0.8514157303370786,
+    "f1_N1": 0.41893339044763334,
+    "f1_N2": 0.7730685395979656,
+    "f1_N3": 0.7180124223602484,
+    "f1_REM": 0.8257645968489342
+  },
+  "eveil_sommeil": {
+    "accord": 0.9173913043478261,
+    "sensibilite_eveil": 0.875982613520762,
+    "specificite_eveil": 0.9327216078337385
+  },
+  "kappa_par_nuit": {
+    "mediane": 0.7121402108878658,
+    "q1": 0.6497821192919555,
+    "q3": 0.821271451510581,
+    "min": 0.07811011539755985
+  },
+  "calibration": {
+    "ece_avant": 0.038032519844009786,
+    "ece_apres": 0.020930884403260568,
+    "temperature": 1.1644688114962731,
+    "n_personnes_val": 40
+  },
+  "couverture": [
+    {
+      "couverture": 1.0,
+      "n": 40020,
+      "seuil_confiance": 0.25580668449401855,
+      "accuracy": 0.7749625187406297,
+      "kappa": 0.6985341197597075
+    },
+    {
+      "couverture": 0.9,
+      "n": 36018,
+      "seuil_confiance": 0.524976909160614,
+      "accuracy": 0.8152312732522627,
+      "kappa": 0.7518467375949427
+    },
+    {
+      "couverture": 0.8,
+      "n": 32016,
+      "seuil_confiance": 0.6348621845245361,
+      "accuracy": 0.8498563218390804,
+      "kappa": 0.7979384365102448
+    },
+    {
+      "couverture": 0.7,
+      "n": 28014,
+      "seuil_confiance": 0.7351965308189392,
+      "accuracy": 0.8801670593274791,
+      "kappa": 0.8381252236293121
+    },
+    {
+      "couverture": 0.5,
+      "n": 20010,
+      "seuil_confiance": 0.880625307559967,
+      "accuracy": 0.923088455772114,
+      "kappa": 0.8938276735155598
+    }
+  ],
+  "par_personne": null,
+  "config": {
+    "longueur": 32,
+    "init_encodeur": true
+  },
+  "duree_min": 2.2,
+  "journal": [
+    "[eeg_seq_s2] entraînement : 192 nuits, 192,298 époques, chargées en 7 s",
+    "encodeur initialisé depuis eeg_f1_s42.pt",
+    "appareil mps | 94,741 paramètres | tranches de 32 époques",
+    "validation : 40 nuits, 40,020 époques",
+    "époque  1 | perte 0.6667 | val : kappa 0.6634, exactitude 0.744, F1 N1 0.365, éveil/sommeil 0.912 | 20 s",
+    "époque  2 | perte 0.5989 | val : kappa 0.6985, exactitude 0.775, F1 N1 0.419, éveil/sommeil 0.917 | 18 s",
+    "époque  3 | perte 0.5749 | val : kappa 0.6647, exactitude 0.745, F1 N1 0.388, éveil/sommeil 0.915 | 21 s",
+    "époque  4 | perte 0.5602 | val : kappa 0.6651, exactitude 0.744, F1 N1 0.393, éveil/sommeil 0.924 | 18 s",
+    "époque  5 | perte 0.5496 | val : kappa 0.6915, exactitude 0.768, F1 N1 0.375, éveil/sommeil 0.927 | 18 s",
+    "époque  6 | perte 0.5500 | val : kappa 0.6943, exactitude 0.772, F1 N1 0.394, éveil/sommeil 0.918 | 18 s",
+    "arrêt anticipé"
+  ]
+}

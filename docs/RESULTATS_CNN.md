@@ -1,6 +1,6 @@
 # Résultats — réseaux convolutifs (étape 4)
 
-*Généré le 2026-10-03 par `python_scripts/cnn_report.py`. Validation SHHS uniquement (40 personnes) : le test a été ouvert une seule fois à la fin (`docs/RESULTATS_TEST.md`). Quand plusieurs graines existent, moyenne ± écart-type.*
+*Généré le 2026-10-04 par `python_scripts/cnn_report.py`. Validation SHHS uniquement (40 personnes) : le test a été ouvert une seule fois à la fin (`docs/RESULTATS_TEST.md`). Quand plusieurs graines existent, moyenne ± écart-type.*
 
 ## Stades de sommeil (EEG, époques de 30 s)
 
@@ -17,6 +17,7 @@
 | CNN 1D, pré-entraîné, affiné | 192 (100%) | 192,291 | 9 (3 graines) | 0.728 ± 0.014 | 0.638 ± 0.020 | 0.657 ± 0.014 | 0.273 ± 0.010 | 0.051 → 0.076 | 2.1 min |
 | CNN 1D, pré-entraîné, affiné | 19 (10%) | 19,033 | 8 (3 graines) | 0.686 ± 0.006 | 0.581 ± 0.011 | 0.612 ± 0.009 | 0.230 ± 0.005 | 0.067 → 0.115 | 0.4 min |
 | CNN 1D, pré-entraîné, affiné | 2 (1%) | 1,965 | 10 (3 graines) | 0.525 ± 0.088 | 0.369 ± 0.077 | 0.425 ± 0.082 | 0.104 ± 0.074 | 0.101 → 0.190 | 0.2 min |
+| CNN 1D, CNN + séquence sur la nuit (bi-GRU) | 192 (100%) | 192,298 | 5 (3 graines) | 0.782 ± 0.009 | 0.708 ± 0.011 | 0.724 ± 0.009 | 0.416 ± 0.013 | 0.048 → 0.022 | 3.5 min |
 
 Courbe précision / couverture (modèle à 100 %) : on ne classe que les époques les plus sûres.
 

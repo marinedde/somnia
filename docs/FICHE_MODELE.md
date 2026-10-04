@@ -46,6 +46,8 @@ fibrillation auriculaire, maladies neurologiques, enregistrements de laboratoire
 |---|---|---|---|
 | Stades | Random Forest | exactitude / kappa | 0,70 / 0,60 |
 | Stades | réseau convolutif | exactitude / kappa | 0,73 / 0,64 |
+| Stades | réseau convolutif + lecture de la nuit (séquence) | exactitude / kappa | 0,78 / 0,71 (validation ; test non rouvert) |
+| Événements respiratoires | réseau sur flux, ceintures, saturation | F1 par événement, de bout en bout | 0,73 ; propositions sûres justes à 91 % ; 18 % d'événements non signalés |
 | Stades | réseau convolutif, externe sur une nuit Sleep-EDF | exactitude / kappa | 0,65 / 0,54 |
 | Stades | Random Forest, externe sur Sleep-EDF | exactitude / kappa | 0,55 / 0,40 |
 | Apnée | Random Forest | AUC-ROC / aire précision-rappel | 0,65 / 0,56 |
